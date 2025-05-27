@@ -17,17 +17,87 @@ define('PS_VERSION', '1.0.0');
 define('PS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('PS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('PS_AFFILIATE_ID', 'primatessho0c-20');
+// Define a base for Decodo username if it's not set in wp-config.php or elsewhere
+if (!defined('PS_DECODO_USER_BASE')) {
+    define('PS_DECODO_USER_BASE', 'user-sptlq8hpk0');
+}
+if (!defined('PS_DECODO_PASSWORD')) {
+    define('PS_DECODO_PASSWORD', 'c=mKkGh1o3lCd3Shm1'); // Example, should be in wp-config.php
+}
+if (!defined('PS_DECODO_PROXY_HOST')) {
+    define('PS_DECODO_PROXY_HOST', 'gate.decodo.com');
+}
+if (!defined('PS_DECODO_PROXY_PORT')) {
+    define('PS_DECODO_PROXY_PORT', 7000);
+}
 
 // Include required files
 require_once PS_PLUGIN_DIR . 'includes/amazon-api.php';
 require_once PS_PLUGIN_DIR . 'includes/settings.php';
+require_once PS_PLUGIN_DIR . 'includes/ps-cache-check.php'; // Add our new cache check file
+require_once PS_PLUGIN_DIR . 'includes/parsing-test.php'; // Include parsing test functionality
 
 // Ensure the table exists with the correct structure
-ps_create_cache_table();
+// ps_create_cache_table(); // Removed direct call
 
 // Register activation and deactivation hooks
 register_activation_hook(__FILE__, 'ps_activate');
 register_deactivation_hook(__FILE__, 'ps_deactivate');
+
+/**
+ * Update table structure to add user_id column
+ */
+function ps_update_table_structure() {
+    // Check if user is admin
+    if (!current_user_can('manage_options')) {
+        wp_die('You do not have sufficient permissions to access this page.');
+    }
+    
+    // Check if we have a valid nonce
+    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'ps_update_table_structure')) {
+        wp_die('Security check failed.');
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    $message = '';
+    
+    // Check if the table exists
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+    if (!$table_exists) {
+        // ps_log_error("Cache table doesn't exist, creating it with user_id column");
+        ps_force_rebuild_table();
+        $message = "Cache table created with user_id column.";
+    } else {
+        // Check if user_id column exists
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_name LIKE 'user_id'");
+        
+        if (empty($column_exists)) {
+            // ps_log_error("Adding user_id column to cache table");
+            
+            // Add the user_id column
+            $wpdb->query("ALTER TABLE $table_name ADD COLUMN user_id varchar(50) DEFAULT NULL");
+            
+            // Add index on user_id
+            $wpdb->query("ALTER TABLE $table_name ADD INDEX user_id (user_id)");
+            
+            if ($wpdb->last_error) {
+                // ps_log_error("Error adding user_id column: " . $wpdb->last_error);
+                $message = "Error adding user_id column: " . $wpdb->last_error;
+            } else {
+                // ps_log_error("Successfully added user_id column");
+                $message = "Successfully added user_id column to cache table.";
+            }
+        } else {
+            // ps_log_error("user_id column already exists");
+            $message = "The user_id column already exists in the cache table.";
+        }
+    }
+    
+    // Redirect back to the settings page with a message
+    wp_redirect(add_query_arg('ps_message', urlencode($message), admin_url('options-general.php?page=primates-shoppers')));
+    exit;
+}
 
 /**
  * Force database update
@@ -49,7 +119,7 @@ function ps_force_update_db() {
     
     if ($force_rebuild) {
         // If forced, do a complete rebuild
-        ps_log_error("Admin requested force rebuild of cache table");
+        // ps_log_error("Admin requested force rebuild of cache table");
         ps_force_rebuild_table();
     } else {
         // First try to update normally
@@ -65,14 +135,14 @@ function ps_force_update_db() {
             
             // If expires_at still doesn't exist, advise admin to use force rebuild
             if (!in_array('expires_at', $column_names)) {
-                ps_log_error("Normal table update failed to add expires_at column");
+                // ps_log_error("Normal table update failed to add expires_at column");
                 // Redirect to page with error and force rebuild option
                 wp_redirect(admin_url('options-general.php?page=primates-shoppers&update_failed=1'));
                 exit;
             }
         } else {
             // Table doesn't exist, create it
-            ps_log_error("Cache table doesn't exist, creating it");
+            // ps_log_error("Cache table doesn't exist, creating it");
             ps_force_rebuild_table();
         }
     }
@@ -86,8 +156,12 @@ function ps_force_update_db() {
  * Add admin handler for database update
  */
 add_action('admin_init', function() {
-    if (isset($_GET['action']) && $_GET['action'] === 'ps_force_update_db') {
+    if (isset($_GET['action'])) {
+        if ($_GET['action'] === 'ps_force_update_db') {
         ps_force_update_db();
+        } elseif ($_GET['action'] === 'ps_update_table_structure') {
+            ps_update_table_structure();
+        }
     }
 });
 
@@ -97,18 +171,22 @@ add_action('admin_init', function() {
 function ps_activate() {
     // Create default settings
     add_option('ps_settings', array(
-        'amazon_associate_tag' => PS_AFFILIATE_ID,
-        'cache_duration' => 3600, // 1 hour
+        'amazon_associate_tag' => PS_AFFILIATE_ID, // CA tag
+        'amazon_associate_tag_us' => 'primatesshopp-20', // US tag
     ));
     
-    // Create cache table
-    ps_create_cache_table();
+    // Create cache table with updated structure
+    ps_create_cache_table(); // Ensure table exists on activation
+    ps_force_rebuild_table(); // Use force rebuild to ensure the table has the latest structure
     
     // Create logs directory
     $logs_dir = PS_PLUGIN_DIR . 'logs';
     if (!file_exists($logs_dir)) {
         mkdir($logs_dir, 0755, true);
     }
+    
+    // Log activation
+    // ps_log_error("Plugin activated. Cache table created with user_id column.");
 }
 
 /**
@@ -117,6 +195,15 @@ function ps_activate() {
 function ps_deactivate() {
     // Cleanup if needed
 }
+
+/**
+ * Ensure the cache table exists when the plugin is loaded.
+ * This is a fallback for ps_activate() in case of manual plugin installation or other edge cases.
+ */
+function ps_ensure_table_exists_on_load() {
+    ps_create_cache_table();
+}
+add_action('plugins_loaded', 'ps_ensure_table_exists_on_load');
 
 /**
  * Create cache table for storing search results
@@ -136,7 +223,7 @@ function ps_create_cache_table() {
     
     // Only log the action on admin pages to reduce log spam
     if (is_admin()) {
-        ps_log_error("Checking cache table structure");
+        // if (is_admin() && $debug) { ps_log_error("Checking cache table structure"); }
     }
     
     $sql = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -146,9 +233,11 @@ function ps_create_cache_table() {
         results longtext NOT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
         expires_at datetime DEFAULT NULL,
+        user_id varchar(50) DEFAULT NULL,
         PRIMARY KEY  (id),
         KEY query_hash (query_hash),
-        KEY expires_at (expires_at)
+        KEY expires_at (expires_at),
+        KEY user_id (user_id)
     ) $charset_collate;";
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -168,30 +257,30 @@ function ps_create_cache_table() {
         $column_names = array_map(function($col) { return $col->Field; }, $columns);
         
         if ($debug) {
-            ps_log_error("Current table columns: " . implode(', ', $column_names));
+            // if (is_admin() && $debug) { ps_log_error("Current table columns: " . implode(', ', $column_names)); }
         }
         
         if (!in_array('expires_at', $column_names)) {
-            ps_log_error("expires_at column not found, adding it directly");
+            // ps_log_error("expires_at column not found, adding it directly");
             
             $alter_result = $wpdb->query("ALTER TABLE $table_name ADD COLUMN expires_at datetime DEFAULT NULL");
             if ($alter_result === false) {
-                ps_log_error("Error adding expires_at column: " . $wpdb->last_error);
+                // ps_log_error("Error adding expires_at column: " . $wpdb->last_error);
             } else {
-                ps_log_error("Successfully added expires_at column");
+                // ps_log_error("Successfully added expires_at column");
                 
                 $index_result = $wpdb->query("ALTER TABLE $table_name ADD INDEX expires_at (expires_at)");
                 if ($index_result === false) {
-                    ps_log_error("Error adding expires_at index: " . $wpdb->last_error);
+                    // ps_log_error("Error adding expires_at index: " . $wpdb->last_error);
                 } else {
-                    ps_log_error("Successfully added expires_at index");
+                    // ps_log_error("Successfully added expires_at index");
                 }
             }
         } else if ($debug) {
-            ps_log_error("expires_at column already exists");
+            // ps_log_error("expires_at column already exists");
         }
     } else if ($debug) {
-        ps_log_error("Error checking table columns: " . $wpdb->last_error);
+        // ps_log_error("Error checking table columns: " . $wpdb->last_error);
     }
 }
 
@@ -206,7 +295,7 @@ function ps_force_rebuild_table() {
     $charset_collate = $wpdb->get_charset_collate();
     
     // Log the action
-    ps_log_error("Force rebuilding cache table (dropping existing table)");
+    // ps_log_error("Force rebuilding cache table (dropping existing table)");
     
     // Drop the table first
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
@@ -219,9 +308,11 @@ function ps_force_rebuild_table() {
         results longtext NOT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
         expires_at datetime DEFAULT NULL,
+        user_id varchar(50) DEFAULT NULL,
         PRIMARY KEY  (id),
         KEY query_hash (query_hash),
-        KEY expires_at (expires_at)
+        KEY expires_at (expires_at),
+        KEY user_id (user_id)
     ) $charset_collate;";
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -231,10 +322,10 @@ function ps_force_rebuild_table() {
     $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
     if ($columns) {
         $column_names = array_map(function($col) { return $col->Field; }, $columns);
-        ps_log_error("Table rebuilt. Columns: " . implode(', ', $column_names));
+        // ps_log_error("Table rebuilt. Columns: " . implode(', ', $column_names));
         return true;
     } else {
-        ps_log_error("Failed to rebuild table: " . $wpdb->last_error);
+        // ps_log_error("Failed to rebuild table: " . $wpdb->last_error);
         return false;
     }
 }
@@ -244,7 +335,7 @@ function ps_force_rebuild_table() {
  * Can be called from admin or automatically when errors are detected
  */
 function ps_fix_database() {
-    ps_log_error("Running database fix function");
+    // ps_log_error("Running database fix function");
     return ps_force_rebuild_table();
 }
 
@@ -252,25 +343,37 @@ function ps_fix_database() {
  * Enqueue scripts and styles
  */
 function ps_enqueue_scripts() {
-    // Add timestamp to version to break cache
-    $cache_buster = PS_VERSION . '.' . time();
+    $version = '1.0.0.' . time(); // Use timestamp for cache busting during development
     
-    wp_enqueue_style('ps-styles', PS_PLUGIN_URL . 'assets/css/style.css', array(), $cache_buster);
-    wp_enqueue_script('ps-search', PS_PLUGIN_URL . 'assets/js/search.js', array('jquery'), $cache_buster, true);
+    // Enqueue the main search script
+    wp_enqueue_script(
+        'ps-search-js',
+        plugins_url('assets/js/search.js', __FILE__),
+        array('jquery'),
+        $version,
+        true
+    );
     
-    // Pass variables to script
-    wp_localize_script('ps-search', 'psData', array(
+    // Enqueue the CSS styles for frontend
+    wp_enqueue_style(
+        'ps-style',
+        plugins_url('assets/css/style.css', __FILE__),
+        array(),
+        $version
+    );
+    
+    // Pass AJAX URL and nonce to JavaScript
+    wp_localize_script(
+        'ps-search-js',
+        'psData',
+        array(
         'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('ps-search-nonce')
-    ));
-
-    // Enqueue and localize the simple AJAX test script
-    wp_enqueue_script('ps-simple-test-script', PS_PLUGIN_URL . 'assets/js/simple-ajax-test.js', array('jquery'), PS_VERSION, true);
-    wp_localize_script('ps-simple-test-script', 'psSimpleTestData', array(
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce'   => wp_create_nonce('ps-simple-test-nonce'),
-        'test_action' => 'ps_simple_ajax_test'
-    ));
+            'nonce'   => wp_create_nonce('ps-search-nonce'),
+            'siteurl' => site_url(),
+            'homeurl' => home_url(),
+            'debug'   => defined('WP_DEBUG') && WP_DEBUG
+        )
+    );
 }
 add_action('wp_enqueue_scripts', 'ps_enqueue_scripts');
 
@@ -304,7 +407,7 @@ function ps_ajax_search() {
     // Set time limit to prevent timeouts
     set_time_limit(60);
     
-    // Verify nonce
+    // Verify nonce - use check_ajax_referer as it's more robust
     check_ajax_referer('ps-search-nonce', 'nonce');
 
     // Start timing the request
@@ -316,124 +419,131 @@ function ps_ajax_search() {
     $search_query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
     $exclude_keywords = isset($_POST['exclude']) ? sanitize_text_field($_POST['exclude']) : '';
     $sort_by = isset($_POST['sort_by']) ? sanitize_text_field($_POST['sort_by']) : 'price';
+    $min_rating = isset($_POST['min_rating']) ? floatval($_POST['min_rating']) : 4.0;
+    $country = isset($_POST['country']) ? sanitize_text_field($_POST['country']) : 'us';
+    $filter_cached = isset($_POST['filter_cached']) && $_POST['filter_cached'] === 'true';
+    $user_id = ps_get_user_identifier();
     
     // Log the request
-    ps_log_error("AJAX Search Request - Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}'");
+    ps_log_error("AJAX Search Request - User: {$user_id}, Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}', Min Rating: '{$min_rating}', Country: '{$country}', Filter Cached: " . ($filter_cached ? 'true' : 'false'));
     
-    try {
-        // Set a smaller output buffer to prevent large responses
-        if (ob_get_level()) ob_end_clean();
-        ob_start();
-    
-    // Check cache first
-    $cached_results = ps_get_cached_results($search_query, $exclude_keywords, $sort_by);
-    
-    if ($cached_results !== false) {
-            ps_log_error("Cache hit for query '{$search_query}' - Found cached results");
-            
-            // Prepare minimal response
-            $processed_file_info = isset($cached_results['data_source']) ? $cached_results['data_source'] : (isset($cached_results['debug_file']) ? 'Error: ' . $cached_results['debug_file'] : 'N/A');
-            $minimal_response = array(
-                'success' => isset($cached_results['success']) ? $cached_results['success'] : true,
-                'message' => isset($cached_results['message']) ? $cached_results['message'] : '',
+    // If this is a page refresh (filter_cached true and query is empty), fetch the most recent cache entry for the user, regardless of query/country
+    if ($filter_cached && $search_query === '') {
+        // ps_log_error("Page refresh detected for user {$user_id}. Looking up most recent cache entry.");
+        $cached_data = ps_get_most_recent_user_cache($user_id, true); // pass true for logging
+        if ($cached_data) {
+            // ps_log_error("Page refresh: Found cached entry for user {$user_id} with query: '" . ($cached_data['query'] ?? '') . "', country: '" . ($cached_data['country_code'] ?? '') . "'. Returning cached results.");
+            wp_send_json_success($cached_data);
+            return;
+        } else {
+            // ps_log_error("Page refresh: No cached entry found for user {$user_id}.");
+            // No cached results found, return empty response
+            ps_send_ajax_response(array(
+                'success' => true,
                 'items' => array(),
                 'count' => 0,
-                'source' => 'cache',
-                'timing' => round((microtime(true) - $start_time) * 1000) . 'ms',
-                'processed_file' => $processed_file_info
-            );
-            
-            // If the cached result has products, add up to 10
-            if (isset($cached_results['items']) && is_array($cached_results['items'])) {
-                $minimal_response['items'] = array_slice($cached_results['items'], 0, 10);
-                $minimal_response['count'] = count($minimal_response['items']);
-                
-                if (count($cached_results['items']) > 10) {
-                    $minimal_response['truncated'] = true;
-                    ps_log_error("Truncated cached results to 10 items to reduce response size");
-                }
-            }
-            
-            // Return the minimal response
-            ps_send_ajax_response($minimal_response);
+                'query' => '',
+                'exclude' => '',
+                'sort_by' => $sort_by,
+                'data_source' => 'no_cache'
+        ));
         return;
     }
-        
-        ps_log_error("Cache miss for query '{$search_query}' - Fetching fresh results");
+    }
     
-    // Get search results from Amazon scraper
-    $results = ps_search_amazon_products($search_query, $exclude_keywords, $sort_by);
-        $processed_file_info = isset($results['data_source']) ? $results['data_source'] : (isset($results['debug_file']) ? 'Error: ' . $results['debug_file'] : 'Live Fetch (No File)');
-        
-        // Check if parsing was successful
-        if (!isset($results['success']) || $results['success'] !== true) {
-            // If there was an error, log it
-            ps_log_error("Error searching Amazon: " . (isset($results['message']) ? $results['message'] : 'Unknown error'));
-            
-            // Create a minimal error response
-            $error_response = array(
-                'success' => false,
-                'message' => isset($results['message']) ? $results['message'] : 'Error retrieving products. Please try again later.',
-                'items' => array(),
-                'count' => 0,
-                'timing' => round((microtime(true) - $start_time) * 1000) . 'ms',
-                'error_type' => isset($results['error_type']) ? $results['error_type'] : 'unknown_error',
-                'processed_file' => $processed_file_info
-            );
-            
-            // Cache the error too, but for a shorter time (5 minutes)
-            if (isset($results['error_type']) && $results['error_type'] !== 'no_response_files') {
-                // Only cache certain types of errors, not missing response files
-                $error_response['cached_error'] = true;
-                ps_cache_results($search_query, $exclude_keywords, $sort_by, $error_response);
-                ps_log_error("Cached error result for 5 minutes to prevent repeated failures");
-            }
-            
-            // Send the minimal error response
-            ps_send_ajax_response($error_response);
+    // Otherwise, use the normal cache lookup
+    $cached_results = ps_get_cached_results($search_query, $country, $exclude_keywords, $sort_by);
+    if ($cached_results) {
+        // ps_log_error("Returning cached results");
+            wp_send_json_success($cached_results);
             return;
         }
         
-        // Prepare minimal successful response
-        $success_response = array(
-            'success' => true,
-            'items' => array(),
-            'count' => 0,
-            'timing' => round((microtime(true) - $start_time) * 1000) . 'ms',
-            'processed_file' => $processed_file_info
-        );
-        
-        // Add products if available (up to 10)
-        if (isset($results['items']) && is_array($results['items'])) {
-            // Debug info about the first item structure
-            if (!empty($results['items'])) {
-                $first_item = $results['items'][0];
-                $keys = array_keys($first_item);
-                ps_log_error("First product structure: " . implode(', ', $keys));
-            }
-            
-            $success_response['items'] = $results['items']; // Use all items, don't limit
-            $success_response['count'] = count($results['items']);
-        }
+    // No cache hit, perform Amazon search (should not happen on page refresh)
+    try {
+    $amazon_search_response = ps_search_amazon_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating);
     
-    // Cache the results
-        ps_cache_results($search_query, $exclude_keywords, $sort_by, $success_response);
-        ps_log_error("Successfully cached " . $success_response['count'] . " products for query '{$search_query}'");
+    // Measure elapsed time
+    $elapsed_time = microtime(true) - $start_time;
+    // ps_log_error("Search completed in " . number_format($elapsed_time, 2) . " seconds");
+    
+        if (is_array($amazon_search_response)) {
+            // Cache the RAW results if this is a successful full search and has items
+            if (isset($amazon_search_response['success']) && $amazon_search_response['success'] && 
+                isset($amazon_search_response['raw_items_for_cache']) && !empty($amazon_search_response['raw_items_for_cache'])) {
+                
+                // Prepare data for caching: use the raw items, but associate with the original search query, country, and user.
+                // For the base cache of raw results, exclude and sort_by should be empty.
+                $data_to_cache = array(
+                    'success' => true, // Indicates the overall search was successful at fetching raw data
+                    'items' => $amazon_search_response['raw_items_for_cache'],
+                    'count' => $amazon_search_response['raw_items_count_for_cache'],
+                    'base_items_count' => $amazon_search_response['raw_items_count_for_cache'], // For raw cache, count and base_items_count are the same
+                    'query' => $search_query,
+                    'country_code' => $country,
+                    'exclude' => '', // Store raw results with no exclusion
+                    'sort_by' => '', // Store raw results with no specific sort
+                    'data_source' => 'live_request_raw_cache' 
+                );
+                
+                try {
+                    // Cache these raw results using an empty exclude and sort_by for the hash
+                    ps_cache_results($search_query, $country, '', '', $data_to_cache);
+                    // ps_log_error("Successfully cached " . $amazon_search_response['raw_items_count_for_cache'] . " raw items for query '{$search_query}' and country '{$country}'.");
+                } catch (Exception $cache_e) {
+                    // ps_log_error("Error caching raw results: " . $cache_e->getMessage());
+                    // Continue even if caching fails - we can still return the display results
+                }
+            }
         
-        // Send the minimal successful response
-        ps_send_ajax_response($success_response);
-        
+            // Prepare the data for display (filtered items)
+            $display_results = array(
+                'success' => isset($amazon_search_response['success']) ? $amazon_search_response['success'] : false,
+                'items' => isset($amazon_search_response['items']) ? $amazon_search_response['items'] : array(),
+                'count' => isset($amazon_search_response['count']) ? $amazon_search_response['count'] : 0,
+                'base_items_count' => isset($amazon_search_response['raw_items_count_for_cache']) ? $amazon_search_response['raw_items_count_for_cache'] : 0, // total before display filtering
+                'query' => $search_query,
+                'exclude' => $exclude_keywords,
+                'sort_by' => $sort_by,
+                'country_code' => $country,
+                'data_source' => 'live_request_filtered_display'
+            );
+
+            if (isset($amazon_search_response['message'])) {
+                $display_results['message'] = $amazon_search_response['message'];
+            }
+            if (isset($amazon_search_response['error_type'])) {
+                $display_results['error_type'] = $amazon_search_response['error_type'];
+            }
+             if (isset($amazon_search_response['debug_info'])) {
+                $display_results['debug_info'] = $amazon_search_response['debug_info'];
+            }
+
+
+            // Return the DISPLAY results (success or error)
+            if ($display_results['success']) {
+        wp_send_json_success($display_results);
+    } else {
+        wp_send_json_error($display_results);
+            }
+    } else {
+            // ps_log_error("Invalid Amazon search results format: " . print_r($amazon_search_response, true));
+            wp_send_json_error(array(
+                'success' => false,
+                'message' => 'Invalid response format from search function.',
+                'items' => array(),
+                'count' => 0,
+                'error_type' => 'invalid_response_format'
+            ));
+        }
     } catch (Exception $e) {
-        // Catch any unexpected errors
-        ps_log_error("Critical AJAX error: " . $e->getMessage());
-        
-        // Send back absolute minimal response
-        ps_send_ajax_response(array(
+        // ps_log_error("Exception during search: " . $e->getMessage());
+        wp_send_json_error(array(
             'success' => false,
-            'message' => 'An unexpected error occurred. Please try again later.',
+            'message' => 'An error occurred during search: ' . $e->getMessage(),
             'items' => array(),
             'count' => 0,
-            'processed_file' => 'N/A'
+            'error_type' => 'search_exception'
         ));
     }
 }
@@ -456,11 +566,11 @@ function ps_send_ajax_response($data) {
     $response_size = strlen($json_response);
     
     // Log the response size
-    ps_log_error("Sending AJAX response: " . round($response_size / 1024, 2) . " KB");
+    // ps_log_error("Sending AJAX response: " . round($response_size / 1024, 2) . " KB");
     
     // Check if the response is too large (> 500KB)
     if ($response_size > 500000) {
-        ps_log_error("Response too large (" . round($response_size / 1024, 2) . " KB), reducing");
+        // ps_log_error("Response too large (" . round($response_size / 1024, 2) . " KB), reducing");
         
         // Create a minimal response
         $minimal = array(
@@ -495,7 +605,7 @@ function ps_send_ajax_response($data) {
 function ps_handle_shutdown() {
     $error = error_get_last();
     if ($error && in_array($error['type'], array(E_ERROR, E_PARSE, E_COMPILE_ERROR, E_CORE_ERROR))) {
-        ps_log_error("Fatal error during AJAX request: " . $error['message'] . " in " . $error['file'] . " on line " . $error['line']);
+        // ps_log_error("Fatal error during AJAX request: " . $error['message'] . " in " . $error['file'] . " on line " . $error['line']);
         
         // Clean any output
         if (ob_get_level()) ob_end_clean();
@@ -518,10 +628,23 @@ function ps_handle_shutdown() {
  * Handle Simple AJAX Test Request
  */
 function ps_handle_simple_ajax_test() {
-    // Verify nonce
-    check_ajax_referer('ps-simple-test-nonce', 'nonce');
+    // Verify nonce with better error handling
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ps-simple-test-nonce')) {
+        $nonce_value = isset($_POST['nonce']) ? substr($_POST['nonce'], 0, 5) . '...' : 'not set';
+        // ps_log_error("Security check failed in ps_handle_simple_ajax_test. Nonce: " . $nonce_value);
+        wp_send_json_error(array(
+            'message' => 'Security verification failed. Please refresh the page and try again.',
+            'error_type' => 'security_error',
+            'nonce_issue' => true,
+            'nonce_partial' => $nonce_value
+        ));
+        return;
+    }
 
     $payload = isset($_POST['test_payload']) ? sanitize_text_field($_POST['test_payload']) : 'No payload received';
+
+    // Log to error_log
+    // ps_log_error("Simple AJAX Test: " . $payload);
 
     // Process the request and send a JSON response
     wp_send_json_success(array(
@@ -598,54 +721,136 @@ function ps_ajax_test_dns() {
     
     wp_send_json_success(array('message' => 'DNS resolution successful.', 'ip' => $ip));
 }
-add_action('wp_ajax_ps_test_dns', 'ps_ajax_test_dns');
+add_action('wp_ajax_nopriv_ps_test_dns', 'ps_ajax_test_dns');
 
 /**
- * Get cached search results
+ * Get or create a unique user identifier for caching
+ * Uses WordPress user ID for logged-in users, or a cookie for visitors
  */
-function ps_get_cached_results($query, $exclude, $sort_by) {
+function ps_get_user_identifier() {
+    // For logged-in users, use their WordPress user ID if it is not 0
+    if (is_user_logged_in()) {
+        $wp_user_id = get_current_user_id();
+        ps_log_error("ps_get_user_identifier: User is logged in, wp_user_id = '{$wp_user_id}'");
+        if ($wp_user_id && $wp_user_id !== 0) {
+            $user_id = 'user_' . $wp_user_id;
+            ps_log_error("ps_get_user_identifier: Returning logged-in user ID: '{$user_id}'");
+            return $user_id;
+        }
+    }
+    // For visitors, use/create a cookie-based identifier
+    $cookie_name = 'ps_visitor_id';
+    ps_log_error("ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie");
+    // Check if the visitor already has an ID cookie
+    if (isset($_COOKIE[$cookie_name])) {
+        $visitor_id = sanitize_text_field($_COOKIE[$cookie_name]);
+        ps_log_error("ps_get_user_identifier: Found existing cookie: '{$visitor_id}'");
+        // Validate that it matches our expected format
+        if (preg_match('/^visitor_[a-f0-9]{10}$/', $visitor_id)) {
+            ps_log_error("ps_get_user_identifier: Cookie is valid, returning: '{$visitor_id}'");
+            return $visitor_id;
+        } else {
+            ps_log_error("ps_get_user_identifier: Cookie format is invalid: '{$visitor_id}'");
+        }
+    } else {
+        ps_log_error("ps_get_user_identifier: No existing cookie found");
+    }
+    // If no valid cookie exists, create a new visitor ID
+    $visitor_id = 'visitor_' . substr(md5(uniqid(mt_rand(), true)), 0, 10);
+    ps_log_error("ps_get_user_identifier: Creating new visitor ID: '{$visitor_id}'");
+    // Set a cookie that lasts for 30 days
+    setcookie($cookie_name, $visitor_id, time() + (30 * DAY_IN_SECONDS), '/');
+    ps_log_error("ps_get_user_identifier: Cookie set, returning: '{$visitor_id}'");
+    return $visitor_id;
+}
+
+/**
+ * Get information about the latest cached base search query for a specific user
+ *
+ * @return array|null An array with 'query', 'country_code', 'base_items_count' or null.
+ */
+function ps_get_latest_cached_query_info($user_id) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    
+    // Get the most recent non-empty query for this user
+    $latest_query = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT query_data, country_code 
+            FROM $table_name 
+            WHERE user_id = %s 
+            AND query_data != '' 
+            AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            ORDER BY created_at DESC 
+            LIMIT 1",
+            $user_id
+        )
+    );
+    
+    if ($latest_query) {
+        $query_data = json_decode($latest_query->query_data, true);
+        return (object)array(
+            'query' => $query_data['query'] ?? '',
+            'country_code' => $latest_query->country_code
+        );
+    }
+    
+    return null;
+}
+
+/**
+ * Get cached search results for a specific user
+ */
+function ps_get_cached_results($query, $country_code, $exclude, $sort_by) {
     global $wpdb;
     
     // Get settings
     $settings = get_option('ps_settings');
     $cache_duration = isset($settings['cache_duration']) ? $settings['cache_duration'] : 3600;
     
-    // Create a unique hash for this search query
-    $query_hash = md5($query . '|' . $exclude . '|' . $sort_by);
+    // Get the user identifier
+    $user_id = ps_get_user_identifier();
+    ps_log_error("ps_get_cached_results: Generated user_id = '{$user_id}' for query '{$query}'");
+    
+    // Create a unique hash including the user ID
+    $query_hash = md5($query . '|' . $country_code . '|' . $exclude . '|' . $sort_by . '|' . $user_id);
+    ps_log_error("ps_get_cached_results: Looking for query_hash = '{$query_hash}' with user_id = '{$user_id}'");
     
     // Table name
     $table_name = $wpdb->prefix . 'ps_cache';
     
-    // Query using expires_at column
+    // Query using expires_at column and user_id
     $cached_data = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT * FROM $table_name 
             WHERE query_hash = %s 
+            AND user_id = %s
             AND (
-                (expires_at IS NOT NULL AND expires_at > NOW())
+                (expires_at IS NOT NULL AND expires_at > DATE_SUB(NOW(), INTERVAL 300 SECOND))
                 OR 
                 (expires_at IS NULL AND created_at > DATE_SUB(NOW(), INTERVAL %d SECOND))
             )
             ORDER BY created_at DESC 
             LIMIT 1",
             $query_hash,
+            $user_id,
             $cache_duration
         )
-    );
-    
-    if ($cached_data) {
+        );
+        
+        if ($cached_data) {
         // Track cache hits in logs
         $age_seconds = time() - strtotime($cached_data->created_at);
         $age_minutes = round($age_seconds / 60);
-        ps_log_error("Cache hit for '{$query}' (age: {$age_minutes} mins)" . 
-                   (isset($cached_data->expires_at) ? " with explicit expiry" : ""));
+        // ps_log_error("Cache hit for user {$user_id}: '{$query}' country '{$country_code}' (age: {$age_minutes} mins)" . 
+                   // (isset($cached_data->expires_at) ? " with explicit expiry" : ""));
         
         // Parse the JSON data
         $results = json_decode($cached_data->results, true);
         
         // Check if this is a cached error response
         if (isset($results['success']) && $results['success'] === false) {
-            ps_log_error("Retrieved cached error response: " . (isset($results['message']) ? $results['message'] : 'Unknown error'));
+            // ps_log_error("Retrieved cached error response for user {$user_id}: " . (isset($results['message']) ? $results['message'] : 'Unknown error'));
         }
         
         return $results;
@@ -655,85 +860,59 @@ function ps_get_cached_results($query, $exclude, $sort_by) {
 }
 
 /**
- * Cache search results
+ * Cache search results for a specific user
  */
-function ps_cache_results($query, $exclude, $sort_by, $results) {
+function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
     global $wpdb;
     
-    // Create a unique hash for this search query
-    $query_hash = md5($query . '|' . $exclude . '|' . $sort_by);
+    $table_name = $wpdb->prefix . 'ps_cache'; // Define table name
+    $cache_expiry = date('Y-m-d H:i:s', strtotime('+24 hours')); // Define cache expiry
+
+    // Get the user identifier
+    $user_id = ps_get_user_identifier();
+    ps_log_error("ps_cache_results: Generated user_id = '{$user_id}' for query '{$query}'");
+    
+    // Create a unique hash including the user ID
+    $query_hash = md5($query . '|' . $country_code . '|' . $exclude . '|' . $sort_by . '|' . $user_id);
     
     // Store query data for debugging
     $query_data = json_encode(array(
         'query' => $query,
+        'country_code' => $country_code,
         'exclude' => $exclude,
-        'sort_by' => $sort_by
+        'sort_by' => $sort_by,
+        'user_id' => $user_id  // Include user ID in the stored data
     ));
     
     // Clean up the results to prevent storing large objects
     $clean_results = $results;
-    
-    // Remove potentially large fields
+    // Only remove large, unnecessary fields, but DO NOT truncate or slice the items array or remove product fields
     unset($clean_results['debug_post_data']);
     unset($clean_results['html_response']);
     unset($clean_results['debug_file']);
     unset($clean_results['raw_html']);
     unset($clean_results['trace']);
-    
-    // Ensure descriptions are limited in size
+    unset($clean_results['raw_items_for_cache']);
+    unset($clean_results['raw_items_count_for_cache']);
+    // Add user ID to the results for reference (if not already there from ps_parse_amazon_results)
+    if (!isset($clean_results['user_id'])) {
+        $clean_results['user_id'] = $user_id;
+    }
+    // Truncate description to 250 chars for size, but keep all other fields
     if (isset($clean_results['items']) && is_array($clean_results['items'])) {
         foreach ($clean_results['items'] as $key => $item) {
-            if (isset($item['description']) && strlen($item['description']) > 200) {
-                $clean_results['items'][$key]['description'] = substr($item['description'], 0, 200) . '...';
+            if (isset($item['description']) && strlen($item['description']) > 250) {
+                $clean_results['items'][$key]['description'] = substr($item['description'], 0, 250) . '...';
             }
         }
     }
-    
     // Convert to JSON and check size
     $json_results = json_encode($clean_results);
     $size_kb = strlen($json_results) / 1024;
-    
     // Log the size for monitoring
-    ps_log_error("Caching results: {$size_kb} KB");
-    
-    // If the results are too large, truncate them further
-    if ($size_kb > 100) { // More than 100KB is too large
-        ps_log_error("Cache data too large ({$size_kb} KB), truncating further");
-        
-        // If we have items, keep only essential info for first 5 items
-        if (isset($clean_results['items']) && is_array($clean_results['items'])) {
-            $minimal_items = array();
-            $count = 0;
-            
-            foreach (array_slice($clean_results['items'], 0, 5) as $item) {
-                $minimal_items[] = array(
-                    'title' => isset($item['title']) ? $item['title'] : '',
-                    'link' => isset($item['link']) ? $item['link'] : '',
-                    'price' => isset($item['price']) ? $item['price'] : '',
-                    'price_value' => isset($item['price_value']) ? $item['price_value'] : 0,
-                );
-                $count++;
-            }
-            
-            $clean_results['items'] = $minimal_items;
-            $clean_results['count'] = $count;
-            $clean_results['truncated_cache'] = true;
-        }
-        
-        // Re-encode and check size again
-        $json_results = json_encode($clean_results);
-        $new_size_kb = strlen($json_results) / 1024;
-        ps_log_error("Truncated cache size: {$new_size_kb} KB");
-    }
-    
-    // Determine cache duration
-    $short_cache = isset($clean_results['short_cache']) && $clean_results['short_cache'] === true;
-    $cache_expiry = $short_cache ? date('Y-m-d H:i:s', strtotime('+5 minutes')) : null;
-    
-    // Table name
-    $table_name = $wpdb->prefix . 'ps_cache';
-    
-    // Store the results with the expires_at column
+    ps_log_error("Caching results for user {$user_id} (query: '{$query}', country: {$country_code}): {$size_kb} KB. Items: " . (isset($clean_results['count']) ? $clean_results['count'] : 'N/A'));
+    // Store the results with the expires_at column and user_id
+    ps_log_error("ps_cache_results: About to insert with user_id = '{$user_id}', query_hash = '{$query_hash}'");
     $insert_result = $wpdb->insert(
         $table_name,
         array(
@@ -741,14 +920,23 @@ function ps_cache_results($query, $exclude, $sort_by, $results) {
             'query_data' => $query_data,
             'results' => $json_results,
             'created_at' => current_time('mysql'),
-            'expires_at' => $cache_expiry
+            'expires_at' => $cache_expiry,
+            'user_id' => $user_id // Store user_id directly in the table
+        ),
+        array(
+            '%s', // query_hash
+            '%s', // query_data
+            '%s', // results
+            '%s', // created_at
+            '%s', // expires_at
+            '%s'  // user_id - explicitly specify as string
         )
     );
-    
+    ps_log_error("ps_cache_results: Insert result = " . ($insert_result ? 'SUCCESS' : 'FAILED') . ", wpdb->insert_id = " . $wpdb->insert_id);
     if ($wpdb->last_error) {
-        ps_log_error("Database error when caching results: " . $wpdb->last_error);
+        ps_log_error("Database error when caching results for hash {$query_hash}: " . $wpdb->last_error);
     } else {
-        ps_log_error("Successfully cached results with hash: " . $query_hash);
+        ps_log_error("Successfully cached results with hash: " . $query_hash . ", User: " . $user_id);
     }
 }
 
@@ -763,8 +951,20 @@ function ps_admin_menu() {
         'primates-shoppers',
         'ps_settings_page'
     );
+    
+    // Add a link to update the table structure directly from the plugin page
+    add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'ps_add_plugin_action_links');
 }
 add_action('admin_menu', 'ps_admin_menu');
+
+/**
+ * Add plugin action links
+ */
+function ps_add_plugin_action_links($links) {
+    $settings_link = '<a href="' . admin_url('options-general.php?page=primates-shoppers') . '">Settings</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}
 
 /**
  * Handle admin actions
@@ -898,39 +1098,20 @@ add_action('wp', 'ps_schedule_cache_cleanup');
  */
 function ps_cleanup_cache() {
     global $wpdb;
-    
     $table_name = $wpdb->prefix . 'ps_cache';
+    $cache_duration = get_option('ps_settings')['cache_duration'] ?? 86400;
     
-    // Get settings
-    $settings = get_option('ps_settings');
-    $cache_duration = isset($settings['cache_duration']) ? $settings['cache_duration'] : 3600;
-    
-    // Delete expired entries first
-    $deleted_explicit = $wpdb->query(
-        "DELETE FROM $table_name 
-        WHERE expires_at IS NOT NULL AND expires_at < NOW()"
-    );
-    
-    // Then delete old entries based on the standard cache duration
-    $deleted_standard = $wpdb->query(
+    // Only delete entries older than the cache duration
+    $deleted = $wpdb->query(
         $wpdb->prepare(
             "DELETE FROM $table_name 
-            WHERE expires_at IS NULL AND created_at < DATE_SUB(NOW(), INTERVAL %d SECOND)",
-            $cache_duration * 2 // Use double the cache duration for cleanup to avoid edge cases
+            WHERE created_at < DATE_SUB(NOW(), INTERVAL %d SECOND)",
+            $cache_duration
         )
     );
     
-    // Log the cleanup activity
-    ps_log_error("Cache cleanup: Removed {$deleted_explicit} explicitly expired entries and {$deleted_standard} standard expired entries");
-    
-    // Always delete any really old entries (safety cleanup)
-    $deleted_old = $wpdb->query(
-        "DELETE FROM $table_name 
-        WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)"
-    );
-    
-    if ($deleted_old > 0) {
-        ps_log_error("Cache cleanup: Removed {$deleted_old} entries older than 7 days");
+    if ($deleted > 0) {
+        // ps_log_error("Cache cleanup: removed {$deleted} expired entries");
     }
 }
 add_action('ps_cache_cleanup', 'ps_cleanup_cache');
@@ -957,8 +1138,664 @@ function ps_ajax_clear_cache() {
     if ($deleted === false) {
         wp_send_json_error(array('message' => 'Failed to clear cache. Error: ' . $wpdb->last_error));
     } else {
-        ps_log_error("Cache cleared manually. Deleted {$deleted} entries.");
+        // ps_log_error("Cache cleared manually. Deleted {$deleted} entries.");
         wp_send_json_success(array('message' => "Cache cleared successfully. Deleted {$deleted} entries."));
     }
 }
 add_action('wp_ajax_ps_clear_cache', 'ps_ajax_clear_cache');
+
+/**
+ * Check cache table AJAX handler
+ */
+function ps_ajax_check_cache_table() {
+    // Verify nonce
+    check_ajax_referer('ps_check_cache_table', 'nonce');
+    
+    // Only allow admins to check cache table
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(array('message' => 'You do not have permission to perform this action.'));
+        return;
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    
+    ob_start();
+    
+    echo "<h3>Cache Table Analysis</h3>";
+    
+    // Check if table exists
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+    if (!$table_exists) {
+        echo "<p style='color: red;'>ERROR: Cache table '$table_name' does not exist!</p>";
+        $html = ob_get_clean();
+        wp_send_json_success(array('html' => $html));
+        return;
+    }
+    
+    echo "<p style='color: green;'>Table exists: $table_name</p>";
+    
+    // Get total count
+    $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+    echo "<p>Total records: $total_count</p>";
+    
+    if ($total_count > 0) {
+        // Get recent records
+        $recent_records = $wpdb->get_results("SELECT id, user_id, query_hash, created_at FROM $table_name ORDER BY created_at DESC LIMIT 10");
+        
+        echo "<h4>Recent Records:</h4>";
+        echo "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+        echo "<tr><th>ID</th><th>User ID</th><th>Query Hash</th><th>Created At</th></tr>";
+        
+        foreach ($recent_records as $record) {
+            $user_id_display = $record->user_id === null ? '<em>NULL</em>' : "'" . esc_html($record->user_id) . "'";
+            echo "<tr>";
+            echo "<td>{$record->id}</td>";
+            echo "<td>{$user_id_display}</td>";
+            echo "<td>" . substr($record->query_hash, 0, 16) . "...</td>";
+            echo "<td>{$record->created_at}</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+        
+        // Check for problematic user_ids
+        $zero_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE user_id = '0' OR user_id = 0");
+        $null_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE user_id IS NULL");
+        $empty_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE user_id = ''");
+        
+        echo "<h4>User ID Analysis:</h4>";
+        echo "<p>Records with user_id = '0' or 0: <strong style='color: " . ($zero_count > 0 ? 'red' : 'green') . ";'>$zero_count</strong></p>";
+        echo "<p>Records with user_id IS NULL: <strong style='color: " . ($null_count > 0 ? 'red' : 'green') . ";'>$null_count</strong></p>";
+        echo "<p>Records with user_id = '': <strong style='color: " . ($empty_count > 0 ? 'red' : 'green') . ";'>$empty_count</strong></p>";
+        
+        // Get unique user_ids
+        $unique_users = $wpdb->get_results("SELECT DISTINCT user_id, COUNT(*) as count FROM $table_name GROUP BY user_id ORDER BY count DESC LIMIT 10");
+        
+        echo "<h4>Top User IDs:</h4>";
+        echo "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+        echo "<tr><th>User ID</th><th>Record Count</th></tr>";
+        
+        foreach ($unique_users as $user) {
+            $user_id_display = $user->user_id === null ? '<em>NULL</em>' : "'" . esc_html($user->user_id) . "'";
+            echo "<tr>";
+            echo "<td>{$user_id_display}</td>";
+            echo "<td>{$user->count}</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+        
+        // Test current user identifier
+        echo "<h4>Current User Identifier Test:</h4>";
+        $current_user_id = ps_get_user_identifier();
+        echo "<p>Current user identifier: <strong>'" . esc_html($current_user_id) . "'</strong></p>";
+        
+        if (is_user_logged_in()) {
+            $wp_user_id = get_current_user_id();
+            echo "<p>WordPress user logged in with ID: <strong>$wp_user_id</strong></p>";
+        } else {
+            echo "<p>No WordPress user logged in</p>";
+        }
+    } else {
+        echo "<p>No records found in cache table.</p>";
+    }
+    
+    $html = ob_get_clean();
+    wp_send_json_success(array('html' => $html));
+}
+add_action('wp_ajax_ps_check_cache_table', 'ps_ajax_check_cache_table');
+
+/**
+ * Test cache insertion AJAX handler
+ */
+function ps_ajax_test_cache_insertion() {
+    // Verify nonce
+    check_ajax_referer('ps_test_cache_insertion', 'nonce');
+    
+    // Only allow admins to test cache insertion
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(array('message' => 'You do not have permission to perform this action.'));
+        return;
+    }
+    
+    // Get user identifier
+    $user_id = ps_get_user_identifier();
+    ps_log_error("TEST CACHE INSERTION: Generated user_id = '{$user_id}'");
+    
+    // Create test data
+    $test_query = 'test_cache_insertion_' . time();
+    $test_country = 'us';
+    $test_exclude = '';
+    $test_sort = 'price';
+    
+    $test_results = array(
+        'success' => true,
+        'items' => array(
+            array(
+                'title' => 'Test Product 1',
+                'price' => '$10.00',
+                'price_value' => 10.00,
+                'link' => 'https://example.com/test1',
+                'image' => 'https://example.com/test1.jpg'
+            ),
+            array(
+                'title' => 'Test Product 2',
+                'price' => '$20.00',
+                'price_value' => 20.00,
+                'link' => 'https://example.com/test2',
+                'image' => 'https://example.com/test2.jpg'
+            )
+        ),
+        'count' => 2,
+        'query' => $test_query,
+        'country_code' => $test_country,
+        'exclude' => $test_exclude,
+        'sort_by' => $test_sort,
+        'data_source' => 'test_insertion',
+        'user_id' => $user_id
+    );
+    
+    ps_log_error("TEST CACHE INSERTION: About to call ps_cache_results with user_id = '{$user_id}'");
+    
+    // Test the cache insertion
+    try {
+        ps_cache_results($test_query, $test_country, $test_exclude, $test_sort, $test_results);
+        ps_log_error("TEST CACHE INSERTION: ps_cache_results completed successfully");
+        
+        // Verify the insertion by trying to retrieve it
+        $retrieved_results = ps_get_cached_results($test_query, $test_country, $test_exclude, $test_sort);
+        
+        if ($retrieved_results !== false) {
+            $retrieved_user_id = isset($retrieved_results['user_id']) ? $retrieved_results['user_id'] : 'NOT_SET';
+            ps_log_error("TEST CACHE INSERTION: Successfully retrieved cached data with user_id = '{$retrieved_user_id}'");
+            
+            wp_send_json_success(array(
+                'message' => "Cache insertion test successful! Inserted and retrieved data for user_id: '{$user_id}'. Retrieved user_id: '{$retrieved_user_id}'"
+            ));
+        } else {
+            ps_log_error("TEST CACHE INSERTION: Failed to retrieve cached data after insertion");
+            wp_send_json_error(array(
+                'message' => "Cache insertion may have failed - could not retrieve the test data after insertion."
+            ));
+        }
+    } catch (Exception $e) {
+        ps_log_error("TEST CACHE INSERTION: Exception occurred: " . $e->getMessage());
+        wp_send_json_error(array(
+            'message' => 'Cache insertion test failed with exception: ' . $e->getMessage()
+        ));
+    }
+}
+add_action('wp_ajax_ps_test_cache_insertion', 'ps_ajax_test_cache_insertion');
+
+/**
+ * Temporary debug function to investigate user_id issue
+ */
+function ps_debug_user_id_issue() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    
+    ps_log_error("=== DEBUGGING USER_ID ISSUE START ===");
+    
+    // 1. Test the user identifier function
+    ps_log_error("1. Testing ps_get_user_identifier():");
+    $user_id = ps_get_user_identifier();
+    ps_log_error("   Generated user_id: '$user_id'");
+    ps_log_error("   Type: " . gettype($user_id));
+    ps_log_error("   Length: " . strlen($user_id));
+    ps_log_error("   Is string: " . (is_string($user_id) ? 'YES' : 'NO'));
+    
+    // 2. Check current WordPress user
+    ps_log_error("2. WordPress User Status:");
+    if (is_user_logged_in()) {
+        $wp_user_id = get_current_user_id();
+        ps_log_error("   Logged in: YES");
+        ps_log_error("   WordPress User ID: $wp_user_id");
+        ps_log_error("   Type: " . gettype($wp_user_id));
+    } else {
+        ps_log_error("   Logged in: NO");
+    }
+    
+    // 3. Check table structure in detail
+    ps_log_error("3. Detailed Table Structure:");
+    $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
+    foreach ($columns as $column) {
+        ps_log_error("   {$column->Field}: {$column->Type} (Null: {$column->Null}, Default: {$column->Default}, Key: {$column->Key}, Extra: {$column->Extra})");
+    }
+    
+    // 4. Check for any constraints or triggers
+    ps_log_error("4. Checking for Constraints and Triggers:");
+    $triggers = $wpdb->get_results("SHOW TRIGGERS LIKE '$table_name'");
+    if (empty($triggers)) {
+        ps_log_error("   No triggers found on table");
+    } else {
+        foreach ($triggers as $trigger) {
+            ps_log_error("   Trigger: {$trigger->Trigger} - Event: {$trigger->Event} - Timing: {$trigger->Timing}");
+        }
+    }
+    
+    // Check table creation statement
+    $create_table = $wpdb->get_row("SHOW CREATE TABLE $table_name");
+    if ($create_table) {
+        ps_log_error("   Table creation statement:");
+        ps_log_error("   " . $create_table->{'Create Table'});
+    }
+    
+    // 5. Examine the problematic record (ID 7)
+    ps_log_error("5. Examining Problematic Record (ID 7):");
+    $problem_record = $wpdb->get_row("SELECT * FROM $table_name WHERE id = 7");
+    if ($problem_record) {
+        ps_log_error("   ID: " . $problem_record->id);
+        ps_log_error("   user_id: '" . $problem_record->user_id . "'");
+        ps_log_error("   user_id type: " . gettype($problem_record->user_id));
+        ps_log_error("   user_id length: " . strlen($problem_record->user_id));
+        ps_log_error("   query_hash: " . $problem_record->query_hash);
+        ps_log_error("   created_at: " . $problem_record->created_at);
+        
+        // Check the query_data to see what user_id was supposed to be stored
+        $query_data = json_decode($problem_record->query_data, true);
+        if ($query_data && isset($query_data['user_id'])) {
+            ps_log_error("   user_id in query_data: '" . $query_data['user_id'] . "'");
+            if ($query_data['user_id'] !== $problem_record->user_id) {
+                ps_log_error("   ✗ MISMATCH: query_data has different user_id than database field!");
+                ps_log_error("     Expected (from query_data): '" . $query_data['user_id'] . "'");
+                ps_log_error("     Actual (from user_id field): '" . $problem_record->user_id . "'");
+            } else {
+                ps_log_error("   ✓ user_id matches between query_data and database field");
+            }
+        } else {
+            ps_log_error("   No user_id found in query_data");
+        }
+        
+        // Show the full query_data for analysis
+        ps_log_error("   Full query_data: " . $problem_record->query_data);
+    } else {
+        ps_log_error("   Record ID 7 not found");
+    }
+    
+    // 6. Test direct insertion with detailed logging
+    ps_log_error("6. Testing Direct Database Insertion with Detailed Logging:");
+    
+    $test_user_id = 'test_user_debug_' . time();
+    $test_query_hash = 'test_hash_debug_' . time();
+    $test_query_data = json_encode([
+        'query' => 'test query debug',
+        'country_code' => 'us',
+        'exclude' => '',
+        'sort_by' => 'price',
+        'user_id' => $test_user_id
+    ]);
+    $test_results = json_encode(['test' => 'results']);
+    $test_created_at = current_time('mysql');
+    $test_expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
+    
+    ps_log_error("   About to insert test record with user_id: '$test_user_id'");
+    ps_log_error("   user_id type before insert: " . gettype($test_user_id));
+    ps_log_error("   user_id length before insert: " . strlen($test_user_id));
+    
+    // Log the exact data being inserted
+    $insert_data = array(
+        'query_hash' => $test_query_hash,
+        'query_data' => $test_query_data,
+        'results' => $test_results,
+        'created_at' => $test_created_at,
+        'expires_at' => $test_expires_at,
+        'user_id' => $test_user_id
+    );
+    ps_log_error("   Insert data: " . print_r($insert_data, true));
+    
+    $insert_result = $wpdb->insert(
+        $table_name, 
+        $insert_data,
+        array('%s', '%s', '%s', '%s', '%s', '%s') // Explicitly specify all fields as strings
+    );
+    
+    if ($insert_result === false) {
+        ps_log_error("   ✗ INSERT FAILED!");
+        ps_log_error("   Error: " . $wpdb->last_error);
+        ps_log_error("   Last query: " . $wpdb->last_query);
+    } else {
+        ps_log_error("   ✓ INSERT SUCCESS!");
+        $new_id = $wpdb->insert_id;
+        ps_log_error("   Insert ID: $new_id");
+        ps_log_error("   Last query: " . $wpdb->last_query);
+        
+        // Immediately query back what was inserted
+        $inserted_record = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $new_id));
+        
+        if ($inserted_record) {
+            ps_log_error("   Retrieved record:");
+            ps_log_error("     ID: " . $inserted_record->id);
+            ps_log_error("     user_id: '" . $inserted_record->user_id . "'");
+            ps_log_error("     user_id type: " . gettype($inserted_record->user_id));
+            ps_log_error("     query_hash: " . $inserted_record->query_hash);
+            
+            // Check if the user_id matches what we inserted
+            if ($inserted_record->user_id === $test_user_id) {
+                ps_log_error("   ✓ USER_ID MATCHES - Database insertion works correctly");
+            } else {
+                ps_log_error("   ✗ USER_ID MISMATCH!");
+                ps_log_error("     Expected: '$test_user_id'");
+                ps_log_error("     Got: '" . $inserted_record->user_id . "'");
+                
+                // Try to understand what happened
+                ps_log_error("   Investigating the mismatch:");
+                ps_log_error("     Expected length: " . strlen($test_user_id));
+                ps_log_error("     Actual length: " . strlen($inserted_record->user_id));
+                ps_log_error("     Expected as hex: " . bin2hex($test_user_id));
+                ps_log_error("     Actual as hex: " . bin2hex($inserted_record->user_id));
+            }
+        } else {
+            ps_log_error("   ERROR: Could not retrieve inserted record!");
+        }
+    }
+    
+    // 7. Try a simple test with just the user_id column
+    ps_log_error("7. Testing Simple user_id Update:");
+    $simple_test_id = 'simple_test_' . time();
+    ps_log_error("   Trying to update record ID 7 with user_id: '$simple_test_id'");
+    
+    $update_result = $wpdb->update(
+        $table_name,
+        array('user_id' => $simple_test_id),
+        array('id' => 7)
+    );
+    
+    if ($update_result === false) {
+        ps_log_error("   ✗ UPDATE FAILED!");
+        ps_log_error("   Error: " . $wpdb->last_error);
+    } else {
+        ps_log_error("   ✓ UPDATE SUCCESS! Rows affected: $update_result");
+        
+        // Check what was actually stored
+        $updated_record = $wpdb->get_row("SELECT user_id FROM $table_name WHERE id = 7");
+        if ($updated_record) {
+            ps_log_error("   Updated user_id: '" . $updated_record->user_id . "'");
+            if ($updated_record->user_id === $simple_test_id) {
+                ps_log_error("   ✓ UPDATE WORKED - user_id stored correctly");
+            } else {
+                ps_log_error("   ✗ UPDATE FAILED - user_id not stored correctly");
+                ps_log_error("     Expected: '$simple_test_id'");
+                ps_log_error("     Got: '" . $updated_record->user_id . "'");
+            }
+        }
+    }
+    
+    // 8. Show all records to see the pattern
+    ps_log_error("8. All Records in Cache Table:");
+    $all_records = $wpdb->get_results("SELECT id, user_id, query_hash, created_at FROM $table_name ORDER BY id DESC LIMIT 10");
+    
+    ps_log_error("   ID | USER_ID | QUERY_HASH | CREATED_AT");
+    ps_log_error("   " . str_repeat("-", 70));
+    
+    foreach ($all_records as $record) {
+        $user_id_display = $record->user_id === null ? 'NULL' : "'" . $record->user_id . "'";
+        $hash_short = substr($record->query_hash, 0, 16) . '...';
+        ps_log_error("   {$record->id} | {$user_id_display} | {$hash_short} | {$record->created_at}");
+    }
+    
+    ps_log_error("=== DEBUGGING USER_ID ISSUE END ===");
+}
+
+// Add a temporary admin action to trigger the debug
+add_action('wp_loaded', function() {
+    if (is_admin() && current_user_can('manage_options') && isset($_GET['debug_user_id_issue'])) {
+        ps_debug_user_id_issue();
+        wp_die('Debug user_id issue completed. Check the error log at: ' . PS_PLUGIN_DIR . 'logs/error_log.txt');
+    }
+});
+
+// Register AJAX filter handler
+add_action('wp_ajax_ps_filter', 'ps_ajax_filter');
+add_action('wp_ajax_nopriv_ps_filter', 'ps_ajax_filter');
+
+/**
+ * Handle AJAX filter request
+ * This only filters already fetched results, does not request new data from Amazon
+ */
+function ps_ajax_filter() {
+    // Verify nonce with better error handling
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ps_filter_nonce')) {
+        $nonce_value = isset($_POST['nonce']) ? substr($_POST['nonce'], 0, 5) . '...' : 'not set';
+        // ps_log_error("Security check failed in ps_ajax_filter. Nonce: " . $nonce_value);
+        wp_send_json_error(array(
+            'message' => 'Security verification failed. Please refresh the page and try again.',
+            'error_type' => 'security_error'
+        ));
+        return;
+    }
+
+    $last_search_query = isset($_POST['last_search_query']) ? sanitize_text_field($_POST['last_search_query']) : '';
+    $country_code = isset($_POST['country_code']) ? sanitize_text_field($_POST['country_code']) : 'us';
+    $new_exclude_keywords = isset($_POST['exclude_keywords']) ? sanitize_text_field($_POST['exclude_keywords']) : '';
+    $new_sort_by = isset($_POST['sort_by']) ? sanitize_text_field($_POST['sort_by']) : 'price';
+    $user_id = ps_get_user_identifier(); // Get the user's identifier
+
+    if (empty($last_search_query)) {
+        ps_send_ajax_response(array('success' => false, 'message' => 'Original search query is missing for filtering.', 'items' => array(), 'count' => 0, 'error_type' => 'missing_original_query'));
+        return;
+    }
+
+    // ps_log_error("AJAX Filter for user {$user_id}: OriginalQuery='{$last_search_query}', Country='{$country_code}', NewExclude='{$new_exclude_keywords}', NewSort='{$new_sort_by}'");
+
+    // First, try to get this specific filtered result from cache for this user
+    $cached_filtered_results = ps_get_cached_results($last_search_query, $country_code, $new_exclude_keywords, $new_sort_by);
+
+    if ($cached_filtered_results !== false && isset($cached_filtered_results['items']) && isset($cached_filtered_results['count']) && isset($cached_filtered_results['base_items_count'])) {
+        // ps_log_error("AJAX Filter: Found fully matching filtered results in cache for user {$user_id}, query '{$last_search_query}'");
+        $response_data = array(
+            'success' => true,
+            'items' => $cached_filtered_results['items'],
+            'count' => $cached_filtered_results['count'],
+            'base_items_count' => $cached_filtered_results['base_items_count'],
+            'query' => $last_search_query, // Original query
+            'exclude' => $new_exclude_keywords, // Applied filters
+            'sort_by' => $new_sort_by,         // Applied sort
+            'data_source' => 'cache',
+            'country_code' => $country_code,
+            'user_id' => $user_id // Include user ID in response
+        );
+        ps_send_ajax_response($response_data);
+        return;
+    }
+
+    // ps_log_error("AJAX Filter: No exact match in cache for user {$user_id}, query '{$last_search_query}'. Fetching base items.");
+
+    // Get the BASE items from cache for this user
+    $base_cache_key_exclude = '';
+    $base_cache_key_sort = '';
+    $cached_base_data = ps_get_cached_results($last_search_query, $country_code, $base_cache_key_exclude, $base_cache_key_sort);
+
+    if ($cached_base_data === false || !isset($cached_base_data['items']) || !isset($cached_base_data['count'])) {
+        // ps_log_error("AJAX Filter: Base items not found in cache for user {$user_id}, query '{$last_search_query}'. This is unexpected if a search was just performed.");
+        ps_send_ajax_response(array(
+            'success' => false, 
+            'message' => 'We cannot find your original search data. Please perform a new search before filtering.', 
+            'items' => array(), 
+            'count' => 0, 
+            'base_items_count' => 0,
+            'error_type' => 'base_cache_miss',
+            'user_id' => $user_id
+        ));
+        return;
+    }
+
+    $base_items = $cached_base_data['items'];
+    $base_items_count = $cached_base_data['count']; // This is the 'y' in 'x of y'
+    // ps_log_error("AJAX Filter: Retrieved " . count($base_items) . " base items (count from cache: {$base_items_count}) for '{$last_search_query}' from base cache.");
+
+    // Filter these base items with the new filter parameters
+    // Note: ps_filter_amazon_products expects the main query ($last_search_query) for potential title matching
+    $filtered_result = ps_filter_amazon_products($base_items, $last_search_query, $new_exclude_keywords, $new_sort_by);
+    
+    $final_items = array_values($filtered_result['items']);
+    $final_count = $filtered_result['count'];
+
+    // ps_log_error("AJAX Filter: Applied new filters. New count: {$final_count} out of {$base_items_count} base items.");
+
+    // Cache this newly filtered result for future identical filter requests
+    $newly_filtered_cache_data = array(
+        'items' => $final_items,
+        'count' => $final_count,
+        'base_items_count' => $base_items_count, // Crucial for UI
+        'query' => $last_search_query,
+        'country_code' => $country_code,
+        'exclude' => $new_exclude_keywords,
+        'sort_by' => $new_sort_by,
+        'data_source' => 'derived_from_cache'
+    );
+    ps_cache_results($last_search_query, $country_code, $new_exclude_keywords, $new_sort_by, $newly_filtered_cache_data);
+    // ps_log_error("AJAX Filter: Cached newly filtered items for '{$last_search_query}', Exclude='{$new_exclude_keywords}', Sort='{$new_sort_by}'.");
+
+    $response_data = array(
+        'success' => true,
+        'items' => $final_items,
+        'count' => $final_count,
+        'base_items_count' => $base_items_count, // Total items before these specific filters
+        'query' => $last_search_query,          // Original query
+        'exclude' => $new_exclude_keywords,     // Filters applied in this step
+        'sort_by' => $new_sort_by,             // Sort applied in this step
+        'data_source' => 'filtered_base_cache',
+        'country_code' => $country_code,
+        'user_id' => $user_id // Include user ID in response
+    );
+    ps_send_ajax_response($response_data);
+}
+
+/**
+ * Get all unique search queries available in the cache
+ *
+ * @return array Array of unique query/country combinations with their item counts
+ */
+function ps_get_available_cached_queries() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    $queries = array();
+
+    // Get all unique query/country combinations from the cache
+    $cache_entries = $wpdb->get_results(
+        "SELECT DISTINCT query_data FROM {$table_name} ORDER BY created_at DESC LIMIT 20"
+    );
+
+    if ($cache_entries) {
+        foreach ($cache_entries as $entry) {
+            $query_params = json_decode($entry->query_data, true);
+            
+            if ($query_params && isset($query_params['query']) && isset($query_params['country_code'])) {
+                $key = $query_params['query'] . '|' . $query_params['country_code'];
+                
+                // Only add each unique query/country combination once
+                if (!isset($queries[$key])) {
+                    // Get the base items for this query/country (empty exclude/sort)
+                    $base_items = ps_get_cached_results($query_params['query'], $query_params['country_code'], '', '');
+                    
+                    // If we found base items, use their count, otherwise mark as unknown
+                    $count = ($base_items && isset($base_items['count'])) ? $base_items['count'] : 
+                            (($base_items && isset($base_items['items'])) ? count($base_items['items']) : '?');
+                    
+                    $queries[$key] = array(
+                        'query' => $query_params['query'],
+                        'country_code' => $query_params['country_code'],
+                        'base_items_count' => $count
+                    );
+                }
+            }
+        }
+    }
+
+    // ps_log_error("Found " . count($queries) . " unique cached queries");
+    return array_values($queries); // Return as indexed array
+}
+
+// Add this new function to fetch the most recent cache entry for a user
+function ps_get_most_recent_user_cache($user_id, $log_row = false) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    $cached_data = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
+            $user_id
+        ),
+        ARRAY_A
+    );
+    if ($log_row) {
+        // ps_log_error("ps_get_most_recent_user_cache raw row: " . print_r($cached_data, true));
+    }
+    if ($cached_data) {
+        $results = json_decode($cached_data['results'], true);
+        // Attach query/country/exclude for frontend use
+        $query_data = json_decode($cached_data['query_data'], true);
+        if (is_array($query_data)) {
+            $results['query'] = $query_data['query'] ?? '';
+            $results['exclude'] = $query_data['exclude'] ?? '';
+            $results['country_code'] = $query_data['country_code'] ?? '';
+        }
+        return $results;
+    }
+    return false;
+}
+
+// --- Add this utility function for server-side filtering to match JS logic ---
+/**
+ * Filter Amazon products by include (search) and exclude terms, with wildcard logic.
+ * All terms are treated as wildcards (substring match, not whole word).
+ * If include is '*', return all items. Exclude always filters out matching substrings.
+ *
+ * @param array $items Array of product items
+ * @param string $includeText Search/include terms (space-separated)
+ * @param string $excludeText Exclude terms (space-separated)
+ * @param string $sortBy Sort criteria ('price' or 'price_per_unit')
+ * @return array ['items' => [...], 'count' => int]
+ */
+function ps_filter_amazon_products($items, $includeText = '', $excludeText = '', $sortBy = 'price') {
+    if (!is_array($items)) return ['items' => [], 'count' => 0];
+    $filtered = $items;
+
+    // Exclude filter: remove any item whose title contains any exclude term (case-insensitive, substring)
+    if (!empty($excludeText)) {
+        $excludeTerms = preg_split('/\s+/', strtolower($excludeText), -1, PREG_SPLIT_NO_EMPTY);
+        if (!empty($excludeTerms)) {
+            $filtered = array_filter($filtered, function($item) use ($excludeTerms) {
+                $title = isset($item['title']) ? strtolower($item['title']) : '';
+                foreach ($excludeTerms as $term) {
+                    if ($term !== '' && strpos($title, $term) !== false) {
+                        return false; // Exclude this item
+                    }
+                }
+                return true;
+            });
+        }
+    }
+
+    // Include filter: keep only items whose title contains ALL include terms (case-insensitive, substring)
+    if (!empty($includeText) && trim($includeText) !== '*') {
+        $includeTerms = preg_split('/\s+/', strtolower($includeText), -1, PREG_SPLIT_NO_EMPTY);
+        if (!empty($includeTerms)) {
+            $filtered = array_filter($filtered, function($item) use ($includeTerms) {
+                $title = isset($item['title']) ? strtolower($item['title']) : '';
+                foreach ($includeTerms as $term) {
+                    if ($term !== '' && strpos($title, $term) === false) {
+                        return false; // Must match all include terms
+                    }
+                }
+                return true;
+            });
+        }
+    }
+    // else: if includeText is '*' or empty, do not filter by include
+
+    // Sorting
+    $filtered = array_values($filtered); // reindex
+    if ($sortBy === 'price_per_unit') {
+        usort($filtered, function($a, $b) {
+            $aVal = isset($a['price_per_unit_value']) ? floatval($a['price_per_unit_value']) : 0;
+            $bVal = isset($b['price_per_unit_value']) ? floatval($b['price_per_unit_value']) : 0;
+            return $aVal <=> $bVal;
+        });
+    } else { // default to price
+        usort($filtered, function($a, $b) {
+            $aVal = isset($a['price_value']) ? floatval($a['price_value']) : 0;
+            $bVal = isset($b['price_value']) ? floatval($b['price_value']) : 0;
+            return $aVal <=> $bVal;
+        });
+    }
+    return ['items' => $filtered, 'count' => count($filtered)];
+}
