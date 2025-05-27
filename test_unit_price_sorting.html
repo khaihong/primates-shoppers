@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Price Sorting Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Unit Price Sorting Test</h1>
+    
+    <div>
+        <label for="sort-select">Sort by:</label>
+        <select id="sort-select">
+            <option value="price">Price (low to high)</option>
+            <option value="price_per_unit">Price per unit (low to high)</option>
+        </select>
+        <div id="feedback-container"></div>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        // Test data - simulating products with and without unit prices
+        const testProducts = [
+            {
+                title: "Product 1",
+                price_per_unit: "2.50",
+                unit: "100 ml",
+                price_per_unit_value: 2.50
+            },
+            {
+                title: "Product 2",
+                price_per_unit: "3.20",
+                unit: "100 grams",
+                price_per_unit_value: 3.20
+            },
+            {
+                title: "Product 3",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            },
+            {
+                title: "Product 4",
+                price_per_unit: "1.80",
+                unit: "100 ml",
+                price_per_unit_value: 1.80
+            },
+            {
+                title: "Product 5",
+                price_per_unit: "4.10",
+                unit: "100 oz",
+                price_per_unit_value: 4.10
+            }
+        ];
+        
+        // Copy the functions from search.js
+        function shouldDefaultToUnitPrice(items) {
+            if (!items || items.length === 0) return false;
+            
+            let itemsWithUnitPrice = 0;
+            items.forEach(function(item) {
+                // Check if item has meaningful unit price data
+                if (item.price_per_unit && 
+                    item.unit && 
+                    item.price_per_unit_value && 
+                    parseFloat(item.price_per_unit_value) > 0 &&
+                    item.unit !== 'N/A' && 
+                    item.unit !== 'unit' && 
+                    item.unit !== '') {
+                    itemsWithUnitPrice++;
+                }
+            });
+            
+            const percentage = itemsWithUnitPrice / items.length;
+            console.log(`Unit price analysis: ${itemsWithUnitPrice}/${items.length} products (${Math.round(percentage * 100)}%) have unit price data`);
+            
+            return percentage > 0.5; // More than 50%
+        }
+        
+        function sortProducts(items, sortBy) {
+            const sortedItems = [...items]; // Create a copy to avoid mutating the original
+            
+            if (sortBy === 'price') {
+                sortedItems.sort(function(a, b) {
+                    const priceA = parseFloat(a.price_value) || 0;
+                    const priceB = parseFloat(b.price_value) || 0;
+                    return priceA - priceB;
+                });
+            } else if (sortBy === 'price_per_unit') {
+                // Separate products with and without unit prices
+                const itemsWithUnitPrice = [];
+                const itemsWithoutUnitPrice = [];
+                
+                sortedItems.forEach(function(item) {
+                    if (item.price_per_unit && 
+                        item.unit && 
+                        parseFloat(item.price_per_unit_value) > 0 &&
+                        item.unit !== 'N/A' && 
+                        item.unit !== 'unit' && 
+                        item.unit !== '') {
+                        itemsWithUnitPrice.push(item);
+                    } else {
+                        itemsWithoutUnitPrice.push(item);
+                    }
+                });
+                
+                // Sort products with unit prices by unit price
+                itemsWithUnitPrice.sort(function(a, b) {
+                    const priceA = parseFloat(a.price_per_unit_value) || 0;
+                    const priceB = parseFloat(b.price_per_unit_value) || 0;
+                    return priceA - priceB;
+                });
+                
+                // Sort products without unit prices by regular price
+                itemsWithoutUnitPrice.sort(function(a, b) {
+                    const priceA = parseFloat(a.price_value) || 0;
+                    const priceB = parseFloat(b.price_value) || 0;
+                    return priceA - priceB;
+                });
+                
+                // Return unit price sorted items first, then regular price sorted items
+                return [...itemsWithUnitPrice, ...itemsWithoutUnitPrice];
+            }
+            
+            return sortedItems;
+        }
+        
+        function setDefaultSorting(items) {
+            const sortByElem = document.getElementById('sort-select');
+            if (!sortByElem) return;
+            
+            // Only change default if currently set to 'price' (the default)
+            if (sortByElem.value === 'price' && shouldDefaultToUnitPrice(items)) {
+                console.log('Automatically switching to unit price sorting');
+                sortByElem.value = 'price_per_unit';
+                
+                // Add visual feedback to let user know sorting was changed
+                const feedbackContainer = document.getElementById('feedback-container');
+                if (feedbackContainer) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'ps-auto-sort-feedback';
+                    feedback.style.cssText = 'color: #28a745; font-size: 12px; margin-top: 2px; font-style: italic;';
+                    feedback.textContent = 'Auto-sorted by unit price (most products have unit pricing)';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = feedbackContainer.querySelector('.ps-auto-sort-feedback');
+                    if (existingFeedback) {
+                        existingFeedback.remove();
+                    }
+                    
+                    feedbackContainer.appendChild(feedback);
+                    
+                    // Remove feedback after 5 seconds
+                    setTimeout(function() {
+                        if (feedback && feedback.parentElement) {
+                            feedback.remove();
+                        }
+                    }, 5000);
+                }
+            }
+        }
+        
+        // Test the functionality
+        function runTest() {
+            console.log('Running unit price sorting test...');
+            
+            // Test 1: Products with majority having unit prices (should auto-switch)
+            console.log('\nTest 1: Majority with unit prices');
+            document.getElementById('sort-select').value = 'price'; // Reset to default
+            setDefaultSorting(testProducts);
+            
+            // Test 2: Products with minority having unit prices (should not auto-switch)
+            console.log('\nTest 2: Minority with unit prices');
+            const testProducts2 = [
+                {
+                    title: "Product 1",
+                    price_per_unit: "2.50",
+                    unit: "100 ml",
+                    price_per_unit_value: 2.50
+                },
+                {
+                    title: "Product 2",
+                    price_per_unit: "",
+                    unit: "",
+                    price_per_unit_value: 0
+                },
+                {
+                    title: "Product 3",
+                    price_per_unit: "",
+                    unit: "",
+                    price_per_unit_value: 0
+                }
+            ];
+            
+            setTimeout(() => {
+                document.getElementById('sort-select').value = 'price'; // Reset to default
+                setDefaultSorting(testProducts2);
+            }, 1000);
+            
+            // Test 3: Verify unit price sorting works correctly
+            console.log('\nTest 3: Unit price sorting verification');
+            const testSortingProducts = [
+                {
+                    title: "Expensive per unit",
+                    price: "$15.49",
+                    price_value: 15.49,
+                    price_per_unit: "7.75",
+                    unit: "100 ml",
+                    price_per_unit_value: 7.75
+                },
+                {
+                    title: "Cheap per unit",
+                    price: "$18.58",
+                    price_value: 18.58,
+                    price_per_unit: "5.31",
+                    unit: "100 ml",
+                    price_per_unit_value: 5.31
+                },
+                {
+                    title: "No unit price",
+                    price: "$10.00",
+                    price_value: 10.00,
+                    price_per_unit: "",
+                    unit: "",
+                    price_per_unit_value: 0
+                }
+            ];
+            
+            const sortedByUnitPrice = sortProducts(testSortingProducts, 'price_per_unit');
+            console.log('Sorted by unit price:');
+            sortedByUnitPrice.forEach((item, index) => {
+                console.log(`${index + 1}. ${item.title} - ${item.price} (${item.price_per_unit ? '$' + item.price_per_unit + '/' + item.unit : 'No unit price'})`);
+            });
+            
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h3>Test Results:</h3>
+                <p><strong>Test 1:</strong> ${testProducts.length} products, ${testProducts.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length} with unit prices (${Math.round((testProducts.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length / testProducts.length) * 100)}%)</p>
+                <p><strong>Test 2:</strong> ${testProducts2.length} products, ${testProducts2.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length} with unit prices (${Math.round((testProducts2.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length / testProducts2.length) * 100)}%)</p>
+                <p><strong>Test 3:</strong> Unit price sorting verification - check console for sorted order</p>
+                <p>Check the console and the sort dropdown for results.</p>
+                <h4>Expected sorting order for Test 3:</h4>
+                <ol>
+                    <li>Cheap per unit - $18.58 ($5.31/100 ml)</li>
+                    <li>Expensive per unit - $15.49 ($7.75/100 ml)</li>
+                    <li>No unit price - $10.00</li>
+                </ol>
+            `;
+        }
+        
+        // Run test when page loads
+        $(document).ready(function() {
+            runTest();
+        });
+    </script>
+</body>
+</html> 

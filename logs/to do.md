@@ -1,8 +1,7 @@
 + update cache time after each filter?
 + show 'no cached results'?
 + get only product html
-+ 3s search cooldown
-+ filters: rating, delivery
+
 
 the rating_count currently shows "", it is the next visible text after the title span, so in this example it is 67,934, update the code to get the count accordingly
 

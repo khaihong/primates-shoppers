@@ -131,7 +131,7 @@
                 });
                 
                 // Add rows for each field - prioritize title, brand, delivery time and their extraction methods
-                const priorityFields = ['title', 'title_extraction_method', 'brand', 'brand_extraction_method', 'delivery_time', 'delivery_extraction_method'];
+                const priorityFields = ['title', 'title_extraction_method', 'price', 'price_per_unit', 'unit', 'brand', 'brand_extraction_method', 'delivery_time', 'delivery_extraction_method'];
                 const otherFields = Array.from(allKeys).filter(key => !priorityFields.includes(key)).sort();
                 const orderedFields = [...priorityFields, ...otherFields];
                 
@@ -153,6 +153,10 @@
                                     value = `<a href="${value}" target="_blank">View</a>`;
                                 } else if (key === 'price' && value) {
                                     value = `<span style="color: #e63946;">${value}</span>`;
+                                } else if (key === 'price_per_unit' && value) {
+                                    value = `<span style="color: #28a745; font-weight: bold; background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px;">${value}</span>`;
+                                } else if (key === 'unit' && value) {
+                                    value = `<span style="color: #6c757d; font-style: italic;">${value}</span>`;
                                 } else if (key === 'title_extraction_method' && value) {
                                     value = `<span style="color: #2a9d8f; font-weight: bold;">${value}</span>`;
                                 } else if (key === 'brand_extraction_method' && value) {
@@ -225,8 +229,22 @@
                         `;
                     });
                     
+                    // Unit price extraction debug info (high priority)
+                    const unitKeys = Object.keys(debugData).filter(key => 
+                        key.includes('unit') || key.includes('price_per_unit')
+                    );
+                    
+                    unitKeys.forEach(key => {
+                        productTableHtml += `
+                            <tr class="ps-debug-unit-row">
+                                <td><strong>${key}</strong></td>
+                                <td>${debugData[key] || ''}</td>
+                            </tr>
+                        `;
+                    });
+                    
                     // Other data
-                    Object.keys(debugData).filter(key => !titleKeys.includes(key)).forEach(key => {
+                    Object.keys(debugData).filter(key => !titleKeys.includes(key) && !unitKeys.includes(key)).forEach(key => {
                         productTableHtml += `
                             <tr>
                                 <td><strong>${key}</strong></td>
@@ -271,6 +289,10 @@
                         }
                         .ps-debug-title-row {
                             background-color: #e6f3ff !important;
+                        }
+                        .ps-debug-unit-row {
+                            background-color: #fff2e6 !important;
+                            border-left: 4px solid #ff9500 !important;
                         }
                         .ps-debug-product {
                             margin-top: 20px;

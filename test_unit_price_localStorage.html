@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Price localStorage Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Unit Price localStorage Persistence Test</h1>
+    
+    <div>
+        <label for="sort-select">Sort by:</label>
+        <select id="sort-select">
+            <option value="price">Price (low to high)</option>
+            <option value="price_per_unit">Price per unit (low to high)</option>
+        </select>
+        <div id="feedback-container"></div>
+    </div>
+    
+    <div>
+        <button id="live-search-btn">Simulate Live Search (High Unit Price %)</button>
+        <button id="live-search-low-btn">Simulate Live Search (Low Unit Price %)</button>
+        <button id="load-cached-btn">Simulate Load Cached Results</button>
+        <button id="refresh-btn">Simulate Page Refresh</button>
+        <button id="clear-storage-btn">Clear localStorage</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+    
+    <div id="results"></div>
+    <div id="log"></div>
+    
+    <script>
+        // Global variables to simulate the plugin behavior
+        let savedDefaultSort = null;
+        let analysisCount = 0;
+        
+        // Test data - simulating products with majority having unit prices (including "No unit")
+        const testProductsHigh = [
+            {
+                title: "Product 1 with unit price",
+                price_per_unit: "2.50",
+                unit: "100 ml",
+                price_per_unit_value: 2.50
+            },
+            {
+                title: "Product 2 with unit price (No unit)",
+                price_per_unit: "3.20",
+                unit: "No unit",
+                price_per_unit_value: 3.20
+            },
+            {
+                title: "Product 3 without unit price",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            },
+            {
+                title: "Product 4 with unit price (No unit)",
+                price_per_unit: "1.80",
+                unit: "No unit",
+                price_per_unit_value: 1.80
+            },
+            {
+                title: "Product 5 with unit price",
+                price_per_unit: "4.10",
+                unit: "100 oz",
+                price_per_unit_value: 4.10
+            }
+        ];
+        
+        // Test data - simulating products with minority having unit prices
+        const testProductsLow = [
+            {
+                title: "Product 1 with unit price",
+                price_per_unit: "2.50",
+                unit: "100 ml",
+                price_per_unit_value: 2.50
+            },
+            {
+                title: "Product 2 without unit price",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            },
+            {
+                title: "Product 3 without unit price",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            },
+            {
+                title: "Product 4 without unit price",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            },
+            {
+                title: "Product 5 without unit price",
+                price_per_unit: "",
+                unit: "",
+                price_per_unit_value: 0
+            }
+        ];
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            console.log(message);
+        }
+        
+        function shouldDefaultToUnitPrice(items) {
+            analysisCount++;
+            log(`🔍 ANALYSIS #${analysisCount}: Calculating unit price percentage...`);
+            
+            if (!items || items.length === 0) {
+                log('No items provided');
+                return false;
+            }
+            
+            let itemsWithUnitPrice = 0;
+            items.forEach(function(item) {
+                // Updated logic: A product has unit price if it has a price_per_unit_value > 0
+                // Even if the unit is "No unit", it still represents a valid unit price
+                const hasUnitPrice = item.price_per_unit && 
+                    item.price_per_unit_value && 
+                    parseFloat(item.price_per_unit_value) > 0 &&
+                    item.price_per_unit !== '' &&
+                    item.price_per_unit !== 'N/A';
+                
+                if (hasUnitPrice) {
+                    itemsWithUnitPrice++;
+                }
+                
+                log(`  - ${item.title}: price_per_unit="${item.price_per_unit}", unit="${item.unit}", value=${item.price_per_unit_value}, hasUnitPrice=${hasUnitPrice}`);
+            });
+            
+            const percentage = itemsWithUnitPrice / items.length;
+            const shouldDefault = percentage > 0.5;
+            
+            log(`Found ${itemsWithUnitPrice}/${items.length} products (${Math.round(percentage * 100)}%) with unit price data`);
+            log(`Should default to unit price: ${shouldDefault}`);
+            
+            return shouldDefault;
+        }
+        
+        function calculateAndSaveDefaultSorting(items) {
+            log('📊 LIVE SEARCH: Calculating and saving default sorting preference...');
+            
+            const sortByElem = document.getElementById('sort-select');
+            if (!sortByElem) {
+                log('❌ Sort element not found');
+                return false;
+            }
+            
+            const currentSortValue = sortByElem.value;
+            const shouldDefault = shouldDefaultToUnitPrice(items);
+            
+            // Save the calculated preference both in memory and localStorage
+            savedDefaultSort = shouldDefault ? 'price_per_unit' : 'price';
+            try {
+                localStorage.setItem('ps_saved_default_sort', savedDefaultSort);
+                log(`💾 SAVED TO LOCALSTORAGE: ${savedDefaultSort}`);
+            } catch (e) {
+                log(`❌ Could not save to localStorage: ${e.message}`);
+            }
+            
+            log(`💾 SAVED DEFAULT SORT: ${savedDefaultSort}`);
+            log(`Current sort: ${currentSortValue}, Will change: ${currentSortValue === 'price' && shouldDefault}`);
+            
+            // Only change default if currently set to 'price' (the default)
+            if (currentSortValue === 'price' && shouldDefault) {
+                log('✅ Automatically switching to unit price sorting');
+                sortByElem.value = 'price_per_unit';
+                
+                // Add visual feedback
+                const feedbackContainer = document.getElementById('feedback-container');
+                if (feedbackContainer) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'ps-auto-sort-feedback';
+                    feedback.style.cssText = 'color: #28a745; font-size: 12px; margin-top: 2px; font-style: italic;';
+                    feedback.textContent = 'Auto-sorted by unit price (most products have unit pricing)';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = feedbackContainer.querySelector('.ps-auto-sort-feedback');
+                    if (existingFeedback) {
+                        existingFeedback.remove();
+                    }
+                    
+                    feedbackContainer.appendChild(feedback);
+                }
+                
+                return true; // Sorting was changed
+            }
+            
+            return false; // Sorting was not changed
+        }
+        
+        function applySavedDefaultSorting() {
+            log('🔄 CACHED/FILTER: Applying saved default sorting preference...');
+            
+            const sortByElem = document.getElementById('sort-select');
+            if (!sortByElem) {
+                log('❌ Sort element not found');
+                return false;
+            }
+            
+            // Try to get saved preference from memory first, then localStorage
+            if (!savedDefaultSort) {
+                try {
+                    savedDefaultSort = localStorage.getItem('ps_saved_default_sort');
+                    log(`📂 LOADED FROM LOCALSTORAGE: ${savedDefaultSort}`);
+                } catch (e) {
+                    log(`❌ Could not read from localStorage: ${e.message}`);
+                }
+            }
+            
+            if (!savedDefaultSort) {
+                log(`❌ Cannot apply saved sorting - Sort element: ${!!sortByElem}, Saved preference: ${savedDefaultSort}`);
+                return false;
+            }
+            
+            const currentSortValue = sortByElem.value;
+            
+            log(`Current sort: ${currentSortValue}, Saved preference: ${savedDefaultSort}`);
+            log(`Will change: ${currentSortValue === 'price' && savedDefaultSort === 'price_per_unit'}`);
+            
+            // Only change default if currently set to 'price' and we have a saved preference for unit price
+            if (currentSortValue === 'price' && savedDefaultSort === 'price_per_unit') {
+                log('✅ Applying saved unit price sorting preference');
+                sortByElem.value = 'price_per_unit';
+                return true; // Sorting was changed
+            }
+            
+            return false; // Sorting was not changed
+        }
+        
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            const localStorageValue = localStorage.getItem('ps_saved_default_sort') || 'None';
+            resultsDiv.innerHTML = `
+                <h3>Current State:</h3>
+                <p><strong>Analysis Count:</strong> ${analysisCount}</p>
+                <p><strong>Saved Default Sort (Memory):</strong> ${savedDefaultSort || 'None'}</p>
+                <p><strong>Saved Default Sort (localStorage):</strong> ${localStorageValue}</p>
+                <p><strong>Current Sort Value:</strong> ${document.getElementById('sort-select').value}</p>
+                <p><strong>High Unit Price Test:</strong> ${testProductsHigh.length} total, ${testProductsHigh.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length} with unit prices (${Math.round((testProductsHigh.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length / testProductsHigh.length) * 100)}%)</p>
+                <p><strong>Low Unit Price Test:</strong> ${testProductsLow.length} total, ${testProductsLow.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length} with unit prices (${Math.round((testProductsLow.filter(p => p.price_per_unit && p.price_per_unit_value > 0).length / testProductsLow.length) * 100)}%)</p>
+            `;
+        }
+        
+        // Event handlers
+        document.getElementById('live-search-btn').addEventListener('click', function() {
+            log('🚀 === SIMULATING LIVE SEARCH (HIGH UNIT PRICE %) ===');
+            calculateAndSaveDefaultSorting(testProductsHigh);
+            updateResults();
+        });
+        
+        document.getElementById('live-search-low-btn').addEventListener('click', function() {
+            log('🚀 === SIMULATING LIVE SEARCH (LOW UNIT PRICE %) ===');
+            calculateAndSaveDefaultSorting(testProductsLow);
+            updateResults();
+        });
+        
+        document.getElementById('load-cached-btn').addEventListener('click', function() {
+            log('📂 === SIMULATING LOAD CACHED RESULTS ===');
+            applySavedDefaultSorting();
+            updateResults();
+        });
+        
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            log('🔄 === SIMULATING PAGE REFRESH ===');
+            // Reset memory variable to simulate page refresh
+            savedDefaultSort = null;
+            log('Memory variable reset to null (simulating page refresh)');
+            applySavedDefaultSorting();
+            updateResults();
+        });
+        
+        document.getElementById('clear-storage-btn').addEventListener('click', function() {
+            log('🗑️ === CLEARING LOCALSTORAGE ===');
+            localStorage.removeItem('ps_saved_default_sort');
+            savedDefaultSort = null;
+            log('localStorage cleared');
+            updateResults();
+        });
+        
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            log('🔄 === RESET ===');
+            savedDefaultSort = null;
+            analysisCount = 0;
+            localStorage.removeItem('ps_saved_default_sort');
+            document.getElementById('sort-select').value = 'price';
+            document.getElementById('feedback-container').innerHTML = '';
+            document.getElementById('log').innerHTML = '';
+            updateResults();
+        });
+        
+        // Initialize
+        $(document).ready(function() {
+            log('🎯 Test initialized. Expected behavior:');
+            log('1. Live search with high unit price % should save "price_per_unit" preference');
+            log('2. Live search with low unit price % should save "price" preference');
+            log('3. Page refresh should load preference from localStorage');
+            log('4. Products with "No unit" but valid price_per_unit_value should count as having unit prices');
+            updateResults();
+        });
+    </script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 5px; padding: 8px 12px; }
+        #log { 
+            background: #f5f5f5; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            margin-top: 20px; 
+            height: 400px; 
+            overflow-y: auto; 
+            font-family: monospace; 
+            font-size: 12px;
+        }
+        #results { 
+            background: #e8f4fd; 
+            border: 1px solid #bee5eb; 
+            padding: 10px; 
+            margin-top: 10px; 
+        }
+        .ps-auto-sort-feedback {
+            color: #28a745 !important;
+            font-size: 12px !important;
+            margin-top: 2px !important;
+            font-style: italic !important;
+        }
+    </style>
+</body>
+</html> 

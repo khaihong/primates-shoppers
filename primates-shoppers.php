@@ -1799,3 +1799,70 @@ function ps_filter_amazon_products($items, $includeText = '', $excludeText = '',
     }
     return ['items' => $filtered, 'count' => count($filtered)];
 }
+
+/**
+ * Handle debug logging from JavaScript
+ */
+function ps_ajax_debug_log() {
+    // Verify nonce - use the same nonce as the main search function
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ps-search-nonce')) {
+        // Log the nonce verification failure for debugging
+        $nonce_value = isset($_POST['nonce']) ? substr($_POST['nonce'], 0, 10) . '...' : 'not set';
+        error_log("[UNIT PRICE DEBUG] Nonce verification failed. Received nonce: " . $nonce_value);
+        wp_send_json_error(array('message' => 'Security verification failed.'));
+        return;
+    }
+    
+    $message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : 'No message';
+    $data = isset($_POST['data']) ? $_POST['data'] : '{}';
+    
+    // Log that the function was called successfully
+    error_log("[UNIT PRICE DEBUG] ps_ajax_debug_log function called successfully");
+    
+    // Sanitize the JSON data
+    $decoded_data = json_decode(stripslashes($data), true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $decoded_data = array('error' => 'Invalid JSON data');
+    }
+    
+    // Format the log message
+    $log_message = "[UNIT PRICE DEBUG] " . $message;
+    if (!empty($decoded_data)) {
+        $log_message .= " | Data: " . json_encode($decoded_data);
+    }
+    
+    // Log to error_log
+    error_log($log_message);
+    
+    // Also log using our custom function if available
+    if (function_exists('ps_log_error')) {
+        ps_log_error($log_message);
+    }
+    
+    wp_send_json_success(array('message' => 'Debug message logged'));
+}
+add_action('wp_ajax_ps_debug_log', 'ps_ajax_debug_log');
+add_action('wp_ajax_nopriv_ps_debug_log', 'ps_ajax_debug_log');
+
+// Test debug logging system on plugin load
+add_action('init', function() {
+    // Debug logging system is working - removing test messages
+    // if (function_exists('ps_log_error')) {
+    //     ps_log_error("[UNIT PRICE DEBUG] Plugin loaded - debug logging system initialized");
+    // }
+    // error_log("[UNIT PRICE DEBUG] Plugin loaded - debug logging system initialized via error_log");
+});
+
+// Also test when admin area is accessed
+add_action('admin_init', function() {
+    // Debug logging system is working - removing test messages
+    // if (function_exists('ps_log_error')) {
+    //     ps_log_error("[UNIT PRICE DEBUG] Admin area accessed - debug logging system working");
+    // }
+    // error_log("[UNIT PRICE DEBUG] Admin area accessed - debug logging system working via error_log");
+});
+
+// Test when any AJAX request is made
+add_action('wp_ajax_ps_search', function() {
+    error_log("[UNIT PRICE DEBUG] AJAX search request detected - about to process");
+}, 1); // Priority 1 to run before the main handler

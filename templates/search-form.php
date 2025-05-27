@@ -156,7 +156,7 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
             <div class="ps-product-pricing">
                 <div class="ps-product-price">{{price}}</div>
                 {{#if price_per_unit}}
-                <div class="ps-product-price-unit">{{price_per_unit}}</div>
+                <div class="ps-product-price-unit">({{price_per_unit}})</div>
                 {{/if}}
             </div>
             {{#if delivery_time}}

@@ -20,9 +20,24 @@ console.log('search.js loaded');
         
         if (window.psData && window.psData.ajaxurl && window.psData.nonce) {
             console.log('Calling loadCachedResults');
+            
+            // Log page initialization
+            logToServer('Page Load: Document ready fired, initializing unit price sorting system', {
+                hasAjaxUrl: !!(window.psData && window.psData.ajaxurl),
+                hasNonce: !!(window.psData && window.psData.nonce),
+                userAgent: navigator.userAgent.substring(0, 100)
+            });
+            
             loadCachedResults();
         } else {
             console.error('psData not available for loadCachedResults', window.psData);
+            
+            logToServer('Page Load: psData not available, cannot initialize unit price sorting', {
+                psDataExists: !!window.psData,
+                hasAjaxUrl: !!(window.psData && window.psData.ajaxurl),
+                hasNonce: !!(window.psData && window.psData.nonce)
+            });
+            
             const resultsContainer = document.getElementById('ps-results');
             if (resultsContainer) {
                 resultsContainer.innerHTML = '<div class="ps-error">Configuration error. Please refresh the page or contact support.</div>';
@@ -54,10 +69,12 @@ console.log('search.js loaded');
         // Detect user's country and set the appropriate radio button
         detectUserCountry();
         
-        // Store current search results for re-sorting
-        let currentSearchResults = [];
-        // Store the original cached results for always-on filtering
+        // Global variables
         let originalCachedResults = [];
+        let currentSearchResults = [];
+        let searchCooldownActive = false;
+        let searchCooldownTimer = null;
+        let savedDefaultSort = null; // Store the calculated default sort preference
         
         // Unit detection patterns for title extraction
         const unitPatterns = [
@@ -212,29 +229,55 @@ console.log('search.js loaded');
                 // Normalize price per unit to 100 units
                 if (hasPricePerUnit) {
                     const unitLower = processedItem.unit.toLowerCase();
-                    // Check for known units that should be normalized to 100
-                    if (unitLower === 'gram' || unitLower === 'grams' || unitLower === 'g') {
-                        // Normalize to 100 grams (multiply by 100)
-                        if (pricePerUnitValue > 0) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100; // Update the value used for sorting
-                            processedItem.unit = '100 grams';
-                        }
-                    } else if (unitLower === 'ml' || unitLower === 'milliliter' || unitLower === 'milliliters' || unitLower === 'millilitre' || unitLower === 'millilitres') {
-                        // Normalize milliliters to 100ml
-                        if (pricePerUnitValue > 0) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100; // Update the value used for sorting
-                            processedItem.unit = '100 ml';
-                        }
-                    } else if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'ounces' || unitLower === 'fl oz') {
-                        // Normalize ounces to 100oz
-                        if (pricePerUnitValue > 0) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100; // Update the value used for sorting
-                            processedItem.unit = '100 oz';
+                    
+                    // Debug: Log the original values to understand what we're working with
+                    console.log(`Processing unit price for: ${processedItem.title.substring(0, 50)}...`);
+                    console.log(`Original unit: "${processedItem.unit}", price_per_unit: "${processedItem.price_per_unit}", price_per_unit_value: ${pricePerUnitValue}`);
+                    console.log(`Total price: $${processedItem.price_value}`);
+                    
+                    // Check if the price_per_unit_value seems unreasonable (likely the total price instead of per-unit)
+                    // If price_per_unit_value is close to the total price, it's probably wrong
+                    const totalPrice = parseFloat(processedItem.price_value) || 0;
+                    const isUnreasonableUnitPrice = Math.abs(pricePerUnitValue - totalPrice) < (totalPrice * 0.1); // Within 10% of total price
+                    
+                    if (isUnreasonableUnitPrice && totalPrice > 0) {
+                        console.log(`Unit price ${pricePerUnitValue} seems unreasonable (too close to total price ${totalPrice}). Attempting to recalculate.`);
+                        
+                        // Try to extract size from title to recalculate
+                        const sizeInfo = extractSizeFromTitle(processedItem.title);
+                        if (sizeInfo) {
+                            // Recalculate the correct unit price
+                            const correctPricePerUnit = totalPrice / sizeInfo.value;
+                            pricePerUnitValue = correctPricePerUnit;
+                            console.log(`Recalculated: $${totalPrice} ÷ ${sizeInfo.value}${sizeInfo.unit} = $${correctPricePerUnit.toFixed(4)} per ${sizeInfo.unit}`);
                         }
                     }
+                    
+                    // Check for known units that should be normalized to 100
+                    if (unitLower === 'gram' || unitLower === 'grams' || unitLower === 'g') {
+                        // If unit is already "100 grams", don't multiply again
+                        if (!unitLower.includes('100')) {
+                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
+                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                        }
+                        processedItem.unit = '100 grams';
+                    } else if (unitLower === 'ml' || unitLower === 'milliliter' || unitLower === 'milliliters' || unitLower === 'millilitre' || unitLower === 'millilitres') {
+                        // If unit is already "100 ml", don't multiply again
+                        if (!unitLower.includes('100')) {
+                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
+                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                        }
+                        processedItem.unit = '100 ml';
+                    } else if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'ounces' || unitLower === 'fl oz') {
+                        // If unit is already "100 oz", don't multiply again
+                        if (!unitLower.includes('100')) {
+                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
+                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                        }
+                        processedItem.unit = '100 oz';
+                    }
+                    
+                    console.log(`Final unit: "${processedItem.unit}", price_per_unit: "${processedItem.price_per_unit}", price_per_unit_value: ${processedItem.price_per_unit_value}`);
                 }
 
                 return processedItem;
@@ -257,22 +300,48 @@ console.log('search.js loaded');
                     return priceA - priceB;
                 });
             } else if (sortBy === 'price_per_unit') {
-                // First filter out products without unit prices
-                const itemsWithUnitPrice = sortedItems.filter(function(item) {
-                    return item.price_per_unit && item.unit && parseFloat(item.price_per_unit_value) > 0;
+                // Separate products with and without unit prices
+                const itemsWithUnitPrice = [];
+                const itemsWithoutUnitPrice = [];
+                
+                sortedItems.forEach(function(item) {
+                    // Use the same logic as shouldDefaultToUnitPrice - check for valid price_per_unit_value
+                    // Even if unit is "No unit", it still represents a valid unit price
+                    if (item.price_per_unit && 
+                        item.price_per_unit_value && 
+                        parseFloat(item.price_per_unit_value) > 0 &&
+                        item.price_per_unit !== '' &&
+                        item.price_per_unit !== 'N/A') {
+                        itemsWithUnitPrice.push(item);
+                    } else {
+                        itemsWithoutUnitPrice.push(item);
+                    }
                 });
                 
-                // If we have products with unit prices, return those sorted
+                // Sort products with unit prices by unit price
+                itemsWithUnitPrice.sort(function(a, b) {
+                    const priceA = parseFloat(a.price_per_unit_value) || 0;
+                    const priceB = parseFloat(b.price_per_unit_value) || 0;
+                    return priceA - priceB;
+                });
+                
+                // Debug logging for unit price sorting
                 if (itemsWithUnitPrice.length > 0) {
-                    return itemsWithUnitPrice.sort(function(a, b) {
-                        const priceA = parseFloat(a.price_per_unit_value) || 0;
-                        const priceB = parseFloat(b.price_per_unit_value) || 0;
-                        return priceA - priceB;
+                    console.log('Unit price sorting results:');
+                    itemsWithUnitPrice.slice(0, 5).forEach(function(item, index) {
+                        console.log(`${index + 1}. ${item.title.substring(0, 50)}... - $${item.price_per_unit_value}/unit (${item.unit})`);
                     });
-                } else {
-                    // If no products have unit prices, fall back to regular price sorting
-                    return sortProducts(sortedItems, 'price');
                 }
+                
+                // Sort products without unit prices by regular price
+                itemsWithoutUnitPrice.sort(function(a, b) {
+                    const priceA = parseFloat(a.price_value) || 0;
+                    const priceB = parseFloat(b.price_value) || 0;
+                    return priceA - priceB;
+                });
+                
+                // Return unit price sorted items first, then regular price sorted items
+                return [...itemsWithUnitPrice, ...itemsWithoutUnitPrice];
             }
             
             return sortedItems;
@@ -563,12 +632,14 @@ console.log('search.js loaded');
                         .ps-product-pricing {
                             margin-bottom: 3px;
                             order: 4;
+                            display: flex;
+                            align-items: baseline;
+                            gap: 8px;
                         }
                         .ps-product-price {
                             font-weight: bold;
                             font-size: 1em; /* Reduced from 1.2em */
                             color: #e63946;
-                            margin-bottom: 3px;
                         }
                         .ps-product-price-unit {
                             font-size: 0.8em;
@@ -655,12 +726,14 @@ console.log('search.js loaded');
                 // Apply include, exclude, and rating filtering
                 filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
                 // Sort the filtered results
-                filteredResults = sortProducts(filteredResults, sortCriteria);
+                const sortByElem = document.getElementById('ps-sort-by');
+                const currentSortBy = sortByElem ? sortByElem.value : 'price';
+                const sortedProducts = sortProducts(filteredResults, currentSortBy);
                 // Update UI
                 $loading.hide();
                 const totalCount = originalCachedResults.length;
-                $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
-                renderProducts(filteredResults);
+                $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                renderProducts(sortedProducts);
             } else {
                 $loading.hide();
                 $results.html('<div class="ps-no-results">No results to filter. Please perform a search first.</div>');
@@ -701,13 +774,23 @@ console.log('search.js loaded');
         function loadCachedResults() {
             const resultsContainer = document.getElementById('ps-results');
             if (!resultsContainer) return;
+            
+            // Log that we're loading cached results
+            logToServer('Load Cached Results: Starting to load cached results on page refresh');
+            
             // Show loading message
             resultsContainer.innerHTML = '<div class="ps-loading">Loading your last search results...</div>';
             // Get current filter values
             const sortByElem = document.getElementById('ps-sort-by');
             const countryElem = document.querySelector('input[name="country"]:checked');
-            const sortBy = sortByElem ? sortByElem.value : '';
+            const sortBy = sortByElem ? sortByElem.value : 'price';
             const country = countryElem ? countryElem.value : 'us';
+            
+            logToServer('Load Cached Results: Request parameters', {
+                sortBy: sortBy,
+                country: country
+            });
+            
             // Make AJAX request to get cached results
             jQuery.ajax({
                 url: psData.ajaxurl,
@@ -732,9 +815,20 @@ console.log('search.js loaded');
                             products = response.items;
                         }
                     }
+                    
+                    logToServer('Load Cached Results: Received response', {
+                        success: response.success,
+                        productCount: products.length,
+                        hasResponseData: !!(response.data),
+                        hasItems: !!(response.items || (response.data && response.data.items))
+                    });
+                    
                     if (products.length > 0) {
                         // Store the original cached results for filtering
                         originalCachedResults = [...products];
+                        
+                        // Apply saved default sorting preference (don't recalculate)
+                        const sortingChanged = applySavedDefaultSorting();
                         
                         // Auto-apply search/exclude terms when loading cached results
                         const queryElem = document.getElementById('ps-search-query');
@@ -767,25 +861,43 @@ console.log('search.js loaded');
                             filteredProducts = filterProducts(products, currentExcludeText, currentIncludeText, currentMinRating);
                         }
                         
-                        const sortedProducts = sortProducts(filteredProducts, sortBy);
+                        // Get the current sort value (might have been changed by applySavedDefaultSorting)
+                        const currentSortBy = sortByElem ? sortByElem.value : 'price';
+                        const sortedProducts = sortProducts(filteredProducts, currentSortBy);
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
                         
                         // Update results count with new format
                         const totalCount = response.data && response.data.base_items_count ? response.data.base_items_count : products.length;
-                        $resultsCount.html('<p><strong>' + filteredProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                        $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
                         if ($filterButton) $filterButton.prop('disabled', false);
                         if ($showAllButton) $showAllButton.show();
+                        
+                        logToServer('Load Cached Results: Successfully processed and rendered products', {
+                            originalCount: products.length,
+                            filteredCount: filteredProducts.length,
+                            finalCount: sortedProducts.length,
+                            sortingChanged: sortingChanged,
+                            currentSortBy: currentSortBy
+                        });
                     } else {
                         currentSearchResults = [];
                         originalCachedResults = [];
                         if ($filterButton) $filterButton.prop('disabled', true);
                         if ($showAllButton) $showAllButton.hide();
                         resultsContainer.innerHTML = '<div class="ps-no-results">No previous search results found.</div>';
+                        
+                        logToServer('Load Cached Results: No products found in cached results');
                     }
                 },
                 error: function(xhr, status, error) {
+                    logToServer('Load Cached Results: AJAX error occurred', {
+                        status: xhr.status,
+                        statusText: status,
+                        error: error
+                    });
+                    
                     if (xhr.status === 403) {
                         resultsContainer.innerHTML = '<div class="ps-error">Access forbidden. This could be due to a security check failure or session timeout. Please refresh the page and try again.</div>';
                     } else if (xhr.status === 500) {
@@ -795,6 +907,49 @@ console.log('search.js loaded');
                     }
                 }
             });
+        }
+                
+        /**
+         * Start the search cooldown timer
+         * @param {HTMLElement} searchButton - The search button element
+         */
+        function startSearchCooldown(searchButton) {
+            if (!searchButton) return;
+            
+            searchCooldownActive = true;
+            let countdown = 5;
+            const originalText = searchButton.textContent;
+            
+            // Clear any existing timer
+            if (searchCooldownTimer) {
+                clearInterval(searchCooldownTimer);
+            }
+            
+            // Add cooldown class and disable button
+            searchButton.classList.add('ps-cooldown');
+            searchButton.disabled = true;
+            
+            // Update button text with countdown
+            searchButton.textContent = `Wait ${countdown}s`;
+            
+            // Start countdown timer
+            searchCooldownTimer = setInterval(function() {
+                countdown--;
+                
+                if (countdown > 0) {
+                    searchButton.textContent = `Wait ${countdown}s`;
+                } else {
+                    // Reset button state
+                    searchButton.textContent = originalText;
+                    searchButton.classList.remove('ps-cooldown');
+                    searchButton.disabled = false;
+                    searchCooldownActive = false;
+                    
+                    // Clear timer
+                    clearInterval(searchCooldownTimer);
+                    searchCooldownTimer = null;
+                }
+            }, 1000);
         }
                 
         // Handle form submission
@@ -807,11 +962,17 @@ console.log('search.js loaded');
                 return;
             }
 
+            // Check if cooldown is active
+            if (searchCooldownActive) {
+                return; // Prevent submission during cooldown
+            }
+
             const queryElem = document.getElementById('ps-search-query');
             const excludeKeywordsElem = document.getElementById('ps-exclude-keywords');
             const sortByElem = document.getElementById('ps-sort-by');
             const minRatingElem = document.getElementById('ps-min-rating');
             const resultsContainer = document.getElementById('ps-results');
+            const searchButton = document.querySelector('.ps-search-button');
 
             const query = queryElem ? queryElem.value.trim() : '';
             const excludeKeywords = excludeKeywordsElem ? excludeKeywordsElem.value.trim() : '';
@@ -823,7 +984,7 @@ console.log('search.js loaded');
             if (!query) {
                 resultsContainer.innerHTML = '<div class="ps-error">Please enter search keywords.</div>';
                 return;
-                    }
+            }
                     
             // Verify psData is available
             if (!window.psData || !window.psData.ajaxurl || !window.psData.nonce) {
@@ -870,6 +1031,9 @@ console.log('search.js loaded');
                         // Store the original results for filtering
                         originalCachedResults = [...products];
                         
+                        // Check if we should default to unit price sorting
+                        const sortingChanged = calculateAndSaveDefaultSorting(products);
+                        
                         // Auto-apply current filter values from the form
                         const currentIncludeText = query; // The search query is the include text
                         const currentExcludeText = excludeKeywords;
@@ -880,18 +1044,26 @@ console.log('search.js loaded');
                             filteredProducts = filterProducts(products, currentExcludeText, currentIncludeText, currentMinRating);
                         }
                         
-                        const sortedProducts = sortProducts(filteredProducts, sortBy);
+                        // Get the current sort value (might have been changed by calculateAndSaveDefaultSorting)
+                        const currentSortBy = sortByElem ? sortByElem.value : 'price';
+                        const sortedProducts = sortProducts(filteredProducts, currentSortBy);
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
                         
                         // Update results count with new format
-                        $resultsCount.html('<p><strong>' + filteredProducts.length + '</strong> products of <strong>' + baseItemsCount + '</strong> match your criteria.</p>').show();
+                        const totalCount = response.data && response.data.base_items_count ? response.data.base_items_count : products.length;
+                        $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
                         // Show filter and show all buttons when products are found
                         $('#ps-filter-button').show();
                         $('#ps-show-all-button').show();
+                        
+                        // Start cooldown timer after successful search
+                        startSearchCooldown(searchButton);
                     } else {
                         resultsContainer.innerHTML = '<div class="ps-no-results">No products found.</div>';
+                        // Start cooldown timer even when no products found
+                        startSearchCooldown(searchButton);
                     }
                 },
                 error: function(xhr, status, error) {
@@ -917,8 +1089,8 @@ console.log('search.js loaded');
                                     const match = xhr.responseText.match(/<b>Message<\/b>:\s*([^<]+)/);
                                     if (match && match[1]) {
                                         errorMessage += ' Error: ' + match[1].trim();
-                    }
-                }
+                                    }
+                                }
                             }
                         } catch (e) {
                             console.error('Error parsing error response:', e);
@@ -928,8 +1100,239 @@ console.log('search.js loaded');
                     } else {
                         resultsContainer.innerHTML = '<div class="ps-error">Error performing search. Please try again.</div>';
                     }
+                    
+                    // Start cooldown timer even on error to prevent spam
+                    startSearchCooldown(searchButton);
                 }
             });
         });
+
+        /**
+         * Send debug data to server error log
+         * @param {string} message - Debug message
+         * @param {object} data - Additional data to log
+         */
+        function logToServer(message, data = {}) {
+            if (window.psData && window.psData.ajaxurl && window.psData.nonce) {
+                jQuery.ajax({
+                    url: psData.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'ps_debug_log',
+                        nonce: psData.nonce,
+                        message: message,
+                        data: JSON.stringify(data)
+                    },
+                    success: function(response) {
+                        // Silent success
+                    },
+                    error: function(xhr, status, error) {
+                        // Silent error - don't spam console
+                    }
+                });
+            }
+        }
+
+        // Test the debug logging system immediately
+        logToServer('Debug System Test: logToServer function is working', {
+            timestamp: new Date().toISOString(),
+            testMessage: 'This is a test to verify debug logging is functional'
+        });
+
+        /**
+         * Check if more than half the products have unit price data
+         * @param {Array} items - Array of product items
+         * @returns {boolean} - True if more than half have unit price data
+         */
+        function shouldDefaultToUnitPrice(items) {
+            if (!items || items.length === 0) {
+                logToServer('Unit Price Debug: No items provided', { itemCount: 0 });
+                return false;
+            }
+            
+            let itemsWithUnitPrice = 0;
+            const debugItems = [];
+            
+            items.forEach(function(item, index) {
+                // A product has unit price if it has a price_per_unit_value > 0
+                // Even if the unit is "No unit", it still represents a valid unit price
+                const hasUnitPrice = item.price_per_unit && 
+                    item.price_per_unit_value && 
+                    parseFloat(item.price_per_unit_value) > 0 &&
+                    item.price_per_unit !== '' &&
+                    item.price_per_unit !== 'N/A';
+                
+                if (hasUnitPrice) {
+                    itemsWithUnitPrice++;
+                }
+                
+                // Log first 10 items for debugging
+                if (index < 10) {
+                    debugItems.push({
+                        index: index,
+                        title: item.title ? item.title.substring(0, 50) + '...' : 'No title',
+                        price: item.price || 'No price',
+                        price_value: item.price_value || 0,
+                        price_per_unit: item.price_per_unit || 'No unit price',
+                        unit: item.unit || 'No unit',
+                        price_per_unit_value: item.price_per_unit_value || 0,
+                        hasUnitPrice: hasUnitPrice
+                    });
+                }
+            });
+            
+            const percentage = itemsWithUnitPrice / items.length;
+            const shouldDefault = percentage > 0.5;
+            
+            // Log detailed analysis to server
+            logToServer('Unit Price Analysis After Live Search', {
+                totalItems: items.length,
+                itemsWithUnitPrice: itemsWithUnitPrice,
+                percentage: Math.round(percentage * 100),
+                shouldDefaultToUnitPrice: shouldDefault,
+                sampleItems: debugItems
+            });
+            
+            console.log(`Unit price analysis: ${itemsWithUnitPrice}/${items.length} products (${Math.round(percentage * 100)}%) have unit price data`);
+            
+            return shouldDefault;
+        }
+
+        /**
+         * Calculate and save the default sorting preference based on unit price availability
+         * This should only be called after a live search, not on cached results or filters
+         * @param {Array} items - Array of product items
+         * @returns {boolean} - True if sorting was changed to unit price
+         */
+        function calculateAndSaveDefaultSorting(items) {
+            const sortByElem = document.getElementById('ps-sort-by');
+            if (!sortByElem) {
+                logToServer('Unit Price Debug: Sort element not found');
+                return false;
+            }
+            
+            const currentSortValue = sortByElem.value;
+            const shouldDefault = shouldDefaultToUnitPrice(items);
+            
+            // Save the calculated preference both in memory and localStorage
+            savedDefaultSort = shouldDefault ? 'price_per_unit' : 'price';
+            try {
+                localStorage.setItem('ps_saved_default_sort', savedDefaultSort);
+            } catch (e) {
+                console.warn('Could not save default sort to localStorage:', e);
+            }
+            
+            logToServer('Calculate and Save Default Sorting', {
+                currentSortValue: currentSortValue,
+                shouldDefaultToUnitPrice: shouldDefault,
+                savedDefaultSort: savedDefaultSort,
+                willChangeSorting: currentSortValue === 'price' && shouldDefault
+            });
+            
+            // Only change default if currently set to 'price' (the default)
+            if (currentSortValue === 'price' && shouldDefault) {
+                console.log('Automatically switching to unit price sorting');
+                sortByElem.value = 'price_per_unit';
+                
+                logToServer('Unit Price Sorting: Automatically switched to unit price sorting', {
+                    previousValue: 'price',
+                    newValue: 'price_per_unit',
+                    itemCount: items.length
+                });
+                
+                // Add visual feedback to let user know sorting was changed
+                const sortContainer = sortByElem.parentElement;
+                if (sortContainer) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'ps-auto-sort-feedback';
+                    feedback.style.cssText = 'color: #28a745; font-size: 12px; margin-top: 2px; font-style: italic;';
+                    feedback.textContent = 'Auto-sorted by unit price (most products have unit pricing)';
+                    
+                    // Remove any existing feedback
+                    const existingFeedback = sortContainer.querySelector('.ps-auto-sort-feedback');
+                    if (existingFeedback) {
+                        existingFeedback.remove();
+                    }
+                    
+                    sortContainer.appendChild(feedback);
+                    
+                    // Remove feedback after 5 seconds
+                    setTimeout(function() {
+                        if (feedback && feedback.parentElement) {
+                            feedback.remove();
+                        }
+                    }, 5000);
+                }
+                
+                return true; // Sorting was changed
+            }
+            
+            return false; // Sorting was not changed
+        }
+
+        /**
+         * Apply the saved default sorting preference
+         * This is used for cached results and filters, without recalculating unit price analysis
+         * @returns {boolean} - True if sorting was changed
+         */
+        function applySavedDefaultSorting() {
+            const sortByElem = document.getElementById('ps-sort-by');
+            if (!sortByElem) {
+                logToServer('Apply Saved Default Sorting: Sort element not found');
+                return false;
+            }
+            
+            // Try to get saved preference from memory first, then localStorage
+            if (!savedDefaultSort) {
+                try {
+                    savedDefaultSort = localStorage.getItem('ps_saved_default_sort');
+                } catch (e) {
+                    console.warn('Could not read default sort from localStorage:', e);
+                }
+            }
+            
+            if (!savedDefaultSort) {
+                logToServer('Apply Saved Default Sorting: No saved preference found', {
+                    hasSortElement: !!sortByElem,
+                    savedDefaultSort: savedDefaultSort
+                });
+                return false;
+            }
+            
+            const currentSortValue = sortByElem.value;
+            
+            logToServer('Apply Saved Default Sorting', {
+                currentSortValue: currentSortValue,
+                savedDefaultSort: savedDefaultSort,
+                willChangeSorting: currentSortValue === 'price' && savedDefaultSort === 'price_per_unit'
+            });
+            
+            // Only change default if currently set to 'price' and we have a saved preference for unit price
+            if (currentSortValue === 'price' && savedDefaultSort === 'price_per_unit') {
+                console.log('Applying saved unit price sorting preference');
+                sortByElem.value = 'price_per_unit';
+                
+                logToServer('Unit Price Sorting: Applied saved unit price sorting preference', {
+                    previousValue: 'price',
+                    newValue: 'price_per_unit'
+                });
+                
+                return true; // Sorting was changed
+            }
+            
+            return false; // Sorting was not changed
+        }
+
+        /**
+         * Set the default sorting based on unit price availability
+         * @param {Array} items - Array of product items
+         * @returns {boolean} - True if sorting was changed to unit price
+         * @deprecated Use calculateAndSaveDefaultSorting for live searches or applySavedDefaultSorting for cached results
+         */
+        function setDefaultSorting(items) {
+            // This function is kept for backward compatibility but should not be used
+            // Use calculateAndSaveDefaultSorting for live searches or applySavedDefaultSorting for cached results
+            return calculateAndSaveDefaultSorting(items);
+        }
     });
 })(jQuery);
