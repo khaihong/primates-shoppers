@@ -92,6 +92,7 @@ console.log('search.js loaded');
         
         /**
          * Detect user's country and set the appropriate radio button
+         * Only sets country if no cached preference exists
          */
         function detectUserCountry() {
             // First try using a free IP geolocation API
@@ -104,16 +105,37 @@ console.log('search.js loaded');
                         const countryCode = response.country_code.toLowerCase();
                         console.log('Detected country from IP:', countryCode);
                         
-                        // Check if the detected country is supported in our selector
-                        if (countryCode === 'ca') {
-                            // Set Canada as selected
-                            $('input[name="country"][value="ca"]').prop('checked', true);
+                        // Only set country if no cached preference has been applied
+                        // Check if loadCachedResults has already set a country preference
+                        const currentCountry = $('input[name="country"]:checked').val();
+                        const hasExistingPreference = window.countrySetFromCache || false;
+                        
+                        logToServer('Country Detection: IP-based detection completed', {
+                            detectedCountry: countryCode,
+                            currentCountrySelection: currentCountry,
+                            countrySetFromCache: hasExistingPreference,
+                            willOverride: !hasExistingPreference && countryCode === 'ca'
+                        });
+                        
+                        if (!hasExistingPreference) {
+                            // Check if the detected country is supported in our selector
+                            if (countryCode === 'ca') {
+                                // Set Canada as selected
+                                $('input[name="country"][value="ca"]').prop('checked', true);
+                                console.log('Set country to CA based on IP detection');
+                                logToServer('Country Detection: Set country to CA based on IP detection');
+                            }
+                            // For US and all other countries, keep the default (US)
+                        } else {
+                            console.log('Country already set from cached preference, not overriding');
                         }
-                        // For US and all other countries, keep the default (US)
                     }
                 },
                 error: function(error) {
                     console.log('Error detecting country from IP:', error);
+                    logToServer('Country Detection: IP detection failed, falling back to browser language', {
+                        error: error.statusText || 'Unknown error'
+                    });
                     // Fall back to browser language detection
                     detectCountryFromBrowser();
                 }
@@ -122,18 +144,39 @@ console.log('search.js loaded');
         
         /**
          * Fallback method to detect country from browser language
+         * Only sets country if no cached preference exists
          */
         function detectCountryFromBrowser() {
             try {
                 const language = (navigator.language || navigator.userLanguage || '').toLowerCase();
                 console.log('Browser language:', language);
                 
-                // Check for Canadian English/French
-                if (language === 'en-ca' || language === 'fr-ca') {
-                    $('input[name="country"][value="ca"]').prop('checked', true);
+                // Only set country if no cached preference has been applied
+                const hasExistingPreference = window.countrySetFromCache || false;
+                const currentCountry = $('input[name="country"]:checked').val();
+                
+                logToServer('Country Detection: Browser language detection', {
+                    browserLanguage: language,
+                    currentCountrySelection: currentCountry,
+                    countrySetFromCache: hasExistingPreference,
+                    willOverride: !hasExistingPreference && (language === 'en-ca' || language === 'fr-ca')
+                });
+                
+                if (!hasExistingPreference) {
+                    // Check for Canadian English/French
+                    if (language === 'en-ca' || language === 'fr-ca') {
+                        $('input[name="country"][value="ca"]').prop('checked', true);
+                        console.log('Set country to CA based on browser language');
+                        logToServer('Country Detection: Set country to CA based on browser language');
+                    }
+                } else {
+                    console.log('Country already set from cached preference, not overriding');
                 }
             } catch (e) {
                 console.log('Error detecting country from browser language:', e);
+                logToServer('Country Detection: Browser language detection failed', {
+                    error: e.message
+                });
                 // Keep default (US) on error
             }
         }
@@ -664,6 +707,10 @@ console.log('search.js loaded');
         
         // Handle sort change (re-sort current results)
         $sortBy.on('change', function() {
+            // Clear saved default sorting preference when user manually changes sort
+            // This allows the system to recalculate the preference on the next search
+            clearSavedDefaultSorting();
+            
             if (originalCachedResults.length > 0) {
                 // Re-apply all filters when sort changes
                 const excludeText = $('#ps-exclude-keywords').val();
@@ -851,6 +898,26 @@ console.log('search.js loaded');
                             }
                         }
                         
+                        // Set the country radio button based on the cached search country
+                        const cachedCountry = (response.data && response.data.country_code) || response.country_code;
+                        if (cachedCountry) {
+                            const countryRadio = document.querySelector(`input[name="country"][value="${cachedCountry}"]`);
+                            if (countryRadio) {
+                                countryRadio.checked = true;
+                                // Set flag to prevent detectUserCountry from overriding this
+                                window.countrySetFromCache = true;
+                                logToServer('Load Cached Results: Set country radio button', {
+                                    cachedCountry: cachedCountry,
+                                    radioButtonFound: true
+                                });
+                            } else {
+                                logToServer('Load Cached Results: Country radio button not found', {
+                                    cachedCountry: cachedCountry,
+                                    radioButtonFound: false
+                                });
+                            }
+                        }
+                        
                         // Auto-apply current filter values
                         const currentIncludeText = queryElem ? queryElem.value : '';
                         const currentExcludeText = excludeElem ? excludeElem.value : '';
@@ -886,7 +953,8 @@ console.log('search.js loaded');
                         originalCachedResults = [];
                         if ($filterButton) $filterButton.prop('disabled', true);
                         if ($showAllButton) $showAllButton.hide();
-                        resultsContainer.innerHTML = '<div class="ps-no-results">No previous search results found.</div>';
+                        // For new visitors, don't show any message - just clear the container
+                        resultsContainer.innerHTML = '';
                         
                         logToServer('Load Cached Results: No products found in cached results');
                     }
@@ -1031,7 +1099,14 @@ console.log('search.js loaded');
                         // Store the original results for filtering
                         originalCachedResults = [...products];
                         
-                        // Check if we should default to unit price sorting
+                        // For live searches, always start with default "price" sorting and analyze fresh data
+                        // Reset the sort dropdown to "price" first
+                        if (sortByElem) {
+                            sortByElem.value = 'price';
+                        }
+                        
+                        // Check if we should default to unit price sorting based on current search results
+                        logToServer('Live Search: Starting fresh analysis for unit price sorting');
                         const sortingChanged = calculateAndSaveDefaultSorting(products);
                         
                         // Auto-apply current filter values from the form
@@ -1321,6 +1396,20 @@ console.log('search.js loaded');
             }
             
             return false; // Sorting was not changed
+        }
+
+        /**
+         * Clear the saved default sorting preference
+         * This allows the system to recalculate the preference on the next search
+         */
+        function clearSavedDefaultSorting() {
+            savedDefaultSort = null;
+            try {
+                localStorage.removeItem('ps_saved_default_sort');
+                logToServer('Cleared saved default sorting preference');
+            } catch (e) {
+                console.warn('Could not clear default sort from localStorage:', e);
+            }
         }
 
         /**

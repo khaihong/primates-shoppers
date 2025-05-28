@@ -34,7 +34,8 @@ function ps_settings_page() {
             'amazon_associate_tag' => sanitize_text_field($_POST['ps_settings']['amazon_associate_tag']),
             'amazon_associate_tag_ca' => sanitize_text_field($_POST['ps_settings']['amazon_associate_tag_ca']),
             'amazon_associate_tag_us' => sanitize_text_field($_POST['ps_settings']['amazon_associate_tag_us']),
-            'cache_duration' => intval($_POST['ps_settings']['cache_duration'])
+            'cache_duration' => intval($_POST['ps_settings']['cache_duration']),
+            'bandwidth_optimization' => isset($_POST['ps_settings']['bandwidth_optimization']) ? 1 : 0
         );
         
         update_option('ps_settings', $settings);
@@ -57,6 +58,7 @@ function ps_settings_page() {
     $amazon_associate_tag_ca = isset($settings['amazon_associate_tag_ca']) ? $settings['amazon_associate_tag_ca'] : PS_AFFILIATE_ID;
     $amazon_associate_tag_us = isset($settings['amazon_associate_tag_us']) ? $settings['amazon_associate_tag_us'] : 'primatesshopp-20';
     $cache_duration = isset($settings['cache_duration']) ? $settings['cache_duration'] : 86400;
+    $bandwidth_optimization = isset($settings['bandwidth_optimization']) ? $settings['bandwidth_optimization'] : 1; // Default enabled
     
     // Display the settings form
     ?>
@@ -86,6 +88,14 @@ function ps_settings_page() {
                         <td>
                             <input type="number" id="ps_settings_cache_duration" name="ps_settings[cache_duration]" value="<?php echo esc_attr($cache_duration); ?>" class="regular-text">
                             <p class="description">How long to cache search results (in seconds). Default: 86400 (24 hours).</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ps_settings_bandwidth_optimization">Bandwidth Optimization</label></th>
+                        <td>
+                            <input type="checkbox" id="ps_settings_bandwidth_optimization" name="ps_settings[bandwidth_optimization]" value="1" <?php checked($bandwidth_optimization, 1); ?>>
+                            <label for="ps_settings_bandwidth_optimization">Enable bandwidth optimization</label>
+                            <p class="description">Extract only product-related HTML content to reduce data usage when using proxy services. <strong>Recommended for paid proxy services.</strong> This can reduce bandwidth usage by 60-80%.</p>
                         </td>
                     </tr>
                 </table>

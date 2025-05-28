@@ -91,6 +91,18 @@ function ps_ajax_test_parsing() {
     $html = ps_sanitize_html_for_parsing($html);
     error_log('HTML sanitized, new length: ' . strlen($html));
     
+    // Apply bandwidth optimization if enabled (for testing purposes)
+    $settings = get_option('ps_settings');
+    $bandwidth_optimization = isset($settings['bandwidth_optimization']) ? $settings['bandwidth_optimization'] : 1;
+    
+    if ($bandwidth_optimization && $source_type !== 'text') {
+        // Only apply optimization for file/URL sources, not custom text
+        $original_size = strlen($html);
+        $html = ps_extract_product_html($html);
+        $optimized_size = strlen($html);
+        error_log('Bandwidth optimization applied in parsing test - Original: ' . number_format($original_size) . ' bytes, Optimized: ' . number_format($optimized_size) . ' bytes');
+    }
+    
     // Load HTML into DOMDocument for XPath parsing
     $dom = new DOMDocument();
     $dom->loadHTML($html);

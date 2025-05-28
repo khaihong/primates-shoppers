@@ -754,13 +754,40 @@ function ps_get_user_identifier() {
         }
     } else {
         ps_log_error("ps_get_user_identifier: No existing cookie found");
+        
+        // Check session as fallback
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (isset($_SESSION['ps_visitor_id'])) {
+            $visitor_id = sanitize_text_field($_SESSION['ps_visitor_id']);
+            ps_log_error("ps_get_user_identifier: Found existing session ID: '{$visitor_id}'");
+            // Validate that it matches our expected format
+            if (preg_match('/^visitor_[a-f0-9]{10}$/', $visitor_id)) {
+                ps_log_error("ps_get_user_identifier: Session ID is valid, returning: '{$visitor_id}'");
+                return $visitor_id;
+            } else {
+                ps_log_error("ps_get_user_identifier: Session ID format is invalid: '{$visitor_id}'");
+            }
+        }
     }
     // If no valid cookie exists, create a new visitor ID
     $visitor_id = 'visitor_' . substr(md5(uniqid(mt_rand(), true)), 0, 10);
     ps_log_error("ps_get_user_identifier: Creating new visitor ID: '{$visitor_id}'");
-    // Set a cookie that lasts for 30 days
-    setcookie($cookie_name, $visitor_id, time() + (30 * DAY_IN_SECONDS), '/');
-    ps_log_error("ps_get_user_identifier: Cookie set, returning: '{$visitor_id}'");
+    
+    // Set a cookie that lasts for 30 days, but only if headers haven't been sent yet
+    if (!headers_sent()) {
+        setcookie($cookie_name, $visitor_id, time() + (30 * DAY_IN_SECONDS), '/');
+        ps_log_error("ps_get_user_identifier: Cookie set successfully, returning: '{$visitor_id}'");
+    } else {
+        ps_log_error("ps_get_user_identifier: Headers already sent, cannot set cookie. Using session fallback for visitor ID: '{$visitor_id}'");
+        // Use session as fallback when cookies can't be set
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['ps_visitor_id'] = $visitor_id;
+    }
+    
     return $visitor_id;
 }
 

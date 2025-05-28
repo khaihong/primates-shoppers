@@ -52,6 +52,7 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     
     // Get the associate tag
     $associate_tag = ps_get_associate_tag($country);
+    ps_log_error("Using associate tag for {$country}: '{$associate_tag}'");
     
     // Parse the search results HTML
     $products = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
@@ -116,8 +117,12 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0) {
                         }
                         
                         // Add affiliate tag if not already present
-                        if (strpos($link, 'tag=') === false) {
+                        if (!preg_match('/[?&]tag=/', $link) && !empty($affiliate_id)) {
+                            $original_link = $link;
                             $link .= (strpos($link, '?') === false ? '?' : '&') . 'tag=' . $affiliate_id;
+                            ps_log_error("Added affiliate tag to link (alt): '{$original_link}' -> '{$link}'");
+                        } else {
+                            ps_log_error("Affiliate tag not added (alt) - tag exists: " . (preg_match('/[?&]tag=/', $link) ? 'yes' : 'no') . ", affiliate_id empty: " . (empty($affiliate_id) ? 'yes' : 'no') . ", affiliate_id: '{$affiliate_id}'");
                         }
                         
                         $price = '';
@@ -679,8 +684,12 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
                         $base_amazon_url = (strpos($affiliate_id, '-20') !== false) ? 'https://www.amazon.com' : 'https://www.amazon.ca'; // basic country detection
                         $link = rtrim($base_amazon_url, '/') . $link;
                     }
-                    if (strpos($link, 'tag=') === false && !empty($affiliate_id)) {
+                    if (!preg_match('/[?&]tag=/', $link) && !empty($affiliate_id)) {
+                        $original_link = $link;
                         $link .= (strpos($link, '?') === false ? '?' : '&') . 'tag=' . $affiliate_id;
+                        ps_log_error("Added affiliate tag to link: '{$original_link}' -> '{$link}'");
+                    } else {
+                        ps_log_error("Affiliate tag not added - tag exists: " . (preg_match('/[?&]tag=/', $link) ? 'yes' : 'no') . ", affiliate_id empty: " . (empty($affiliate_id) ? 'yes' : 'no') . ", affiliate_id: '{$affiliate_id}'");
                     }
                 }
                 $current_product_debug['link'] = $link;
@@ -1288,8 +1297,131 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
         return false;
     }
     
-    // Save the response for debugging
+    // Save the original response for debugging (before optimization)
     ps_save_response_sample($html_content);
     
-    return $html_content;
+    // Check if bandwidth optimization is enabled
+    $settings = get_option('ps_settings');
+    $bandwidth_optimization = isset($settings['bandwidth_optimization']) ? $settings['bandwidth_optimization'] : 1; // Default enabled
+    
+    if ($bandwidth_optimization) {
+        // Apply bandwidth optimization - extract only product-related HTML
+        $optimized_html = ps_extract_product_html($html_content);
+        return $optimized_html;
+    } else {
+        ps_log_error("Bandwidth optimization disabled - returning full HTML");
+        return $html_content;
+    }
+}
+
+/**
+ * Extract only product-related HTML content to save bandwidth
+ * This function removes unnecessary HTML like scripts, styles, navigation, etc.
+ * and keeps only the essential product listing content.
+ *
+ * @param string $html The full HTML content
+ * @return string Stripped HTML containing only product-related content
+ */
+function ps_extract_product_html($html) {
+    ps_log_error("Starting bandwidth optimization - extracting product-only HTML");
+    
+    $original_size = strlen($html);
+    
+    try {
+        // Create DOMDocument to parse HTML
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+        
+        $xpath = new DOMXPath($dom);
+        
+        // Create a new minimal document
+        $newDom = new DOMDocument();
+        $newDom->formatOutput = false;
+        
+        // Create basic HTML structure
+        $htmlElement = $newDom->createElement('html');
+        $bodyElement = $newDom->createElement('body');
+        $htmlElement->appendChild($bodyElement);
+        $newDom->appendChild($htmlElement);
+        
+        // Extract the main search results container
+        $searchResults = $xpath->query('//div[@data-component-type="s-search-result"]');
+        if ($searchResults->length > 0) {
+            ps_log_error("Found " . $searchResults->length . " search result containers");
+            
+            // Create a container for all products
+            $containerDiv = $newDom->createElement('div');
+            $containerDiv->setAttribute('id', 'search-results-container');
+            
+            foreach ($searchResults as $result) {
+                // Import the product node to the new document
+                $importedNode = $newDom->importNode($result, true);
+                $containerDiv->appendChild($importedNode);
+            }
+            
+            $bodyElement->appendChild($containerDiv);
+        } else {
+            // Fallback: try to find products using role="listitem"
+            $listItems = $xpath->query('//div[@role="listitem"]');
+            if ($listItems->length > 0) {
+                ps_log_error("Found " . $listItems->length . " listitem containers (fallback method)");
+                
+                $containerDiv = $newDom->createElement('div');
+                $containerDiv->setAttribute('id', 'search-results-container');
+                
+                foreach ($listItems as $item) {
+                    $importedNode = $newDom->importNode($item, true);
+                    $containerDiv->appendChild($importedNode);
+                }
+                
+                $bodyElement->appendChild($containerDiv);
+            } else {
+                // Last resort: try to find any product-like containers
+                $productContainers = $xpath->query('//div[contains(@class, "s-result-item") or contains(@class, "sg-col-inner")]');
+                if ($productContainers->length > 0) {
+                    ps_log_error("Found " . $productContainers->length . " product containers (last resort method)");
+                    
+                    $containerDiv = $newDom->createElement('div');
+                    $containerDiv->setAttribute('id', 'search-results-container');
+                    
+                    foreach ($productContainers as $container) {
+                        $importedNode = $newDom->importNode($container, true);
+                        $containerDiv->appendChild($importedNode);
+                    }
+                    
+                    $bodyElement->appendChild($containerDiv);
+                } else {
+                    ps_log_error("No product containers found - returning original HTML");
+                    return $html; // Return original if we can't find products
+                }
+            }
+        }
+        
+        // Get the optimized HTML
+        $optimizedHtml = $newDom->saveHTML();
+        
+        // Additional cleanup to remove any remaining unwanted elements
+        $optimizedHtml = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $optimizedHtml);
+        $optimizedHtml = preg_replace('/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/mi', '', $optimizedHtml);
+        $optimizedHtml = preg_replace('/<link[^>]*>/mi', '', $optimizedHtml);
+        $optimizedHtml = preg_replace('/<meta[^>]*>/mi', '', $optimizedHtml);
+        $optimizedHtml = preg_replace('/<!--.*?-->/s', '', $optimizedHtml);
+        
+        // Remove excessive whitespace
+        $optimizedHtml = preg_replace('/\s+/', ' ', $optimizedHtml);
+        $optimizedHtml = trim($optimizedHtml);
+        
+        $optimized_size = strlen($optimizedHtml);
+        $savings_percent = round((($original_size - $optimized_size) / $original_size) * 100, 1);
+        
+        ps_log_error("Bandwidth optimization complete - Original: " . number_format($original_size) . " bytes, Optimized: " . number_format($optimized_size) . " bytes, Savings: {$savings_percent}%");
+        
+        return $optimizedHtml;
+        
+    } catch (Exception $e) {
+        ps_log_error("Error during HTML optimization: " . $e->getMessage() . " - returning original HTML");
+        return $html; // Return original HTML if optimization fails
+    }
 }
