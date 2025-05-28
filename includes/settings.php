@@ -199,19 +199,11 @@ function ps_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <td>Check Cache Table</td>
-                    <td>Analyze the cache table contents and user_id values.</td>
+                    <td>Test Pagination URLs</td>
+                    <td>Test pagination URL extraction from the latest Amazon response.</td>
                     <td>
-                        <button id="ps-check-cache-table" class="button">Check Table</button>
-                        <div id="ps-check-cache-table-result" style="margin-top: 10px;"></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Test Cache Insertion</td>
-                    <td>Perform a test search to trigger cache insertion and check user_id handling.</td>
-                    <td>
-                        <button id="ps-test-cache-insertion" class="button">Test Cache</button>
-                        <span id="ps-test-cache-insertion-result" style="margin-left: 10px;"></span>
+                        <button id="ps-test-pagination" class="button">Test Pagination</button>
+                        <div id="ps-test-pagination-result" style="margin-top: 10px;"></div>
                     </td>
                 </tr>
             </tbody>
@@ -309,6 +301,68 @@ function ps_settings_page() {
                 }
             });
                  });
+        
+        // Pagination Test Button Handler
+        $('#ps-test-pagination').on('click', function() {
+            var $button = $(this);
+            var $result = $('#ps-test-pagination-result');
+            
+            $button.prop('disabled', true);
+            $result.html('Testing pagination URL extraction...');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'ps_test_pagination',
+                    nonce: '<?php echo wp_create_nonce('ps_test_pagination'); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var html = '<div style="margin-top: 10px;">';
+                        html += '<div style="color: green; font-weight: bold; margin-bottom: 10px;">' + response.data.message + '</div>';
+                        
+                        if (response.data.pagination_urls && response.data.pagination_urls.length > 0) {
+                            html += '<div><strong>Found ' + response.data.pagination_urls.length + ' pagination URLs:</strong></div>';
+                            html += '<ul style="margin: 10px 0; padding-left: 20px;">';
+                            response.data.pagination_urls.forEach(function(url, index) {
+                                html += '<li style="margin: 5px 0;">';
+                                html += '<a href="' + url + '" target="_blank" style="text-decoration: none; color: #0073aa;">';
+                                html += 'Page ' + (index + 2) + ': ' + url.substring(0, 80) + (url.length > 80 ? '...' : '');
+                                html += '</a>';
+                                html += '</li>';
+                            });
+                            html += '</ul>';
+                        } else {
+                            html += '<div style="color: orange;">No pagination URLs found in the test.</div>';
+                        }
+                        
+                        if (response.data.debug_info) {
+                            html += '<div style="margin-top: 15px; font-size: 12px; color: #666;">';
+                            html += '<strong>Debug Info:</strong><br>';
+                            html += 'File tested: ' + response.data.debug_info.file + '<br>';
+                            html += 'File size: ' + response.data.debug_info.file_size + '<br>';
+                            html += 'Pagination container found: ' + (response.data.debug_info.has_container ? 'Yes' : 'No') + '<br>';
+                            html += 'Page 2 links: ' + response.data.debug_info.page2_count + '<br>';
+                            html += 'Page 3 links: ' + response.data.debug_info.page3_count;
+                            html += '</div>';
+                        }
+                        
+                        html += '</div>';
+                        $result.html(html);
+                    } else {
+                        $result.html('<div style="color: red; margin-top: 10px;">' + response.data.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $result.html('<div style="color: red; margin-top: 10px;">AJAX error. Please try again.</div>');
+                },
+                complete: function() {
+                    $button.prop('disabled', false);
+                }
+            });
+        });
+        
         // Parsing Test Button Handler
         $('#ps-parsing-test-button').on('click', function(e) {
             e.preventDefault();
@@ -578,36 +632,6 @@ function ps_settings_page() {
                 $('#ps-admin-parsing-test-container').toggle();
                 $('#ps-parsing-test-result').html('');
             }
-        });
-        
-        $('#ps-check-cache-table').on('click', function() {
-            var $button = $(this);
-            var $result = $('#ps-check-cache-table-result');
-            
-            $button.prop('disabled', true);
-            $result.html('Checking cache table...');
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'ps_check_cache_table',
-                    nonce: '<?php echo wp_create_nonce('ps_check_cache_table'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $result.html(response.data.html);
-                    } else {
-                        $result.html('<span style="color: red;">' + response.data.message + '</span>');
-                    }
-                },
-                error: function() {
-                    $result.html('<span style="color: red;">Error checking cache table.</span>');
-                },
-                complete: function() {
-                    $button.prop('disabled', false);
-                }
-            });
         });
         
         $('#ps-check-cache-table').on('click', function() {

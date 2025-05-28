@@ -483,6 +483,7 @@ function ps_ajax_search() {
                     'country_code' => $country,
                     'exclude' => '', // Store raw results with no exclusion
                     'sort_by' => '', // Store raw results with no specific sort
+                    'pagination_urls' => isset($amazon_search_response['pagination_urls']) ? $amazon_search_response['pagination_urls'] : array(), // Store pagination URLs
                     'data_source' => 'live_request_raw_cache' 
                 );
                 
@@ -506,6 +507,7 @@ function ps_ajax_search() {
                 'exclude' => $exclude_keywords,
                 'sort_by' => $sort_by,
                 'country_code' => $country,
+                'pagination_urls' => isset($amazon_search_response['pagination_urls']) ? $amazon_search_response['pagination_urls'] : array(), // Include pagination URLs
                 'data_source' => 'live_request_filtered_display'
             );
 
@@ -1893,3 +1895,255 @@ add_action('admin_init', function() {
 add_action('wp_ajax_ps_search', function() {
     error_log("[UNIT PRICE DEBUG] AJAX search request detected - about to process");
 }, 1); // Priority 1 to run before the main handler
+
+/**
+ * AJAX handler for loading more results (pagination)
+ */
+function ps_ajax_load_more() {
+    // Set time limit to prevent timeouts
+    set_time_limit(60);
+    
+    // Verify nonce
+    check_ajax_referer('ps-search-nonce', 'nonce');
+
+    // Start timing the request
+    $start_time = microtime(true);
+    
+    // Set error handler to catch any fatal errors
+    register_shutdown_function('ps_handle_shutdown');
+    
+    $search_query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
+    $exclude_keywords = isset($_POST['exclude']) ? sanitize_text_field($_POST['exclude']) : '';
+    $sort_by = isset($_POST['sort_by']) ? sanitize_text_field($_POST['sort_by']) : 'price';
+    $min_rating = isset($_POST['min_rating']) ? floatval($_POST['min_rating']) : 4.0;
+    $country = isset($_POST['country']) ? sanitize_text_field($_POST['country']) : 'us';
+    $page = isset($_POST['page']) ? intval($_POST['page']) : 2; // Default to page 2 for "load more"
+    $user_id = ps_get_user_identifier();
+    
+    // Log the request
+    ps_log_error("AJAX Load More Request - User: {$user_id}, Query: '{$search_query}', Page: {$page}, Country: '{$country}'");
+    
+    if (empty($search_query)) {
+        ps_send_ajax_response(array(
+            'success' => false,
+            'message' => 'Search query is required for loading more results.'
+        ));
+        return;
+    }
+    
+    // Only allow pages 2 and 3
+    if ($page < 2 || $page > 3) {
+        ps_send_ajax_response(array(
+            'success' => false,
+            'message' => 'Invalid page number. Only pages 2 and 3 are supported.'
+        ));
+        return;
+    }
+    
+    // Check if we have existing cached results for this query (page 1)
+    $existing_cache = ps_get_cached_results($search_query, $country, '', '');
+    if (!$existing_cache || empty($existing_cache['items'])) {
+        ps_send_ajax_response(array(
+            'success' => false,
+            'message' => 'No existing results found. Please perform a new search first.'
+        ));
+        return;
+    }
+    
+    // Check if we have pagination URLs in the cache
+    $pagination_urls = isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array();
+    $page_key = 'page_' . $page;
+    
+    if (empty($pagination_urls) || !isset($pagination_urls[$page_key])) {
+        ps_log_error("Load More: No pagination URL found for page {$page}");
+        ps_send_ajax_response(array(
+            'success' => false,
+            'message' => 'No more pages available.',
+            'page_loaded' => $page
+        ));
+        return;
+    }
+    
+    $page_url = $pagination_urls[$page_key];
+    ps_log_error("Load More: Using parsed URL for page {$page}: {$page_url}");
+    
+    try {
+        // Fetch the page using the parsed URL
+        $html_content = ps_fetch_amazon_search_results($page_url, $country);
+        
+        if (empty($html_content)) {
+            ps_log_error("Load More: Failed to fetch page {$page} - No response received");
+            ps_send_ajax_response(array(
+                'success' => false,
+                'message' => 'Failed to load more results from Amazon.',
+                'page_loaded' => $page
+            ));
+            return;
+        }
+        
+        // Check if Amazon is blocking the request
+        if (ps_is_amazon_blocking($html_content)) {
+            ps_log_error("Load More: Amazon is blocking page {$page} request");
+            ps_send_ajax_response(array(
+                'success' => false,
+                'message' => 'Amazon is blocking the request.',
+                'page_loaded' => $page
+            ));
+            return;
+        }
+        
+        // Check if it's a valid search page
+        if (!ps_is_valid_search_page($html_content)) {
+            ps_log_error("Load More: Invalid search page format for page {$page}");
+            ps_send_ajax_response(array(
+                'success' => false,
+                'message' => 'Invalid page format received.',
+                'page_loaded' => $page
+            ));
+            return;
+        }
+        
+        // Parse the search results HTML
+        $associate_tag = ps_get_associate_tag($country);
+        $parse_results = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
+        
+        // Measure elapsed time
+        $elapsed_time = microtime(true) - $start_time;
+        ps_log_error("Load more page {$page} completed in " . number_format($elapsed_time, 2) . " seconds");
+        
+        if (isset($parse_results['success']) && $parse_results['success'] && !empty($parse_results['items'])) {
+            $new_items = $parse_results['items'];
+            
+            // Merge new items with existing cached items
+            $existing_items = $existing_cache['items'];
+            $merged_items = array_merge($existing_items, $new_items);
+            
+            // Remove duplicates based on product link
+            $unique_items = array();
+            $seen_links = array();
+            
+            foreach ($merged_items as $item) {
+                $link = isset($item['link']) ? $item['link'] : '';
+                if (!empty($link) && !in_array($link, $seen_links)) {
+                    $unique_items[] = $item;
+                    $seen_links[] = $link;
+                }
+            }
+            
+            // Update the cache with merged results and extended expiry
+            $updated_cache_data = array(
+                'success' => true,
+                'items' => $unique_items,
+                'count' => count($unique_items),
+                'base_items_count' => count($unique_items),
+                'query' => $search_query,
+                'country_code' => $country,
+                'exclude' => '',
+                'sort_by' => '',
+                'pagination_urls' => $pagination_urls, // Keep the original pagination URLs
+                'data_source' => 'load_more_merged',
+                'last_page_loaded' => $page
+            );
+            
+            // Cache the updated results with extended expiry (24 hours from now)
+            ps_cache_results($search_query, $country, '', '', $updated_cache_data);
+            
+            ps_log_error("Load More: Successfully merged " . count($new_items) . " new items with existing cache. Total items: " . count($unique_items));
+            
+            // Determine if there are more pages available
+            $has_more_pages = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
+            
+            // Return only the new items for frontend to append
+            ps_send_ajax_response(array(
+                'success' => true,
+                'new_items' => $new_items,
+                'new_items_count' => count($new_items),
+                'total_items_count' => count($unique_items),
+                'page_loaded' => $page,
+                'has_more_pages' => $has_more_pages,
+                'query' => $search_query,
+                'country_code' => $country,
+                'data_source' => 'load_more_parsed_url'
+            ));
+        } else {
+            ps_log_error("Load More: No new items found on page {$page}");
+            ps_send_ajax_response(array(
+                'success' => false,
+                'message' => 'No more results found.',
+                'page_loaded' => $page
+            ));
+        }
+    } catch (Exception $e) {
+        ps_log_error("Load More: Exception occurred: " . $e->getMessage());
+        ps_send_ajax_response(array(
+            'success' => false,
+            'message' => 'An error occurred while loading more results: ' . $e->getMessage()
+        ));
+    }
+}
+add_action('wp_ajax_ps_load_more', 'ps_ajax_load_more');
+add_action('wp_ajax_nopriv_ps_load_more', 'ps_ajax_load_more');
+
+/**
+ * Handle AJAX pagination test request
+ */
+function ps_ajax_test_pagination() {
+    // Verify nonce
+    check_ajax_referer('ps_test_pagination', 'nonce');
+    
+    // Only allow admins to run this test
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(array('message' => 'You do not have permission to perform this action.'));
+        return;
+    }
+    
+    require_once PS_PLUGIN_DIR . 'includes/amazon-api.php';
+    
+    // Get the latest Amazon response file
+    $log_files = glob(PS_PLUGIN_DIR . 'logs/amazon_response_*.html');
+    if (empty($log_files)) {
+        wp_send_json_error(array('message' => 'No Amazon response files found to test.'));
+        return;
+    }
+    
+    // Sort by modification time, get the most recent
+    usort($log_files, function($a, $b) {
+        return filemtime($b) - filemtime($a);
+    });
+    
+    $latest_file = $log_files[0];
+    $filename = basename($latest_file);
+    
+    // Read the HTML content
+    $html = file_get_contents($latest_file);
+    if (!$html) {
+        wp_send_json_error(array('message' => 'Failed to read HTML file: ' . $filename));
+        return;
+    }
+    
+    // Test pagination extraction
+    $pagination_urls = ps_extract_pagination_urls($html, 'us');
+    
+    // Gather debug information
+    $debug_info = array(
+        'file' => $filename,
+        'file_size' => round(filesize($latest_file) / 1024, 2) . ' KB',
+        'has_container' => strpos($html, 's-pagination-container') !== false,
+        'page2_count' => substr_count($html, 'aria-label="Go to page 2"'),
+        'page3_count' => substr_count($html, 'aria-label="Go to page 3"')
+    );
+    
+    if (!empty($pagination_urls)) {
+        wp_send_json_success(array(
+            'message' => 'Pagination test completed successfully!',
+            'pagination_urls' => $pagination_urls,
+            'debug_info' => $debug_info
+        ));
+    } else {
+        wp_send_json_error(array(
+            'message' => 'No pagination URLs found. This might indicate the pattern needs updating or the HTML doesn\'t contain pagination.',
+            'debug_info' => $debug_info
+        ));
+    }
+}
+add_action('wp_ajax_ps_test_pagination', 'ps_ajax_test_pagination');

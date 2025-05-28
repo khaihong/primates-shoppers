@@ -594,3 +594,108 @@
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Load More Button Styles */
+.ps-load-more-container {
+    text-align: center;
+    margin: 30px 0;
+    padding: 20px 0;
+}
+
+.ps-load-more-button {
+    background: linear-gradient(135deg, #ff6b35, #e55a2b);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.ps-load-more-button:hover {
+    background: linear-gradient(135deg, #e55a2b, #cc4e24);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.ps-load-more-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+}
+
+.ps-load-more-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.ps-load-more-button:disabled:hover {
+    background: #ccc;
+    transform: none;
+    box-shadow: none;
+}
+
+.ps-load-more-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Animation for new items being added */
+.ps-product.ps-new-item {
+    animation: ps-fadeInUp 0.6s ease-out;
+}
+
+@keyframes ps-fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments for load more button */
+@media (max-width: 768px) {
+    .ps-load-more-button {
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+    
+    .ps-load-more-container {
+        margin: 20px 0;
+        padding: 15px 0;
+    }
+}
+
+/* Top load more button (beside search button) */
+.ps-load-more-top {
+    background-color: #ff6b35 !important;
+    color: white !important;
+    border: none !important;
+    padding: 4px 16px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    height: 28px !important;
+    line-height: 20px !important;
+    transition: background-color 0.2s !important;
+    margin-left: 10px !important;
+}
+
+.ps-load-more-top:hover {
+    background-color: #e55a2b !important;
+}
+
+.ps-load-more-top:active {
+    background-color: #cc4e24 !important;
+}

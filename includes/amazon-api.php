@@ -16,31 +16,32 @@ if (!defined('ABSPATH')) {
  * @param string $sort_by Sorting method (price, price_per_unit)
  * @param string $country Country code ('us' or 'ca')
  * @param float $min_rating Minimum rating filter (3.5, 4.0, 4.5)
+ * @param int $page Page number for pagination (default: 1)
  * @return array Search results
  */
-function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'price', $country = 'us', $min_rating = 4.0) {
+function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'price', $country = 'us', $min_rating = 4.0, $page = 1) {
     // If query is empty, return empty array
     if (empty($query)) {
         return array();
     }
     
-    ps_log_error("Initiating live search for: '{$query}' in country: {$country}");
+    ps_log_error("Initiating live search for: '{$query}' in country: {$country}, page: {$page}");
     
-    // Construct the Amazon search URL
-    $search_url = ps_construct_amazon_search_url($query, $country);
+    // Construct the Amazon search URL with pagination
+    $search_url = ps_construct_amazon_search_url($query, $country, $page);
     ps_log_error("Constructed search URL: {$search_url}");
     
     // Get the search results HTML
     $html_content = ps_fetch_amazon_search_results($search_url, $country);
     
     if (empty($html_content)) {
-        ps_log_error("Failed to fetch Amazon search results for query: '{$query}' - No response received");
+        ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - No response received");
         return array();
     }
     
     // Check if Amazon is blocking the request
     if (ps_is_amazon_blocking($html_content)) {
-        ps_log_error("Amazon is blocking search for query: '{$query}' - Blocking page detected");
+        ps_log_error("Amazon is blocking search for query: '{$query}' page {$page} - Blocking page detected");
         return array();
     }
     
@@ -1121,6 +1122,9 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
 
     $raw_items_count_for_cache = count($raw_items_for_cache);
 
+    // Extract pagination URLs for pages 2 and 3
+    $pagination_urls = ps_extract_pagination_urls($html, $country);
+
     // Return a structured array containing both display products and raw products for caching
     return array(
         'success' => !empty($products), // Overall success if any products were displayable
@@ -1128,8 +1132,100 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
         'count'   => count($products),    // Count of displayable products
         'raw_items_for_cache' => $raw_items_for_cache, // All items successfully parsed, for base caching
         'raw_items_count_for_cache' => $raw_items_count_for_cache, // Count of raw items
+        'pagination_urls' => $pagination_urls, // URLs for pages 2 and 3
         'message' => empty($products) ? 'No products found or extracted successfully.' : ''
     );
+}
+
+/**
+ * Extract pagination URLs for pages 2 and 3 from Amazon search results
+ *
+ * @param string $html The HTML content
+ * @param string $country Country code ('us' or 'ca')
+ * @return array Array with page URLs
+ */
+function ps_extract_pagination_urls($html, $country = 'us') {
+    $pagination_urls = array();
+    $base_url = $country === 'ca' ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+    
+    // First check if pagination section exists at all
+    if (strpos($html, 's-pagination-container') === false) {
+        ps_log_error("No pagination container found in HTML");
+        return $pagination_urls;
+    }
+    
+    ps_log_error("Found pagination container, extracting URLs...");
+    
+    // Use regex to find all pagination links directly from HTML
+    // This pattern works based on our test results
+    $patterns = array(
+        // Primary pattern for Amazon's current pagination structure - TESTED AND WORKING
+        '/href="([^"]*page=([23])[^"]*)"[^>]*aria-label="Go to page [23]"[^>]*class="[^"]*s-pagination-button[^"]*"/i',
+        // Alternative pattern in case order is different
+        '/aria-label="Go to page ([23])"[^>]*href="([^"]*page=\\1[^"]*)"/i',
+        // Simple fallback - any href with page=2 or page=3 in pagination context
+        '/s-pagination[^>]*>.*?href="([^"]*page=([23])[^"]*)"/is',
+        // Very broad pattern as last resort
+        '/href="([^"]*[?&]page=([23])[^"]*)"/i'
+    );
+    
+    foreach ($patterns as $index => $pattern) {
+        ps_log_error("Trying pagination pattern " . ($index + 1));
+        
+        if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
+            ps_log_error("Pattern " . ($index + 1) . " found " . count($matches) . " matches");
+            
+            foreach ($matches as $match) {
+                // Handle different capture group orders
+                if (isset($match[2]) && is_numeric($match[2])) {
+                    // Pattern with page number as second capture group
+                    $url = $match[1];
+                    $page_num = $match[2];
+                } else if (isset($match[1]) && is_numeric($match[1]) && isset($match[2])) {
+                    // Pattern with page number as first capture group, URL as second
+                    $url = $match[2];
+                    $page_num = $match[1];
+                } else {
+                    // Fallback - extract page number from URL
+                    $url = $match[1];
+                    if (preg_match('/page=([23])/', $url, $page_match)) {
+                        $page_num = $page_match[1];
+                    } else {
+                        continue;
+                    }
+                }
+                
+                // Only take pages 2 and 3
+                if ($page_num == '2' || $page_num == '3') {
+                    // Clean up the URL and make it absolute
+                    $clean_url = html_entity_decode($url, ENT_QUOTES | ENT_HTML401, 'UTF-8');
+                    if (strpos($clean_url, 'http') !== 0) {
+                        $clean_url = $base_url . $clean_url;
+                    }
+                    
+                    // Store with the key format expected by JavaScript and load more function
+                    $pagination_urls['page_' . $page_num] = $clean_url;
+                    ps_log_error("Added pagination URL for page " . $page_num . ": " . $clean_url);
+                }
+            }
+            
+            // If we found URLs with this pattern, stop trying other patterns
+            if (!empty($pagination_urls)) {
+                break;
+            }
+        } else {
+            ps_log_error("Pattern " . ($index + 1) . " found no matches");
+        }
+    }
+    
+    ps_log_error("Successfully extracted pagination URLs: " . json_encode(array_keys($pagination_urls)));
+    
+    // Also log the actual URLs for debugging
+    foreach ($pagination_urls as $key => $url) {
+        ps_log_error("Pagination URL stored: {$key} => " . substr($url, 0, 100) . (strlen($url) > 100 ? '...' : ''));
+    }
+    
+    return $pagination_urls;
 }
 
 /**
@@ -1238,9 +1334,16 @@ function ps_get_associate_tag($country = 'us') {
 /**
  * Construct Amazon search URL
  */
-function ps_construct_amazon_search_url($query, $country = 'us') {
+function ps_construct_amazon_search_url($query, $country = 'us', $page = 1) {
     $base_url = $country === 'ca' ? 'https://www.amazon.ca' : 'https://www.amazon.com';
-    return $base_url . '/s?k=' . urlencode($query);
+    $url = $base_url . '/s?k=' . urlencode($query);
+    
+    // Only add page parameter if it's not the first page
+    if ($page > 1) {
+        $url .= '&page=' . $page;
+    }
+    
+    return $url;
 }
 
 /**
@@ -1397,6 +1500,19 @@ function ps_extract_product_html($html) {
                     return $html; // Return original if we can't find products
                 }
             }
+        }
+        
+        // IMPORTANT: Also preserve the pagination container for load more functionality
+        $paginationContainers = $xpath->query('//div[contains(@class, "s-pagination-container")]');
+        if ($paginationContainers->length > 0) {
+            ps_log_error("Found " . $paginationContainers->length . " pagination containers - preserving for load more functionality");
+            
+            foreach ($paginationContainers as $pagination) {
+                $importedPagination = $newDom->importNode($pagination, true);
+                $bodyElement->appendChild($importedPagination);
+            }
+        } else {
+            ps_log_error("No pagination containers found - load more functionality may not work");
         }
         
         // Get the optimized HTML

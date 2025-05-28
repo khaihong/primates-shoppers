@@ -111,6 +111,12 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                 <button type="button" id="ps-filter-button" class="ps-filter-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Filter Results</button>
                 <button type="button" id="ps-show-all-button" class="ps-show-all-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Show All</button>
                 <button type="submit" class="ps-search-button">Search Amazon</button>
+                <button type="button" id="ps-load-more-top-button" class="ps-load-more-button ps-load-more-top" style="display: none;">
+                    <span class="ps-load-more-text">Load More</span>
+                    <span class="ps-load-more-spinner" style="display: none;">
+                        <span class="ps-spinner"></span> Loading...
+                    </span>
+                </button>
                 <div id="ps-loading" class="ps-loading" style="display: none;">
                     <span class="ps-spinner"></span> <span id="ps-loading-text">Searching...</span>
                 </div>
@@ -122,6 +128,16 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
     <div id="ps-results-count" class="ps-results-count" style="display: none;"></div>
     <div id="ps-cached-notice" class="ps-cached-notice" style="display: none;">Showing cached results from previous searches. <span class="ps-cached-time"></span></div>
     <div id="ps-results" class="ps-results-grid"></div>
+    
+    <!-- Load More Button -->
+    <div id="ps-load-more-container" class="ps-load-more-container" style="display: none;">
+        <button type="button" id="ps-load-more-button" class="ps-load-more-button">
+            <span class="ps-load-more-text">Load More Results</span>
+            <span class="ps-load-more-spinner" style="display: none;">
+                <span class="ps-spinner"></span> Loading...
+            </span>
+        </button>
+    </div>
 </div>
 
 <script type="text/html" id="ps-product-template">

@@ -70,11 +70,14 @@ console.log('search.js loaded');
         detectUserCountry();
         
         // Global variables
-        let originalCachedResults = [];
         let currentSearchResults = [];
+        let originalCachedResults = [];
+        let currentPage = 1;
+        let lastSearchQuery = '';
+        let lastSearchCountry = '';
         let searchCooldownActive = false;
         let searchCooldownTimer = null;
-        let savedDefaultSort = null; // Store the calculated default sort preference
+        let savedDefaultSort = null;
         
         // Unit detection patterns for title extraction
         const unitPatterns = [
@@ -499,6 +502,12 @@ console.log('search.js loaded');
                 $('#ps-filter-btn').prop('disabled', false).removeClass('ps-disabled');
                 $filterButton.show(); // Show the filter button when products are found
                 $showAllButton.show(); // Show the show all button when products are found
+                
+                // Note: Load more button visibility is now controlled by pagination URL availability
+                // Don't automatically show it here
+            } else {
+                // Hide load more button when no results
+                toggleLoadMoreButton(false);
             }
             
             if (items.length === 0) {
@@ -874,8 +883,11 @@ console.log('search.js loaded');
                         // Store the original cached results for filtering
                         originalCachedResults = [...products];
                         
-                        // Apply saved default sorting preference (don't recalculate)
-                        const sortingChanged = applySavedDefaultSorting();
+                        // Reset pagination state
+                        currentPage = 1;
+                        
+                        // Apply sorting based on current products (always analyze fresh data)
+                        const sortingChanged = calculateAndSaveDefaultSorting(products);
                         
                         // Auto-apply search/exclude terms when loading cached results
                         const queryElem = document.getElementById('ps-search-query');
@@ -896,6 +908,26 @@ console.log('search.js loaded');
                             } else if (response.exclude) {
                                 excludeElem.value = response.exclude;
                             }
+                        }
+                        
+                        // Set search parameters for load more functionality AFTER populating form fields
+                        const cachedCountryElem = document.querySelector('input[name="country"]:checked');
+                        
+                        // Set lastSearchQuery from response data, not from input field
+                        if (response.data && response.data.query) {
+                            lastSearchQuery = response.data.query;
+                        } else if (response.query) {
+                            lastSearchQuery = response.query;
+                        }
+                        
+                        logToServer('Load Cached Results: Set lastSearchQuery for load more', {
+                            lastSearchQuery: lastSearchQuery,
+                            responseDataQuery: response.data ? response.data.query : null,
+                            responseQuery: response.query || null
+                        });
+                        
+                        if (cachedCountryElem) {
+                            lastSearchCountry = cachedCountryElem.value;
                         }
                         
                         // Set the country radio button based on the cached search country
@@ -928,13 +960,13 @@ console.log('search.js loaded');
                             filteredProducts = filterProducts(products, currentExcludeText, currentIncludeText, currentMinRating);
                         }
                         
-                        // Get the current sort value (might have been changed by applySavedDefaultSorting)
+                        // Get the current sort value (might have been changed by calculateAndSaveDefaultSorting)
                         const currentSortBy = sortByElem ? sortByElem.value : 'price';
                         const sortedProducts = sortProducts(filteredProducts, currentSortBy);
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
                         
-                        // Update results count with new format
+                        // Update results count with new format for cached results
                         const totalCount = response.data && response.data.base_items_count ? response.data.base_items_count : products.length;
                         $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
@@ -1053,7 +1085,12 @@ console.log('search.js loaded');
                 resultsContainer.innerHTML = '<div class="ps-error">Please enter search keywords.</div>';
                 return;
             }
-                    
+            
+            // Reset pagination state for new search
+            currentPage = 1;
+            lastSearchQuery = query;
+            lastSearchCountry = country;
+            
             // Verify psData is available
             if (!window.psData || !window.psData.ajaxurl || !window.psData.nonce) {
                 console.error('psData is not properly initialized', window.psData);
@@ -1099,6 +1136,22 @@ console.log('search.js loaded');
                         // Store the original results for filtering
                         originalCachedResults = [...products];
                         
+                        // Check if pagination URLs are available for load more functionality
+                        const paginationUrls = response.data && response.data.pagination_urls ? response.data.pagination_urls : {};
+                        const hasPaginationUrls = paginationUrls && typeof paginationUrls === 'object' && 
+                                                 (paginationUrls.page_2 || paginationUrls.page_3);
+                        
+                        logToServer('Live Search: Pagination URLs check', {
+                            hasPaginationUrls: hasPaginationUrls,
+                            paginationUrls: paginationUrls,
+                            paginationUrlsType: typeof paginationUrls,
+                            paginationUrlsKeys: Object.keys(paginationUrls),
+                            hasPage2: !!paginationUrls.page_2,
+                            hasPage3: !!paginationUrls.page_3,
+                            responsePaginationUrls: response.data ? response.data.pagination_urls : 'not found',
+                            responseDataKeys: response.data ? Object.keys(response.data) : 'no response.data'
+                        });
+                        
                         // For live searches, always start with default "price" sorting and analyze fresh data
                         // Reset the sort dropdown to "price" first
                         if (sortByElem) {
@@ -1125,18 +1178,26 @@ console.log('search.js loaded');
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
                         
-                        // Update results count with new format
-                        const totalCount = response.data && response.data.base_items_count ? response.data.base_items_count : products.length;
-                        $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                        // For live searches, don't show the match criteria message - just show the products
+                        $resultsCount.hide();
                         
                         // Show filter and show all buttons when products are found
                         $('#ps-filter-button').show();
                         $('#ps-show-all-button').show();
                         
+                        // Show or hide load more button based on pagination availability
+                        if (hasPaginationUrls) {
+                            toggleLoadMoreButton(true);
+                        } else {
+                            toggleLoadMoreButton(false);
+                        }
+                        
                         // Start cooldown timer after successful search
                         startSearchCooldown(searchButton);
                     } else {
                         resultsContainer.innerHTML = '<div class="ps-no-results">No products found.</div>';
+                        // Hide load more button when no results
+                        toggleLoadMoreButton(false);
                         // Start cooldown timer even when no products found
                         startSearchCooldown(searchButton);
                     }
@@ -1215,9 +1276,9 @@ console.log('search.js loaded');
         });
 
         /**
-         * Check if more than half the products have unit price data
+         * Check if more than 60% of the products have unit price data
          * @param {Array} items - Array of product items
-         * @returns {boolean} - True if more than half have unit price data
+         * @returns {boolean} - True if more than 60% have unit price data
          */
         function shouldDefaultToUnitPrice(items) {
             if (!items || items.length === 0) {
@@ -1229,13 +1290,18 @@ console.log('search.js loaded');
             const debugItems = [];
             
             items.forEach(function(item, index) {
-                // A product has unit price if it has a price_per_unit_value > 0
-                // Even if the unit is "No unit", it still represents a valid unit price
+                // A product has unit price if it has a meaningful unit (not "No unit") 
+                // AND a valid price_per_unit_value > 0
                 const hasUnitPrice = item.price_per_unit && 
                     item.price_per_unit_value && 
                     parseFloat(item.price_per_unit_value) > 0 &&
                     item.price_per_unit !== '' &&
-                    item.price_per_unit !== 'N/A';
+                    item.price_per_unit !== 'N/A' &&
+                    item.price_per_unit !== 'No unit price' &&
+                    item.unit &&
+                    item.unit !== 'No unit' &&
+                    item.unit !== '' &&
+                    item.unit !== 'N/A';
                 
                 if (hasUnitPrice) {
                     itemsWithUnitPrice++;
@@ -1257,7 +1323,7 @@ console.log('search.js loaded');
             });
             
             const percentage = itemsWithUnitPrice / items.length;
-            const shouldDefault = percentage > 0.5;
+            const shouldDefault = percentage > 0.6;
             
             // Log detailed analysis to server
             logToServer('Unit Price Analysis After Live Search', {
@@ -1423,5 +1489,161 @@ console.log('search.js loaded');
             // Use calculateAndSaveDefaultSorting for live searches or applySavedDefaultSorting for cached results
             return calculateAndSaveDefaultSorting(items);
         }
+
+        // Handle Load More button click
+        $('#ps-load-more-button').on('click', function(e) {
+            e.preventDefault();
+            
+            const $button = $(this);
+            const $container = $('#ps-load-more-container');
+            const $loadMoreText = $('.ps-load-more-text');
+            const $loadMoreSpinner = $('.ps-load-more-spinner');
+            const $topButton = $('#ps-load-more-top-button');
+            
+            // Show loading state
+            $button.prop('disabled', true);
+            $topButton.prop('disabled', true);
+            $loadMoreText.hide();
+            $loadMoreSpinner.show();
+            
+            // Get current search parameters
+            const queryElem = document.getElementById('ps-search-query');
+            const excludeElem = document.getElementById('ps-exclude-keywords');
+            const sortByElem = document.getElementById('ps-sort-by');
+            const minRatingElem = document.getElementById('ps-min-rating');
+            const countryElem = document.querySelector('input[name="country"]:checked');
+            
+            const query = lastSearchQuery; // Use the actual search query that was performed, not current input value
+            const exclude = excludeElem ? excludeElem.value.trim() : '';
+            const sortBy = sortByElem ? sortByElem.value : 'price';
+            const minRating = minRatingElem ? minRatingElem.value : '4.0';
+            const country = countryElem ? countryElem.value : lastSearchCountry;
+            
+            // Increment page for next page
+            const nextPage = currentPage + 1;
+            
+            logToServer('Load More: Requesting page ' + nextPage, {
+                query: query,
+                country: country,
+                currentPage: currentPage,
+                nextPage: nextPage,
+                lastSearchQuery: lastSearchQuery,
+                queryFromInput: queryElem ? queryElem.value : null
+            });
+            
+            // Make AJAX request for more results
+            jQuery.ajax({
+                url: psData.ajaxurl,
+                type: 'POST',
+                dataType: 'json',
+                cache: false,
+                data: {
+                    action: 'ps_load_more',
+                    nonce: psData.nonce,
+                    query: query,
+                    exclude: exclude,
+                    sort_by: sortBy,
+                    min_rating: minRating,
+                    country: country,
+                    page: nextPage
+                },
+                success: function(response) {
+                    if (response.success && response.new_items && response.new_items.length > 0) {
+                        // Add new items to the results
+                        const newItems = response.new_items;
+                        
+                        // Update current page
+                        currentPage = nextPage;
+                        
+                        // Add new items to current results
+                        currentSearchResults = currentSearchResults.concat(newItems);
+                        originalCachedResults = originalCachedResults.concat(newItems);
+                        
+                        // Get current sort method
+                        const currentSortBy = sortByElem ? sortByElem.value : 'price';
+                        
+                        // Sort all results with new items included
+                        currentSearchResults = sortProducts(currentSearchResults, currentSortBy);
+                        originalCachedResults = sortProducts(originalCachedResults, currentSortBy);
+                        
+                        // Re-render all products with new items
+                        renderProducts(currentSearchResults);
+                        
+                        // Add animation class to new items
+                        setTimeout(() => {
+                            $('.ps-product').slice(-newItems.length).addClass('ps-new-item');
+                        }, 100);
+                        
+                        // Update results count
+                        const totalCount = currentSearchResults.length;
+                        $('#ps-results-count').text(`Showing ${totalCount} products`).show();
+                        
+                        // Check if more pages are available
+                        if (!response.has_more_pages) {
+                            // Hide load more buttons when no more pages
+                            toggleLoadMoreButton(false);
+                        }
+                        
+                        logToServer('Load More: Successfully loaded page ' + nextPage, {
+                            newItemsCount: newItems.length,
+                            totalItemsCount: totalCount,
+                            hasMorePages: response.has_more_pages || false
+                        });
+                        
+                    } else {
+                        // Hide load more buttons when no more results
+                        toggleLoadMoreButton(false);
+                        
+                        logToServer('Load More: No more results available', {
+                            response: response
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    logToServer('Load More: AJAX error', {
+                        status: status,
+                        error: error,
+                        page: nextPage
+                    });
+                    
+                    // Show error message
+                    $container.after('<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">Failed to load more results. Please try again.</div>');
+                },
+                complete: function() {
+                    // Reset button state
+                    $button.prop('disabled', false);
+                    $topButton.prop('disabled', false);
+                    $loadMoreText.show();
+                    $loadMoreSpinner.hide();
+                }
+            });
+        });
+
+        /**
+         * Show or hide the load more button based on search results
+         * @param {boolean} show - Whether to show the button
+         */
+        function toggleLoadMoreButton(show) {
+            const $container = $('#ps-load-more-container');
+            const $topButton = $('#ps-load-more-top-button');
+            
+            if (show) {
+                $container.show();
+                $topButton.show();
+                // Remove any previous error/no-more messages
+                $('.ps-load-more-error, .ps-no-more-results').remove();
+            } else {
+                $container.hide();
+                $topButton.hide();
+            }
+        }
+
+        // Handle Top Load More button click (same functionality as bottom button)
+        $('#ps-load-more-top-button').on('click', function(e) {
+            e.preventDefault();
+            
+            // Trigger the same functionality as the bottom load more button
+            $('#ps-load-more-button').trigger('click');
+        });
     });
 })(jQuery);
