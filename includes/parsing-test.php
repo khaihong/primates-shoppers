@@ -117,13 +117,15 @@ function ps_ajax_test_parsing() {
     libxml_clear_errors();
     libxml_use_internal_errors($previous_error_state);
     
-    // Use only the new selector for testing
+    // Use enhanced selectors for testing including US-specific sections
     $selectors = [
-        '//div[@role="listitem"]' // Only use the new primary selector
+        '//div[@role="listitem"]', // Primary selector for regular results
+        '//div[contains(@class, "a-section") and contains(@class, "a-spacing-base")]/div[contains(@class, "s-product-image-container")]/..' // US sections selector (trending/influencers)
     ];
     
     $xpath_product_counts = [];
     $selected_products_selector = '';
+    $all_product_elements = [];
     
     foreach ($selectors as $selector) {
         $productElements = $xpath->query($selector);
@@ -131,15 +133,38 @@ function ps_ajax_test_parsing() {
         $xpath_product_counts[$selector] = $count;
         error_log("Selector '$selector' found $count products");
         
-        if ($count > 0 && empty($selected_products_selector)) {
-            $selected_products_selector = $selector;
+        if ($count > 0) {
+            if (empty($selected_products_selector)) {
+                $selected_products_selector = $selector;
+                // Always convert to array for consistency
+                $all_product_elements = [];
+                for ($i = 0; $i < $productElements->length; $i++) {
+                    $all_product_elements[] = $productElements->item($i);
+                }
+            } else {
+                // For US sections, add to existing products if we only had regular products
+                if (strpos($selector, 's-product-image-container') !== false) {
+                    // Add US section products to the existing array
+                    for ($i = 0; $i < $productElements->length; $i++) {
+                        $all_product_elements[] = $productElements->item($i);
+                    }
+                    $selected_products_selector .= " + US sections";
+                }
+            }
         }
     }
     
     // Define alternative selector sets
     $alt_selector_sets = [
         [
-            'product' => '//div[@role="listitem"]', // Only use the new primary selector
+            'product' => '//div[@role="listitem"]', // Primary selector for regular results
+            'title' => './/span[contains(@class, "a-text-normal")]',
+            'link' => './/a[contains(@class, "a-link-normal")]/@href',
+            'price' => './/span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]',
+            'image' => './/img[contains(@class, "s-image")]/@src'
+        ],
+        [
+            'product' => '//div[contains(@class, "a-section") and contains(@class, "a-spacing-base")]/div[contains(@class, "s-product-image-container")]/..', // US sections selector
             'title' => './/span[contains(@class, "a-text-normal")]',
             'link' => './/a[contains(@class, "a-link-normal")]/@href',
             'price' => './/span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]',
@@ -182,14 +207,16 @@ function ps_ajax_test_parsing() {
     $sample_products = [];
     
     if (!empty($selected_products_selector)) {
-        $productNodes = $xpath->query($selected_products_selector);
-        if ($productNodes && $productNodes->length > 0) {
-            $count = min(10, $productNodes->length); // Get up to 10 products for better testing
+        // $all_product_elements is always an array now
+        $productCount = count($all_product_elements);
+        
+        if ($productCount > 0) {
+            $count = min(10, $productCount); // Get up to 10 products for better testing
             error_log("Found $count products to process");
             
             // Attempt to extract real products instead of using test data
             for ($i = 0; $i < $count; $i++) {
-                $element = $productNodes->item($i);
+                $element = $all_product_elements[$i];
                 error_log("Processing product $i");
                 
                 // Add debugging info for this product

@@ -1,6 +1,8 @@
 + update cache time after each filter?
 + progressive & lazy loading
 
+only show the load buttons after the search cooldown, and when load more is clicked the 'working' spinner should also show on the search button so that it can't be clicked while waiting for more results from the next page
+
 the intended purpose of the load more button is to get the next page of live search results from amazon, then add those results to the same cache as the original search, then retrieved the full set of cached results and sort and filter them for display on the page, eg. first search returns '1' and '3' so the page shows '1, 3' assuming sorting by price, load more returns '2' and '4', so the display after the loading more should be '1, 2, 3, 4'
 
 the rating_count currently shows "", it is the next visible text after the title span, so in this example it is 67,934, update the code to get the count accordingly

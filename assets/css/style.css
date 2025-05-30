@@ -699,3 +699,13 @@
 .ps-load-more-top:active {
     background-color: #cc4e24 !important;
 }
+
+.ps-load-more-top:disabled {
+    background-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+}
+
+.ps-load-more-top:disabled:hover {
+    background-color: #ccc !important;
+}

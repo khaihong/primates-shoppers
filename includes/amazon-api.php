@@ -34,21 +34,76 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     // Get the search results HTML
     $html_content = ps_fetch_amazon_search_results($search_url, $country);
     
+    // Check if we got an error response
+    if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
+        $http_code = $html_content['http_code'];
+        ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - HTTP {$http_code}");
+        
+        // Check if it's a blocking error (503, 429, etc.)
+        if (in_array($http_code, [503, 429, 403, 502, 504])) {
+            // Create Amazon search URL for the user to continue searching manually
+            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+            
+            return array(
+                'success' => false,
+                'items' => array(),
+                'count' => 0,
+                'message' => 'Amazon is blocking requests. Please try again later.',
+                'amazon_search_url' => $amazon_search_url,
+                'search_query' => $query,
+                'country' => $country,
+                'http_code' => $http_code
+            );
+        } else {
+            return array(
+                'success' => false,
+                'items' => array(),
+                'count' => 0,
+                'message' => 'Failed to connect to Amazon. Please try again later.',
+                'http_code' => $http_code
+            );
+        }
+    }
+    
     if (empty($html_content)) {
         ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - No response received");
-        return array();
+        return array(
+            'success' => false,
+            'items' => array(),
+            'count' => 0,
+            'message' => 'No response received from Amazon. Please try again later.'
+        );
     }
     
     // Check if Amazon is blocking the request
     if (ps_is_amazon_blocking($html_content)) {
         ps_log_error("Amazon is blocking search for query: '{$query}' page {$page} - Blocking page detected");
-        return array();
+        
+        // Create Amazon search URL for the user to continue searching manually
+        $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+        $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+        
+        return array(
+            'success' => false,
+            'items' => array(),
+            'count' => 0,
+            'message' => 'Amazon is blocking requests. Please try again later.',
+            'amazon_search_url' => $amazon_search_url,
+            'search_query' => $query,
+            'country' => $country
+        );
     }
     
     // Check if it's a valid search page
     if (!ps_is_valid_search_page($html_content)) {
         ps_log_error("Invalid Amazon search results format: " . substr($html_content, 0, 100));
-        return array();
+        return array(
+            'success' => false,
+            'items' => array(),
+            'count' => 0,
+            'message' => 'Invalid response from Amazon. Please try again later.'
+        );
     }
     
     // Get the associate tag
@@ -56,7 +111,7 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     ps_log_error("Using associate tag for {$country}: '{$associate_tag}'");
     
     // Parse the search results HTML
-    $products = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
+    $products = ps_parse_amazon_results($html_content, $associate_tag, $min_rating, $country);
     
     return $products;
 }
@@ -65,7 +120,7 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
  * Try alternative parsing methods for Amazon results
  * This helps handle changes in Amazon's HTML structure
  */
-function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0) {
+function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $country = 'us') {
     ps_log_error("Attempting alternative parsing methods");
     
     $products = array();
@@ -114,16 +169,14 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0) {
                         
                         // Process link - ensure it's absolute & add affiliate tag
                         if (strpos($link, 'http') !== 0) {
-                            $link = 'https://www.amazon.com' . $link;
+                            $base_amazon_url = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+                            $link = $base_amazon_url . $link;
                         }
                         
                         // Add affiliate tag if not already present
                         if (!preg_match('/[?&]tag=/', $link) && !empty($affiliate_id)) {
                             $original_link = $link;
                             $link .= (strpos($link, '?') === false ? '?' : '&') . 'tag=' . $affiliate_id;
-                            ps_log_error("Added affiliate tag to link (alt): '{$original_link}' -> '{$link}'");
-                        } else {
-                            ps_log_error("Affiliate tag not added (alt) - tag exists: " . (preg_match('/[?&]tag=/', $link) ? 'yes' : 'no') . ", affiliate_id empty: " . (empty($affiliate_id) ? 'yes' : 'no') . ", affiliate_id: '{$affiliate_id}'");
                         }
                         
                         $price = '';
@@ -492,13 +545,15 @@ function ps_is_valid_search_page($html) {
 }
 
 /**
- * Parse Amazon search results HTML
+ * Parse Amazon search results HTML and extract product information
  *
- * @param string $html The HTML content
+ * @param string $html The Amazon HTML content
  * @param string $affiliate_id The Amazon affiliate ID
+ * @param float $min_rating Minimum rating filter
+ * @param string $country Country code ('us' or 'ca') for proper URL construction
  * @return array The parsed products
  */
-function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
+function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $country = 'us') {
     $products = array();
     $raw_items_for_cache = array(); // For storing all successfully parsed items before display filtering
     $raw_items_count_for_cache = 0;
@@ -682,15 +737,12 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
                 if ($linkNode) {
                     $link = $linkNode->getAttribute('href');
                     if (strpos($link, 'http') !== 0) {
-                        $base_amazon_url = (strpos($affiliate_id, '-20') !== false) ? 'https://www.amazon.com' : 'https://www.amazon.ca'; // basic country detection
+                        $base_amazon_url = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com'; // Use country parameter for correct URL
                         $link = rtrim($base_amazon_url, '/') . $link;
                     }
                     if (!preg_match('/[?&]tag=/', $link) && !empty($affiliate_id)) {
                         $original_link = $link;
                         $link .= (strpos($link, '?') === false ? '?' : '&') . 'tag=' . $affiliate_id;
-                        ps_log_error("Added affiliate tag to link: '{$original_link}' -> '{$link}'");
-                    } else {
-                        ps_log_error("Affiliate tag not added - tag exists: " . (preg_match('/[?&]tag=/', $link) ? 'yes' : 'no') . ", affiliate_id empty: " . (empty($affiliate_id) ? 'yes' : 'no') . ", affiliate_id: '{$affiliate_id}'");
                     }
                 }
                 $current_product_debug['link'] = $link;
@@ -1016,11 +1068,10 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0) {
                 $current_product_debug['rating_number'] = $rating_number;
 
                 // --- Extract Rating Count ---
-                $ratingCountNode = $xpath->query('.//span[contains(@aria-label, "ratings")]/a/span', $element)->item(0) ??
-                                   $xpath->query('.//a[contains(@href, "#customerReviews")]//span[contains(@class, "a-size-base")]', $element)->item(0) ??
-                                   $xpath->query('.//span[@class="a-size-base s-underline-text"]', $element)->item(0); 
+                $ratingCountNode = $xpath->query('.//a[contains(@class, "a-link-normal")]//span[contains(@class, "a-size-base") and contains(@class, "s-underline-text")]', $element)->item(0);
                     if ($ratingCountNode) {
-                    $rating_count_str = trim(preg_replace('/[^0-9]/', '', $ratingCountNode->textContent));
+                    $rating_count_str = trim($ratingCountNode->textContent);
+                    $rating_count_str = preg_replace('/[^0-9,]/', '', $rating_count_str); // Keep numbers and commas, remove everything else
                     }
                 $current_product_debug['rating_count_str'] = $rating_count_str;
                     
@@ -1203,6 +1254,12 @@ function ps_extract_pagination_urls($html, $country = 'us') {
                         $clean_url = $base_url . $clean_url;
                     }
                     
+                    // Remove everything after the page parameter to clean up the URL
+                    if (preg_match('/^(.*[?&]page=' . $page_num . ')(&.*)?$/', $clean_url, $url_match)) {
+                        $clean_url = $url_match[1]; // Keep only up to and including the page parameter
+                        ps_log_error("Cleaned pagination URL for page " . $page_num . ": removed extra parameters");
+                    }
+                    
                     // Store with the key format expected by JavaScript and load more function
                     $pagination_urls['page_' . $page_num] = $clean_url;
                     ps_log_error("Added pagination URL for page " . $page_num . ": " . $clean_url);
@@ -1355,6 +1412,7 @@ function ps_construct_amazon_search_url($query, $country = 'us', $page = 1) {
  */
 function ps_fetch_amazon_search_results($url, $country = 'us') {
     ps_log_error("Fetching search results from URL: {$url}");
+    ps_log_error("DEBUG: Checking proxy constants - HOST defined: " . (defined('PS_DECODO_PROXY_HOST') ? 'YES' : 'NO') . ", PORT defined: " . (defined('PS_DECODO_PROXY_PORT') ? 'YES' : 'NO'));
     
     // Initialize cURL
     $ch = curl_init();
@@ -1366,6 +1424,44 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    
+    // Configure proxy settings (Decodo proxy service)
+    if (defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
+        $proxy_host = PS_DECODO_PROXY_HOST;
+        $proxy_port = PS_DECODO_PROXY_PORT;
+        
+        ps_log_error("Using Decodo proxy: {$proxy_host}:{$proxy_port}");
+        
+        curl_setopt($ch, CURLOPT_PROXY, $proxy_host);
+        curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
+        curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+        
+        // Add proxy authentication if credentials are defined
+        if (defined('PS_DECODO_USER_BASE') && defined('PS_DECODO_PASSWORD')) {
+            $proxy_username = PS_DECODO_USER_BASE . '-country-' . $country; // Add country suffix
+            $proxy_password = PS_DECODO_PASSWORD;
+            
+            ps_log_error("DEBUG PROXY AUTH: PS_DECODO_USER_BASE = '" . PS_DECODO_USER_BASE . "'");
+            ps_log_error("DEBUG PROXY AUTH: Country = '{$country}'");
+            ps_log_error("DEBUG PROXY AUTH: Constructed proxy username = '{$proxy_username}'");
+            ps_log_error("Using proxy authentication with user: {$proxy_username}");
+            
+            // Validate that we have the correct format
+            if (strpos($proxy_username, '-') === false) {
+                ps_log_error("WARNING: Proxy username does not contain country suffix! Format should be 'user-sptlq8hpk0-{$country}'");
+            } else {
+                ps_log_error("CONFIRMED: Proxy username has correct country-specific format");
+            }
+            
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD, "{$proxy_username}:{$proxy_password}");
+        } else {
+            ps_log_error("Warning: Proxy authentication credentials not defined");
+            ps_log_error("DEBUG: PS_DECODO_USER_BASE defined: " . (defined('PS_DECODO_USER_BASE') ? 'YES' : 'NO'));
+            ps_log_error("DEBUG: PS_DECODO_PASSWORD defined: " . (defined('PS_DECODO_PASSWORD') ? 'YES' : 'NO'));
+        }
+    } else {
+        ps_log_error("Warning: Proxy constants not defined - making direct request to Amazon");
+    }
     
     // Set user agent to mimic a browser
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36');
@@ -1397,7 +1493,13 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     // Check for successful response
     if ($http_code !== 200) {
         ps_log_error("HTTP Error: " . $http_code);
-        return false;
+        curl_close($ch);
+        // Return error information instead of just false
+        return array(
+            'error' => true,
+            'http_code' => $http_code,
+            'message' => 'HTTP Error: ' . $http_code
+        );
     }
     
     // Save the original response for debugging (before optimization)

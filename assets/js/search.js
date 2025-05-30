@@ -77,7 +77,10 @@ console.log('search.js loaded');
         let lastSearchCountry = '';
         let searchCooldownActive = false;
         let searchCooldownTimer = null;
+        let loadButtonCooldownActive = false;
+        let loadButtonCooldownTimer = null;
         let savedDefaultSort = null;
+        let isAfterLiveSearch = false;
         
         // Unit detection patterns for title extraction
         const unitPatterns = [
@@ -472,20 +475,21 @@ console.log('search.js loaded');
             
             // Filter by minimum rating
             if (minRating !== null && minRating > 0) {
-                console.log('Filtering for products with minimum rating:', minRating);
-                
                 filteredItems = filteredItems.filter(item => {
-                    // Include products with no rating or rating >= minimum
-                    if (!item.rating_number) {
-                        return true; // Include products with no rating
+                    // Exclude products with no rating when minimum rating filter is applied
+                    if (!item.rating_number || item.rating_number === '' || item.rating_number === 'N/A') {
+                        return false; // Exclude products with no rating when filtering by rating
                     }
                     
                     const itemRating = parseFloat(item.rating_number);
-                    return itemRating >= minRating;
+                    
+                    const shouldInclude = itemRating >= minRating;
+                    if (!shouldInclude) {
+                    }
+                    return shouldInclude;
                 });
             }
             
-            console.log(`Filtered from ${items.length} to ${filteredItems.length} products`);
             return filteredItems;
         }
         
@@ -709,6 +713,14 @@ console.log('search.js loaded');
                         .ps-results-grid {
                            display: block; /* Override grid if it was set */
                         }
+                        /* Animation for refreshed content after load more */
+                        .ps-refreshed-content {
+                            animation: ps-content-refresh 0.5s ease-in-out;
+                        }
+                        @keyframes ps-content-refresh {
+                            0% { opacity: 0.7; transform: translateY(-5px); }
+                            100% { opacity: 1; transform: translateY(0); }
+                        }
                     </style>
                 `);
             }
@@ -736,18 +748,24 @@ console.log('search.js loaded');
                 
                 // Update results count
                 const totalCount = originalCachedResults.length;
-                $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                if (!isAfterLiveSearch) {
+                    $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                }
             }
         });
         
         // Handle minimum rating change (auto-trigger filter)
         $('#ps-min-rating').on('change', function() {
+            console.log('Rating dropdown changed to:', $(this).val());
             if (originalCachedResults.length > 0) {
+                console.log('Processing rating change with', originalCachedResults.length, 'cached results');
                 // Re-apply all filters when minimum rating changes
                 const excludeText = $('#ps-exclude-keywords').val();
                 const includeText = $('#ps-search-query').val();
                 const minRating = parseFloat($(this).val()) || null;
                 const sortCriteria = $sortBy.val();
+                
+                console.log('Filter criteria:', { excludeText, includeText, minRating, sortCriteria });
                 
                 let filteredResults = [...originalCachedResults];
                 filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
@@ -758,13 +776,20 @@ console.log('search.js loaded');
                 
                 // Update results count
                 const totalCount = originalCachedResults.length;
-                $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                if (!isAfterLiveSearch) {
+                    $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                }
+            } else {
+                console.log('No cached results available for rating filter');
             }
         });
         
         // Handle Filter Cached Results button click
         $filterButton.on('click', function(e) {
             e.preventDefault();
+            
+            // Reset the flag since filtering should restore normal message behavior
+            isAfterLiveSearch = false;
             
             // Show that we're filtering cached results
             $loadingText.text('Filtering cached results...');
@@ -788,7 +813,10 @@ console.log('search.js loaded');
                 // Update UI
                 $loading.hide();
                 const totalCount = originalCachedResults.length;
-                $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                if (!isAfterLiveSearch) {
+                    $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                }
+                currentSearchResults = sortedProducts;
                 renderProducts(sortedProducts);
             } else {
                 $loading.hide();
@@ -799,6 +827,9 @@ console.log('search.js loaded');
         // Handle Show All button click
         $showAllButton.on('click', function(e) {
             e.preventDefault();
+            
+            // Reset the flag since showing all results should restore normal message behavior
+            isAfterLiveSearch = false;
             
             // Show that we're loading all cached results
             $loadingText.text('Loading all cached results...');
@@ -818,7 +849,10 @@ console.log('search.js loaded');
                 // Update UI
                 $loading.hide();
                 const totalCount = originalCachedResults.length;
-                $resultsCount.html('<p><strong>' + totalCount + '</strong> products.</p>').show();
+                if (!isAfterLiveSearch) {
+                    $resultsCount.html('<p><strong>' + totalCount + '</strong> products.</p>').show();
+                }
+                currentSearchResults = allResults;
                 renderProducts(allResults);
             } else {
                 $loading.hide();
@@ -885,6 +919,9 @@ console.log('search.js loaded');
                         
                         // Reset pagination state
                         currentPage = 1;
+                        
+                        // Reset flag since this is loading cached results, not a live search
+                        isAfterLiveSearch = false;
                         
                         // Apply sorting based on current products (always analyze fresh data)
                         const sortingChanged = calculateAndSaveDefaultSorting(products);
@@ -968,10 +1005,35 @@ console.log('search.js loaded');
                         
                         // Update results count with new format for cached results
                         const totalCount = response.data && response.data.base_items_count ? response.data.base_items_count : products.length;
-                        $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                        if (!isAfterLiveSearch) {
+                            $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+                        }
                         
                         if ($filterButton) $filterButton.prop('disabled', false);
                         if ($showAllButton) $showAllButton.show();
+                        
+                        // Check if pagination URLs are available for load more functionality
+                        const paginationUrls = response.data && response.data.pagination_urls ? response.data.pagination_urls : {};
+                        const hasPaginationUrls = paginationUrls && typeof paginationUrls === 'object' && 
+                                                 (paginationUrls.page_2 || paginationUrls.page_3);
+                        
+                        logToServer('Load Cached Results: Pagination URLs check', {
+                            hasPaginationUrls: hasPaginationUrls,
+                            paginationUrls: paginationUrls,
+                            paginationUrlsType: typeof paginationUrls,
+                            paginationUrlsKeys: Object.keys(paginationUrls),
+                            hasPage2: !!paginationUrls.page_2,
+                            hasPage3: !!paginationUrls.page_3,
+                            responsePaginationUrls: response.data ? response.data.pagination_urls : 'not found',
+                            responseDataKeys: response.data ? Object.keys(response.data) : 'no response.data'
+                        });
+                        
+                        // Show or hide load more button based on pagination availability
+                        if (hasPaginationUrls) {
+                            toggleLoadMoreButton(true);
+                        } else {
+                            toggleLoadMoreButton(false);
+                        }
                         
                         logToServer('Load Cached Results: Successfully processed and rendered products', {
                             originalCount: products.length,
@@ -1029,6 +1091,12 @@ console.log('search.js loaded');
             searchButton.classList.add('ps-cooldown');
             searchButton.disabled = true;
             
+            // Also disable load buttons during search cooldown
+            const $loadMoreButton = $('#ps-load-more-button');
+            const $topLoadMoreButton = $('#ps-load-more-top-button');
+            $loadMoreButton.prop('disabled', true);
+            $topLoadMoreButton.prop('disabled', true);
+            
             // Update button text with countdown
             searchButton.textContent = `Wait ${countdown}s`;
             
@@ -1039,11 +1107,21 @@ console.log('search.js loaded');
                 if (countdown > 0) {
                     searchButton.textContent = `Wait ${countdown}s`;
                 } else {
-                    // Reset button state
+                    // Reset search button state
                     searchButton.textContent = originalText;
                     searchButton.classList.remove('ps-cooldown');
                     searchButton.disabled = false;
                     searchCooldownActive = false;
+                    
+                    // Re-enable load buttons after search cooldown
+                    $loadMoreButton.prop('disabled', false);
+                    $topLoadMoreButton.prop('disabled', false);
+                    
+                    // Check if load buttons should be visible after cooldown
+                    const $container = $('#ps-load-more-container');
+                    if ($container.data('should-show') === true) {
+                        toggleLoadMoreButton(true);
+                    }
                     
                     // Clear timer
                     clearInterval(searchCooldownTimer);
@@ -1051,7 +1129,89 @@ console.log('search.js loaded');
                 }
             }, 1000);
         }
+
+        /**
+         * Start the load button cooldown timer that affects both load buttons and search
+         */
+        function startLoadButtonCooldown() {
+            loadButtonCooldownActive = true;
+            searchCooldownActive = true; // Also set search cooldown
+            let countdown = 5;
+            
+            // Clear any existing timers
+            if (loadButtonCooldownTimer) {
+                clearInterval(loadButtonCooldownTimer);
+            }
+            if (searchCooldownTimer) {
+                clearInterval(searchCooldownTimer);
+            }
+            
+            // Get button elements
+            const $loadMoreButton = $('#ps-load-more-button');
+            const $topLoadMoreButton = $('#ps-load-more-top-button');
+            const searchButton = document.querySelector('.ps-search-button');
+            
+            // Store original text
+            const originalSearchText = searchButton ? searchButton.textContent : 'Search Amazon';
+            const originalLoadText = $loadMoreButton.find('.ps-load-more-text').text() || 'Load More';
+            
+            // Disable all buttons and add cooldown classes
+            if (searchButton) {
+                searchButton.classList.add('ps-cooldown');
+                searchButton.disabled = true;
+            }
+            $loadMoreButton.prop('disabled', true);
+            $topLoadMoreButton.prop('disabled', true);
+            
+            // Update button texts with countdown
+            function updateCountdown() {
+                if (searchButton) {
+                    searchButton.textContent = `Wait ${countdown}s`;
+                }
+                $loadMoreButton.find('.ps-load-more-text').text(`Wait ${countdown}s`);
+                $topLoadMoreButton.text(`Wait ${countdown}s`);
+            }
+            
+            updateCountdown();
+            
+            // Start countdown timer
+            loadButtonCooldownTimer = setInterval(function() {
+                countdown--;
                 
+                if (countdown > 0) {
+                    updateCountdown();
+                } else {
+                    // Reset all button states
+                    if (searchButton) {
+                        searchButton.textContent = originalSearchText;
+                        searchButton.classList.remove('ps-cooldown');
+                        searchButton.disabled = false;
+                    }
+                    
+                    $loadMoreButton.prop('disabled', false);
+                    $loadMoreButton.find('.ps-load-more-text').text(originalLoadText);
+                    
+                    $topLoadMoreButton.prop('disabled', false);
+                    $topLoadMoreButton.text(originalLoadText);
+                    
+                    // Reset cooldown flags
+                    loadButtonCooldownActive = false;
+                    searchCooldownActive = false;
+                    
+                    // Check if load buttons should be visible after cooldown
+                    const $container = $('#ps-load-more-container');
+                    if ($container.data('should-show') === true) {
+                        toggleLoadMoreButton(true);
+                    }
+                    
+                    // Clear timers
+                    clearInterval(loadButtonCooldownTimer);
+                    loadButtonCooldownTimer = null;
+                    searchCooldownTimer = null;
+                }
+            }, 1000);
+        }
+
         // Handle form submission
         document.getElementById('ps-search-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1063,9 +1223,14 @@ console.log('search.js loaded');
             }
 
             // Check if cooldown is active
-            if (searchCooldownActive) {
+            if (searchCooldownActive || loadButtonCooldownActive) {
                 return; // Prevent submission during cooldown
             }
+
+            // Set flag to indicate we're performing a live search attempt
+            // This should hide any existing result count messages regardless of search outcome
+            isAfterLiveSearch = true;
+            $resultsCount.hide();
 
             const queryElem = document.getElementById('ps-search-query');
             const excludeKeywordsElem = document.getElementById('ps-exclude-keywords');
@@ -1083,6 +1248,8 @@ console.log('search.js loaded');
 
             if (!query) {
                 resultsContainer.innerHTML = '<div class="ps-error">Please enter search keywords.</div>';
+                // Keep results count hidden since this is after a live search attempt
+                $resultsCount.hide();
                 return;
             }
             
@@ -1095,6 +1262,8 @@ console.log('search.js loaded');
             if (!window.psData || !window.psData.ajaxurl || !window.psData.nonce) {
                 console.error('psData is not properly initialized', window.psData);
                 resultsContainer.innerHTML = '<div class="ps-error">Configuration error. Please refresh the page or contact support.</div>';
+                // Keep results count hidden since this is after a live search attempt
+                $resultsCount.hide();
                 return;
             }
 
@@ -1121,6 +1290,7 @@ console.log('search.js loaded');
                     console.log('AJAX response (search):', response);
                     let products = [];
                     let baseItemsCount = 0;
+                    let errorMessage = null;
                     
                     if (response.success) {
                         if (response.data && response.data.items) {
@@ -1130,6 +1300,36 @@ console.log('search.js loaded');
                             products = response.items;
                             baseItemsCount = response.base_items_count || products.length;
                         }
+                    } else {
+                        // Handle wp_send_json_error responses - message is in response.data.message
+                        if (response.data && response.data.message) {
+                            errorMessage = response.data.message;
+                        } else if (response.message) {
+                            errorMessage = response.message;
+                        } else {
+                            errorMessage = 'Search failed. Please try again.';
+                        }
+                    }
+                    
+                    // If there's an error message, display it instead of "No products found"
+                    if (errorMessage) {
+                        let errorHtml = '<div class="ps-error">' + errorMessage;
+                        
+                        // Add Amazon search link if available (for blocking errors)
+                        if (response.data && response.data.amazon_search_url) {
+                            errorHtml += '<br><br>Or continue search on <a href="' + response.data.amazon_search_url + '" target="_blank" rel="noopener">Amazon.' + (response.data.country === 'ca' ? 'ca' : 'com') + '</a>';
+                        }
+                        
+                        errorHtml += '</div>';
+                        resultsContainer.innerHTML = errorHtml;
+                        
+                        // Hide load more button when there's an error
+                        toggleLoadMoreButton(false);
+                        // Start cooldown timer
+                        startSearchCooldown(searchButton);
+                        // Keep results count hidden
+                        $resultsCount.hide();
+                        return;
                     }
                     
                     if (products.length > 0) {
@@ -1178,8 +1378,9 @@ console.log('search.js loaded');
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
                         
-                        // For live searches, don't show the match criteria message - just show the products
-                        $resultsCount.hide();
+                        // Reset the flag and show the results count for live searches
+                        isAfterLiveSearch = false;
+                        $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + baseItemsCount + '</strong> found.</p>').show();
                         
                         // Show filter and show all buttons when products are found
                         $('#ps-filter-button').show();
@@ -1200,6 +1401,8 @@ console.log('search.js loaded');
                         toggleLoadMoreButton(false);
                         // Start cooldown timer even when no products found
                         startSearchCooldown(searchButton);
+                        // Keep results count hidden since this is after a live search attempt
+                        $resultsCount.hide();
                     }
                 },
                 error: function(xhr, status, error) {
@@ -1239,6 +1442,8 @@ console.log('search.js loaded');
                     
                     // Start cooldown timer even on error to prevent spam
                     startSearchCooldown(searchButton);
+                    // Keep results count hidden since this is after a live search attempt
+                    $resultsCount.hide();
                 }
             });
         });
@@ -1274,6 +1479,25 @@ console.log('search.js loaded');
             timestamp: new Date().toISOString(),
             testMessage: 'This is a test to verify debug logging is functional'
         });
+
+        // Debug function to check load more readiness
+        function debugLoadMoreState() {
+            console.log('Debug: Load More State Check', {
+                currentSearchResults: currentSearchResults.length,
+                originalCachedResults: originalCachedResults.length,
+                currentPage: currentPage,
+                lastSearchQuery: lastSearchQuery,
+                lastSearchCountry: lastSearchCountry,
+                searchCooldownActive: searchCooldownActive,
+                loadButtonCooldownActive: loadButtonCooldownActive,
+                loadButtonVisible: $('#ps-load-more-container').is(':visible'),
+                topLoadButtonVisible: $('#ps-load-more-top-button').is(':visible'),
+                shouldShow: $('#ps-load-more-container').data('should-show')
+            });
+        }
+        
+        // Make debug function available globally for testing
+        window.debugLoadMoreState = debugLoadMoreState;
 
         /**
          * Check if more than 60% of the products have unit price data
@@ -1494,6 +1718,12 @@ console.log('search.js loaded');
         $('#ps-load-more-button').on('click', function(e) {
             e.preventDefault();
             
+            // Check if any cooldown is active
+            if (searchCooldownActive || loadButtonCooldownActive) {
+                console.log('Load More: Blocked by cooldown', { searchCooldownActive, loadButtonCooldownActive });
+                return; // Prevent action during cooldown
+            }
+            
             const $button = $(this);
             const $container = $('#ps-load-more-container');
             const $loadMoreText = $('.ps-load-more-text');
@@ -1522,6 +1752,35 @@ console.log('search.js loaded');
             // Increment page for next page
             const nextPage = currentPage + 1;
             
+            // Debug logging for troubleshooting
+            console.log('Load More: Button clicked with parameters:', {
+                lastSearchQuery: lastSearchQuery,
+                query: query,
+                exclude: exclude,
+                sortBy: sortBy,
+                minRating: minRating,
+                country: country,
+                lastSearchCountry: lastSearchCountry,
+                currentPage: currentPage,
+                nextPage: nextPage,
+                hasAjaxUrl: !!(window.psData && window.psData.ajaxurl),
+                hasNonce: !!(window.psData && window.psData.nonce)
+            });
+            
+            // Check if we have the required data for load more
+            if (!query || !lastSearchQuery) {
+                console.error('Load More: Missing search query', { query, lastSearchQuery });
+                logToServer('Load More: Missing search query', { query, lastSearchQuery });
+                
+                // Reset button state and hide buttons
+                $button.prop('disabled', false);
+                $topButton.prop('disabled', false);
+                $loadMoreText.show();
+                $loadMoreSpinner.hide();
+                toggleLoadMoreButton(false);
+                return;
+            }
+            
             logToServer('Load More: Requesting page ' + nextPage, {
                 query: query,
                 country: country,
@@ -1548,50 +1807,92 @@ console.log('search.js loaded');
                     page: nextPage
                 },
                 success: function(response) {
-                    if (response.success && response.new_items && response.new_items.length > 0) {
-                        // Add new items to the results
-                        const newItems = response.new_items;
+                    console.log('Load More: AJAX response received:', response);
+                    
+                    if (response.success && response.items && response.items.length > 0) {
+                        // Backend has already merged, filtered, and sorted the complete dataset
+                        const completeItems = response.items;
+                        const newItemsCount = response.new_items_count || 0;
+                        
+                        console.log('Load More: Successfully received complete dataset with', completeItems.length, 'items (', newItemsCount, 'new items added)');
                         
                         // Update current page
-                        currentPage = nextPage;
+                        currentPage = response.page_loaded || (currentPage + 1);
                         
-                        // Add new items to current results
-                        currentSearchResults = currentSearchResults.concat(newItems);
-                        originalCachedResults = originalCachedResults.concat(newItems);
+                        // Replace current results with the complete sorted dataset from server
+                        currentSearchResults = completeItems;
+                        originalCachedResults = completeItems;  // Update cache reference too
                         
-                        // Get current sort method
-                        const currentSortBy = sortByElem ? sortByElem.value : 'price';
-                        
-                        // Sort all results with new items included
-                        currentSearchResults = sortProducts(currentSearchResults, currentSortBy);
-                        originalCachedResults = sortProducts(originalCachedResults, currentSortBy);
-                        
-                        // Re-render all products with new items
+                        // Re-render all products with the complete dataset
                         renderProducts(currentSearchResults);
                         
-                        // Add animation class to new items
+                        // Add animation class to highlight that new content was loaded
                         setTimeout(() => {
-                            $('.ps-product').slice(-newItems.length).addClass('ps-new-item');
+                            $('.ps-product').addClass('ps-refreshed-content');
+                            // Remove the animation class after animation completes
+                            setTimeout(() => {
+                                $('.ps-product').removeClass('ps-refreshed-content');
+                            }, 500);
                         }, 100);
                         
                         // Update results count
-                        const totalCount = currentSearchResults.length;
-                        $('#ps-results-count').text(`Showing ${totalCount} products`).show();
+                        const totalCount = response.base_items_count || completeItems.length;
+                        const displayCount = completeItems.length;
+                        // Always show the results count after load more
+                        isAfterLiveSearch = false;
+                        $resultsCount.html('<p><strong>' + displayCount + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
                         // Check if more pages are available
                         if (!response.has_more_pages) {
                             // Hide load more buttons when no more pages
+                            console.log('Load More: No more pages available, hiding buttons');
                             toggleLoadMoreButton(false);
+                        } else {
+                            console.log('Load More: More pages available, keeping buttons visible');
                         }
                         
-                        logToServer('Load More: Successfully loaded page ' + nextPage, {
-                            newItemsCount: newItems.length,
+                        logToServer('Load More: Successfully loaded page ' + (response.page_loaded || currentPage), {
+                            newItemsCount: newItemsCount,
                             totalItemsCount: totalCount,
+                            displayItemsCount: displayCount,
                             hasMorePages: response.has_more_pages || false
                         });
                         
+                        // Start shared cooldown after successful load more
+                        startLoadButtonCooldown();
                     } else {
+                        // Handle error response from backend
+                        let errorMessage = 'No more results available.';
+                        
+                        // Check for specific error message from backend
+                        if (response.message) {
+                            errorMessage = response.message;
+                        } else if (response.data && response.data.message) {
+                            errorMessage = response.data.message;
+                        }
+                        
+                        // Create error HTML with potential Amazon link
+                        let errorHtml = '<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">' + errorMessage;
+                        
+                        // Add Amazon search link if available (for blocking errors)
+                        if ((response.amazon_search_url) || (response.data && response.data.amazon_search_url)) {
+                            const amazonUrl = response.amazon_search_url || response.data.amazon_search_url;
+                            const country = response.country || (response.data && response.data.country) || 'us';
+                            errorHtml += '<br><br>Or continue search on <a href="' + amazonUrl + '" target="_blank" rel="noopener">Amazon.' + (country === 'ca' ? 'ca' : 'com') + '</a>';
+                        }
+                        
+                        errorHtml += '</div>';
+                        
+                        // Display error message
+                        $container.after(errorHtml);
+                        
                         // Hide load more buttons when no more results
+                        console.log('Load More: No items received, hiding buttons', {
+                            success: response.success,
+                            hasItems: !!(response.items),
+                            itemsLength: response.items ? response.items.length : 0,
+                            response: response
+                        });
                         toggleLoadMoreButton(false);
                         
                         logToServer('Load More: No more results available', {
@@ -1600,6 +1901,14 @@ console.log('search.js loaded');
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('Load More: AJAX error occurred', {
+                        status: status,
+                        error: error,
+                        page: nextPage,
+                        xhr: xhr,
+                        responseText: xhr.responseText
+                    });
+                    
                     logToServer('Load More: AJAX error', {
                         status: status,
                         error: error,
@@ -1608,6 +1917,9 @@ console.log('search.js loaded');
                     
                     // Show error message
                     $container.after('<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">Failed to load more results. Please try again.</div>');
+                    
+                    // Hide buttons on error
+                    toggleLoadMoreButton(false);
                 },
                 complete: function() {
                     // Reset button state
@@ -1627,7 +1939,10 @@ console.log('search.js loaded');
             const $container = $('#ps-load-more-container');
             const $topButton = $('#ps-load-more-top-button');
             
-            if (show) {
+            // Store the intent to show buttons for after cooldown
+            $container.data('should-show', show);
+            
+            if (show && !searchCooldownActive && !loadButtonCooldownActive) {
                 $container.show();
                 $topButton.show();
                 // Remove any previous error/no-more messages
@@ -1641,6 +1956,11 @@ console.log('search.js loaded');
         // Handle Top Load More button click (same functionality as bottom button)
         $('#ps-load-more-top-button').on('click', function(e) {
             e.preventDefault();
+            
+            // Check if any cooldown is active
+            if (searchCooldownActive || loadButtonCooldownActive) {
+                return; // Prevent action during cooldown
+            }
             
             // Trigger the same functionality as the bottom load more button
             $('#ps-load-more-button').trigger('click');

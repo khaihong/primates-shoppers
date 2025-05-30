@@ -132,7 +132,7 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
     <!-- Load More Button -->
     <div id="ps-load-more-container" class="ps-load-more-container" style="display: none;">
         <button type="button" id="ps-load-more-button" class="ps-load-more-button">
-            <span class="ps-load-more-text">Load More Results</span>
+            <span class="ps-load-more-text">Load More</span>
             <span class="ps-load-more-spinner" style="display: none;">
                 <span class="ps-spinner"></span> Loading...
             </span>
