@@ -1,1306 +1,200 @@
-[2025-05-28 22:23:54] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:23:54] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Starting to load cached results on page refresh
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Request parameters | Data: {"sortBy":"price","country":"us"}
-[2025-05-28 22:23:56] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:23:56] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:23:56] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Page Load: Document ready fired, initializing unit price sorting system | Data: {"hasAjaxUrl":true,"hasNonce":true,"userAgent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/136.0.0.0 Sa"}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Debug System Test: logToServer function is working | Data: {"timestamp":"2025-05-28T22:23:55.744Z","testMessage":"This is a test to verify debug logging is functional"}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Unit Price Analysis After Live Search | Data: {"totalItems":20,"itemsWithUnitPrice":0,"percentage":0,"shouldDefaultToUnitPrice":false,"sampleItems":[{"index":0,"title":"Happy Travel Tent 6 Person Tents for Camping, Wate...","price":"$135.99","price_value":135.99,"price_per_unit":"$169.99","unit":"No unit","price_per_unit_value":169.99,"hasUnitPrice":""},{"index":1,"title":"Family Camping Tent - 6-Person Spacious Design, 30...","price":"$159.99","price_value":159.99,"price_per_unit":"$249.99","unit":"No unit","price_per_unit_value":249.99,"hasUnitPrice":""},{"index":2,"title":"UNP Tents 6 Person Waterproof Windproof Easy Setup...","price":"$113.90","price_value":113.9,"price_per_unit":"$149.90","unit":"No unit","price_per_unit_value":149.9,"hasUnitPrice":""},{"index":3,"title":"Coleman Evanston Screened Camping Tent, 6\/8 Person...","price":"$152.00","price_value":152,"price_per_unit":"$229.99","unit":"No unit","price_per_unit_value":229.99,"hasUnitPrice":""},{"index":4,"title":"Coleman Steel Creek 6-Person Tent with Screened Po...","price":"$190.74","price_value":190.74,"price_per_unit":"$252.99","unit":"No unit","price_per_unit_value":252.99,"hasUnitPrice":""},{"index":5,"title":"6 Person Easy Pop Up Tent,12.5&#x2019; x 8.5&#x201...","price":"$129.99","price_value":129.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""},{"index":6,"title":"UNP Camping Tent 2\/3\/4\/6 Person Dome Tent, Easy to...","price":"$64.19","price_value":64.19,"price_per_unit":"$74.99","unit":"No unit","price_per_unit_value":74.99,"hasUnitPrice":""},{"index":7,"title":"KTT Extra Large Tent 10-12-14 Person(Style-B),Fami...","price":"$189.99","price_value":189.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":189.99,"hasUnitPrice":""},{"index":8,"title":"CAMEL CROWN Tents for Camping 4\/6 Person Tent Wate...","price":"$93.99","price_value":93.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":93.99,"hasUnitPrice":""},{"index":9,"title":"CAMPROS CP Tents for Camping 6 Person Tent Waterpr...","price":"$100.99","price_value":100.99,"price_per_unit":"$129.99","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""}]}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Set lastSearchQuery for load more | Data: {"lastSearchQuery":"6 person tent","responseDataQuery":"6 person tent","responseQuery":null}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Received response | Data: {"success":true,"productCount":20,"hasResponseData":true,"hasItems":true}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Calculate and Save Default Sorting | Data: {"currentSortValue":"price","shouldDefaultToUnitPrice":false,"savedDefaultSort":"price","willChangeSorting":false}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Pagination URLs check | Data: {"hasPaginationUrls":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","paginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"paginationUrlsType":"object","paginationUrlsKeys":["page_2","page_3"],"hasPage2":true,"hasPage3":true,"responsePaginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"responseDataKeys":["success","items","count","base_items_count","query","country_code","exclude","sort_by","pagination_urls","data_source","user_id"]}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Set country radio button | Data: {"cachedCountry":"us","radioButtonFound":true}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Load Cached Results: Successfully processed and rendered products | Data: {"originalCount":20,"filteredCount":13,"finalCount":13,"sortingChanged":false,"currentSortBy":"price"}
-[2025-05-28 22:23:56] [UNIT PRICE DEBUG] Country Detection: IP-based detection completed | Data: {"detectedCountry":"ca","currentCountrySelection":"us","countrySetFromCache":true,"willOverride":false}
-[2025-05-28 22:24:01] [UNIT PRICE DEBUG] Load More: Requesting page 2 | Data: {"query":"6 person tent","country":"us","currentPage":1,"nextPage":2,"lastSearchQuery":"6 person tent","queryFromInput":"6 person tent"}
-[2025-05-28 22:24:01] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:24:01] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:24:01] AJAX Load More Request - User: user_1, Query: '6 person tent', Page: 2, Country: 'us'
-[2025-05-28 22:24:01] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:24:01] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:24:01] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-28 22:24:01] ps_get_cached_results: Looking for query_hash = '4edd64f1824a8caa66d430254fc619b6' with user_id = 'user_1'
-[2025-05-28 22:24:01] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:24:01] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:24:01] HTTP Error: 503
-[2025-05-28 22:24:01] Load More: Failed to fetch page 2 - No response received
-[2025-05-28 22:24:01] [UNIT PRICE DEBUG] Load More: No more results available | Data: {"response":{"success":false,"message":"Failed to load more results from Amazon.","page_loaded":2}}
-[2025-05-28 22:30:25] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:30:25] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:30:25] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-28 22:30:25] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:30:25] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:30:25] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-28 22:30:25] ps_get_cached_results: Looking for query_hash = 'c7f76af0d12da0deba210189477ede36' with user_id = 'user_1'
-[2025-05-28 22:30:25] Initiating live search for: '6 person tent' in country: us, page: 1
-[2025-05-28 22:30:25] Constructed search URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-28 22:30:25] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-28 22:30:25] HTTP Error: 503
-[2025-05-28 22:30:25] Failed to fetch Amazon search results for query: '6 person tent' page 1 - No response received
-[2025-05-28 22:31:08] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:31:08] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:31:08] AJAX Search Request - User: user_1, Query: 'phyto conditioner', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-28 22:31:08] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:31:08] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:31:08] ps_get_cached_results: Generated user_id = 'user_1' for query 'phyto conditioner'
-[2025-05-28 22:31:08] ps_get_cached_results: Looking for query_hash = 'a96f4541f2bd09a7404f97e2e93cb285' with user_id = 'user_1'
-[2025-05-28 22:31:08] Initiating live search for: 'phyto conditioner' in country: us, page: 1
-[2025-05-28 22:31:08] Constructed search URL: https://www.amazon.com/s?k=phyto+conditioner
-[2025-05-28 22:31:08] Fetching search results from URL: https://www.amazon.com/s?k=phyto+conditioner
-[2025-05-28 22:31:08] HTTP Error: 503
-[2025-05-28 22:31:08] Failed to fetch Amazon search results for query: 'phyto conditioner' page 1 - No response received
-[2025-05-28 22:51:10] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:10] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:10] AJAX Search Request - User: user_1, Query: 'phyto conditioner', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-28 22:51:10] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:10] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:10] ps_get_cached_results: Generated user_id = 'user_1' for query 'phyto conditioner'
-[2025-05-28 22:51:10] ps_get_cached_results: Looking for query_hash = 'a96f4541f2bd09a7404f97e2e93cb285' with user_id = 'user_1'
-[2025-05-28 22:51:10] Initiating live search for: 'phyto conditioner' in country: us, page: 1
-[2025-05-28 22:51:10] Constructed search URL: https://www.amazon.com/s?k=phyto+conditioner
-[2025-05-28 22:51:10] Fetching search results from URL: https://www.amazon.com/s?k=phyto+conditioner
-[2025-05-28 22:51:10] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 22:51:10] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 22:51:10] Using proxy authentication with user: user-sptlq8hpk0
-[2025-05-28 22:51:12] HTTP Error: 503
-[2025-05-28 22:51:12] Failed to fetch Amazon search results for query: 'phyto conditioner' page 1 - No response received
-[2025-05-28 22:51:17] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:17] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Starting to load cached results on page refresh
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Page Load: Document ready fired, initializing unit price sorting system | Data: {"hasAjaxUrl":true,"hasNonce":true,"userAgent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/136.0.0.0 Sa"}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Request parameters | Data: {"sortBy":"price","country":"us"}
-[2025-05-28 22:51:18] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:18] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:18] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Debug System Test: logToServer function is working | Data: {"timestamp":"2025-05-28T22:51:18.380Z","testMessage":"This is a test to verify debug logging is functional"}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Received response | Data: {"success":true,"productCount":20,"hasResponseData":true,"hasItems":true}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Unit Price Analysis After Live Search | Data: {"totalItems":20,"itemsWithUnitPrice":0,"percentage":0,"shouldDefaultToUnitPrice":false,"sampleItems":[{"index":0,"title":"Happy Travel Tent 6 Person Tents for Camping, Wate...","price":"$135.99","price_value":135.99,"price_per_unit":"$169.99","unit":"No unit","price_per_unit_value":169.99,"hasUnitPrice":""},{"index":1,"title":"Family Camping Tent - 6-Person Spacious Design, 30...","price":"$159.99","price_value":159.99,"price_per_unit":"$249.99","unit":"No unit","price_per_unit_value":249.99,"hasUnitPrice":""},{"index":2,"title":"UNP Tents 6 Person Waterproof Windproof Easy Setup...","price":"$113.90","price_value":113.9,"price_per_unit":"$149.90","unit":"No unit","price_per_unit_value":149.9,"hasUnitPrice":""},{"index":3,"title":"Coleman Evanston Screened Camping Tent, 6\/8 Person...","price":"$152.00","price_value":152,"price_per_unit":"$229.99","unit":"No unit","price_per_unit_value":229.99,"hasUnitPrice":""},{"index":4,"title":"Coleman Steel Creek 6-Person Tent with Screened Po...","price":"$190.74","price_value":190.74,"price_per_unit":"$252.99","unit":"No unit","price_per_unit_value":252.99,"hasUnitPrice":""},{"index":5,"title":"6 Person Easy Pop Up Tent,12.5&#x2019; x 8.5&#x201...","price":"$129.99","price_value":129.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""},{"index":6,"title":"UNP Camping Tent 2\/3\/4\/6 Person Dome Tent, Easy to...","price":"$64.19","price_value":64.19,"price_per_unit":"$74.99","unit":"No unit","price_per_unit_value":74.99,"hasUnitPrice":""},{"index":7,"title":"KTT Extra Large Tent 10-12-14 Person(Style-B),Fami...","price":"$189.99","price_value":189.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":189.99,"hasUnitPrice":""},{"index":8,"title":"CAMEL CROWN Tents for Camping 4\/6 Person Tent Wate...","price":"$93.99","price_value":93.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":93.99,"hasUnitPrice":""},{"index":9,"title":"CAMPROS CP Tents for Camping 6 Person Tent Waterpr...","price":"$100.99","price_value":100.99,"price_per_unit":"$129.99","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""}]}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Successfully processed and rendered products | Data: {"originalCount":20,"filteredCount":13,"finalCount":13,"sortingChanged":false,"currentSortBy":"price"}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Calculate and Save Default Sorting | Data: {"currentSortValue":"price","shouldDefaultToUnitPrice":false,"savedDefaultSort":"price","willChangeSorting":false}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Set lastSearchQuery for load more | Data: {"lastSearchQuery":"6 person tent","responseDataQuery":"6 person tent","responseQuery":null}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Pagination URLs check | Data: {"hasPaginationUrls":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","paginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"paginationUrlsType":"object","paginationUrlsKeys":["page_2","page_3"],"hasPage2":true,"hasPage3":true,"responsePaginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"responseDataKeys":["success","items","count","base_items_count","query","country_code","exclude","sort_by","pagination_urls","data_source","user_id"]}
-[2025-05-28 22:51:18] [UNIT PRICE DEBUG] Load Cached Results: Set country radio button | Data: {"cachedCountry":"us","radioButtonFound":true}
-[2025-05-28 22:51:19] [UNIT PRICE DEBUG] Country Detection: IP-based detection completed | Data: {"detectedCountry":"ca","currentCountrySelection":"us","countrySetFromCache":true,"willOverride":false}
-[2025-05-28 22:51:43] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:43] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:43] AJAX Load More Request - User: user_1, Query: '6 person tent', Page: 2, Country: 'us'
-[2025-05-28 22:51:43] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:43] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:43] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-28 22:51:43] ps_get_cached_results: Looking for query_hash = '4edd64f1824a8caa66d430254fc619b6' with user_id = 'user_1'
-[2025-05-28 22:51:43] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:51:43] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:51:43] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 22:51:43] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 22:51:43] Using proxy authentication with user: user-sptlq8hpk0
-[2025-05-28 22:51:43] [UNIT PRICE DEBUG] Load More: Requesting page 2 | Data: {"query":"6 person tent","country":"us","currentPage":1,"nextPage":2,"lastSearchQuery":"6 person tent","queryFromInput":"thinning hair conditioner"}
-[2025-05-28 22:51:44] HTTP Error: 503
-[2025-05-28 22:51:44] Load More: Failed to fetch page 2 - No response received
-[2025-05-28 22:51:44] [UNIT PRICE DEBUG] Load More: No more results available | Data: {"response":{"success":false,"message":"Failed to load more results from Amazon.","page_loaded":2}}
-[2025-05-28 22:51:57] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:57] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:57] AJAX Search Request - User: user_1, Query: 'thinning hair conditioner', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-28 22:51:57] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:51:57] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:51:57] ps_get_cached_results: Generated user_id = 'user_1' for query 'thinning hair conditioner'
-[2025-05-28 22:51:57] ps_get_cached_results: Looking for query_hash = '2505b1731ab88bc3f197ecabe6961d0f' with user_id = 'user_1'
-[2025-05-28 22:51:57] Initiating live search for: 'thinning hair conditioner' in country: us, page: 1
-[2025-05-28 22:51:57] Constructed search URL: https://www.amazon.com/s?k=thinning+hair+conditioner
-[2025-05-28 22:51:57] Fetching search results from URL: https://www.amazon.com/s?k=thinning+hair+conditioner
-[2025-05-28 22:51:57] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 22:51:57] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 22:51:57] Using proxy authentication with user: user-sptlq8hpk0
-[2025-05-28 22:51:58] HTTP Error: 503
-[2025-05-28 22:51:58] Failed to fetch Amazon search results for query: 'thinning hair conditioner' page 1 - No response received
-[2025-05-28 22:55:01] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:55:01] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Debug System Test: logToServer function is working | Data: {"timestamp":"2025-05-28T22:55:03.096Z","testMessage":"This is a test to verify debug logging is functional"}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Request parameters | Data: {"sortBy":"price","country":"us"}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Starting to load cached results on page refresh
-[2025-05-28 22:55:03] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:55:03] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:55:03] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Page Load: Document ready fired, initializing unit price sorting system | Data: {"hasAjaxUrl":true,"hasNonce":true,"userAgent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/136.0.0.0 Sa"}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Unit Price Analysis After Live Search | Data: {"totalItems":20,"itemsWithUnitPrice":0,"percentage":0,"shouldDefaultToUnitPrice":false,"sampleItems":[{"index":0,"title":"Happy Travel Tent 6 Person Tents for Camping, Wate...","price":"$135.99","price_value":135.99,"price_per_unit":"$169.99","unit":"No unit","price_per_unit_value":169.99,"hasUnitPrice":""},{"index":1,"title":"Family Camping Tent - 6-Person Spacious Design, 30...","price":"$159.99","price_value":159.99,"price_per_unit":"$249.99","unit":"No unit","price_per_unit_value":249.99,"hasUnitPrice":""},{"index":2,"title":"UNP Tents 6 Person Waterproof Windproof Easy Setup...","price":"$113.90","price_value":113.9,"price_per_unit":"$149.90","unit":"No unit","price_per_unit_value":149.9,"hasUnitPrice":""},{"index":3,"title":"Coleman Evanston Screened Camping Tent, 6\/8 Person...","price":"$152.00","price_value":152,"price_per_unit":"$229.99","unit":"No unit","price_per_unit_value":229.99,"hasUnitPrice":""},{"index":4,"title":"Coleman Steel Creek 6-Person Tent with Screened Po...","price":"$190.74","price_value":190.74,"price_per_unit":"$252.99","unit":"No unit","price_per_unit_value":252.99,"hasUnitPrice":""},{"index":5,"title":"6 Person Easy Pop Up Tent,12.5&#x2019; x 8.5&#x201...","price":"$129.99","price_value":129.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""},{"index":6,"title":"UNP Camping Tent 2\/3\/4\/6 Person Dome Tent, Easy to...","price":"$64.19","price_value":64.19,"price_per_unit":"$74.99","unit":"No unit","price_per_unit_value":74.99,"hasUnitPrice":""},{"index":7,"title":"KTT Extra Large Tent 10-12-14 Person(Style-B),Fami...","price":"$189.99","price_value":189.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":189.99,"hasUnitPrice":""},{"index":8,"title":"CAMEL CROWN Tents for Camping 4\/6 Person Tent Wate...","price":"$93.99","price_value":93.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":93.99,"hasUnitPrice":""},{"index":9,"title":"CAMPROS CP Tents for Camping 6 Person Tent Waterpr...","price":"$100.99","price_value":100.99,"price_per_unit":"$129.99","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""}]}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Received response | Data: {"success":true,"productCount":20,"hasResponseData":true,"hasItems":true}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Calculate and Save Default Sorting | Data: {"currentSortValue":"price","shouldDefaultToUnitPrice":false,"savedDefaultSort":"price","willChangeSorting":false}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Set country radio button | Data: {"cachedCountry":"us","radioButtonFound":true}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Successfully processed and rendered products | Data: {"originalCount":20,"filteredCount":13,"finalCount":13,"sortingChanged":false,"currentSortBy":"price"}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Set lastSearchQuery for load more | Data: {"lastSearchQuery":"6 person tent","responseDataQuery":"6 person tent","responseQuery":null}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Load Cached Results: Pagination URLs check | Data: {"hasPaginationUrls":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","paginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"paginationUrlsType":"object","paginationUrlsKeys":["page_2","page_3"],"hasPage2":true,"hasPage3":true,"responsePaginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_3"},"responseDataKeys":["success","items","count","base_items_count","query","country_code","exclude","sort_by","pagination_urls","data_source","user_id"]}
-[2025-05-28 22:55:03] [UNIT PRICE DEBUG] Country Detection: IP-based detection completed | Data: {"detectedCountry":"ca","currentCountrySelection":"us","countrySetFromCache":true,"willOverride":false}
-[2025-05-28 22:55:06] [UNIT PRICE DEBUG] Load More: Requesting page 2 | Data: {"query":"6 person tent","country":"us","currentPage":1,"nextPage":2,"lastSearchQuery":"6 person tent","queryFromInput":"6 person tent"}
-[2025-05-28 22:55:06] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:55:06] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:55:06] AJAX Load More Request - User: user_1, Query: '6 person tent', Page: 2, Country: 'us'
-[2025-05-28 22:55:06] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-28 22:55:06] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-28 22:55:06] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-28 22:55:06] ps_get_cached_results: Looking for query_hash = '4edd64f1824a8caa66d430254fc619b6' with user_id = 'user_1'
-[2025-05-28 22:55:06] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:55:06] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=uXpFQEfXKepX6&qid=1748470372&ref=sr_pg_2
-[2025-05-28 22:55:06] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 22:55:06] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 22:55:06] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 22:55:08] HTTP Error: 503
-[2025-05-28 22:55:08] Load More: Failed to fetch page 2 - No response received
-[2025-05-28 22:55:08] [UNIT PRICE DEBUG] Load More: No more results available | Data: {"response":{"success":false,"message":"Failed to load more results from Amazon.","page_loaded":2}}
-[2025-05-28 22:58:15] Running proxy connection test to Amazon Best Sellers page
-[2025-05-28 22:58:15] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 22:58:15] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 22:58:15] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 22:58:15] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 22:58:17] HTTP Error: 429
-[2025-05-28 22:58:17] Proxy connection test failed
-[2025-05-28 23:02:02] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:02:02] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:02:02] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:02:02] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:02:02] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:02:02] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:02:02] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:02:02] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:02:05] Saved full HTML response to amazon_response_2025-05-28_23-02-05.html
-[2025-05-28 23:02:05] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-28 23:02:05] No product containers found - returning original HTML
-[2025-05-28 23:02:05] Proxy connection test: Received response, length: 104624 bytes
-[2025-05-28 23:02:05] Proxy connection test: Received unexpected content - no expected Amazon text found
-[2025-05-28 23:03:55] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:03:55] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:03:55] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:03:55] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:03:55] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:03:55] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:03:55] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:03:55] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:04:03] Saved full HTML response to amazon_response_2025-05-28_23-04-03.html
-[2025-05-28 23:04:03] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-28 23:04:03] No product containers found - returning original HTML
-[2025-05-28 23:04:03] Proxy connection test: Received response, length: 397299 bytes
-[2025-05-28 23:04:03] Proxy connection test: Found expected content: 'Best Sellers'
-[2025-05-28 23:04:03] Proxy connection test successful - found Amazon content and page elements
-[2025-05-28 23:04:24] Running proxy search test for query: 'protein powder' in country: us
-[2025-05-28 23:04:24] Proxy search test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:04:24] Proxy search test: Proxy host: gate.decodo.com
-[2025-05-28 23:04:24] Proxy search test: Proxy port: 7000
-[2025-05-28 23:04:24] Proxy search test: Constructed URL: https://www.amazon.com/s?k=protein+powder
-[2025-05-28 23:04:24] Fetching search results from URL: https://www.amazon.com/s?k=protein+powder
-[2025-05-28 23:04:24] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:04:24] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:04:24] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:04:26] HTTP Error: 503
-[2025-05-28 23:04:26] Proxy search test failed for query: 'protein powder' - No response received
-[2025-05-28 23:06:28] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:06:28] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:06:28] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:06:28] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:06:28] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:06:28] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:06:28] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:06:28] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:06:28] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-28 23:06:28] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-us'
-[2025-05-28 23:06:28] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:06:28] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:06:30] Saved full HTML response to amazon_response_2025-05-28_23-06-30.html
-[2025-05-28 23:06:30] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-28 23:06:30] No product containers found - returning original HTML
-[2025-05-28 23:06:30] Proxy connection test: Received response, length: 102296 bytes
-[2025-05-28 23:06:30] Proxy connection test: Received unexpected content - no expected Amazon text found
-[2025-05-28 23:06:58] Running proxy search test for query: 'protein powder' in country: us
-[2025-05-28 23:06:58] Proxy search test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:06:58] Proxy search test: Proxy host: gate.decodo.com
-[2025-05-28 23:06:58] Proxy search test: Proxy port: 7000
-[2025-05-28 23:06:58] Proxy search test: Constructed URL: https://www.amazon.com/s?k=protein+powder
-[2025-05-28 23:06:58] Fetching search results from URL: https://www.amazon.com/s?k=protein+powder
-[2025-05-28 23:06:58] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:06:58] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:06:58] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:06:58] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-28 23:06:58] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-us'
-[2025-05-28 23:06:58] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:06:58] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:06:59] HTTP Error: 503
-[2025-05-28 23:06:59] Proxy search test failed for query: 'protein powder' - No response received
-[2025-05-28 23:07:42] Running proxy search test for query: 'protein powder' in country: ca
-[2025-05-28 23:07:42] Proxy search test: Using proxy username: user-sptlq8hpk0-ca
-[2025-05-28 23:07:42] Proxy search test: Proxy host: gate.decodo.com
-[2025-05-28 23:07:42] Proxy search test: Proxy port: 7000
-[2025-05-28 23:07:42] Proxy search test: Constructed URL: https://www.amazon.ca/s?k=protein+powder
-[2025-05-28 23:07:42] Fetching search results from URL: https://www.amazon.ca/s?k=protein+powder
-[2025-05-28 23:07:42] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:07:42] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:07:42] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:07:42] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-28 23:07:42] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-ca'
-[2025-05-28 23:07:42] Using proxy authentication with user: user-sptlq8hpk0-ca
-[2025-05-28 23:07:42] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:07:44] HTTP Error: 503
-[2025-05-28 23:07:44] Proxy search test failed for query: 'protein powder' - No response received
-[2025-05-28 23:14:56] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:14:56] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:14:56] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:14:56] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:14:56] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:14:56] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:14:56] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:14:56] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:14:56] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-28 23:14:56] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-us'
-[2025-05-28 23:14:56] Using proxy authentication with user: user-sptlq8hpk0-us
-[2025-05-28 23:14:56] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:14:58] HTTP Error: 429
-[2025-05-28 23:14:58] Proxy connection test failed - no response received
-[2025-05-28 23:48:40] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:48:40] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:48:40] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:48:40] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:48:40] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:48:40] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:48:40] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:48:40] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:48:40] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-28 23:48:40] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-28 23:48:40] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-28 23:48:40] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:48:42] Saved full HTML response to amazon_response_2025-05-28_23-48-42.html
-[2025-05-28 23:48:42] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-28 23:48:42] No product containers found - returning original HTML
-[2025-05-28 23:48:42] Proxy connection test: Received response, length: 105237 bytes
-[2025-05-28 23:48:42] Proxy connection test: Received unexpected content - no expected Amazon text found
-[2025-05-28 23:51:29] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-28 23:51:29] Proxy connection test: Using proxy username: user-sptlq8hpk0-us
-[2025-05-28 23:51:29] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-28 23:51:29] Proxy connection test: Proxy port: 7000
-[2025-05-28 23:51:29] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-28 23:51:29] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:51:29] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:51:29] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:51:29] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-28 23:51:29] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-28 23:51:29] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-28 23:51:29] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:51:30] HTTP Error: 429
-[2025-05-28 23:51:30] Proxy connection test failed - no response received
-[2025-05-28 23:52:51] Running proxy search test for query: 'protein powder' in country: ca
-[2025-05-28 23:52:51] Proxy search test: Using proxy username: user-sptlq8hpk0-ca
-[2025-05-28 23:52:51] Proxy search test: Proxy host: gate.decodo.com
-[2025-05-28 23:52:51] Proxy search test: Proxy port: 7000
-[2025-05-28 23:52:51] Proxy search test: Constructed URL: https://www.amazon.ca/s?k=protein+powder
-[2025-05-28 23:52:51] Fetching search results from URL: https://www.amazon.ca/s?k=protein+powder
-[2025-05-28 23:52:51] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-28 23:52:51] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-28 23:52:51] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-28 23:52:51] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-28 23:52:51] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-28 23:52:51] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-28 23:52:51] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-28 23:52:52] HTTP Error: 503
-[2025-05-28 23:52:52] Proxy search test failed for query: 'protein powder' - No response received
-[2025-05-29 00:05:29] Running proxy connection test to Amazon Best Sellers page with country: us
-[2025-05-29 00:05:29] Proxy connection test: Using proxy username: user-sptlq8hpk0-country-us
-[2025-05-29 00:05:29] Proxy connection test: Proxy host: gate.decodo.com
-[2025-05-29 00:05:29] Proxy connection test: Proxy port: 7000
-[2025-05-29 00:05:29] Fetching search results from URL: https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/
-[2025-05-29 00:05:29] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:05:29] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:05:29] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:05:29] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-29 00:05:29] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-29 00:05:29] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-29 00:05:29] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:05:31] Saved full HTML response to amazon_response_2025-05-29_00-05-31.html
-[2025-05-29 00:05:31] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 00:05:31] No product containers found - returning original HTML
-[2025-05-29 00:05:31] Proxy connection test: Received response, length: 106964 bytes
-[2025-05-29 00:05:31] Proxy connection test: Received unexpected content - no expected Amazon text found
-[2025-05-29 00:07:09] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:07:09] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:07:09] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-29 00:07:09] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:07:09] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:07:09] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:07:09] ps_get_cached_results: Looking for query_hash = 'c7f76af0d12da0deba210189477ede36' with user_id = 'user_1'
-[2025-05-29 00:07:09] Initiating live search for: '6 person tent' in country: us, page: 1
-[2025-05-29 00:07:09] Constructed search URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-29 00:07:09] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-29 00:07:09] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:07:09] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:07:09] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:07:09] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-29 00:07:09] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-29 00:07:09] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-29 00:07:09] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:07:10] HTTP Error: 503
-[2025-05-29 00:07:10] Failed to fetch Amazon search results for query: '6 person tent' page 1 - No response received
-[2025-05-29 00:07:42] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:07:42] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:07:42] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 00:07:42] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:07:42] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:07:42] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:07:42] ps_get_cached_results: Looking for query_hash = '936480ba38662961bf1317c703cd67c9' with user_id = 'user_1'
-[2025-05-29 00:07:42] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 00:07:42] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 00:07:42] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 00:07:42] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:07:42] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:07:42] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:07:42] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 00:07:42] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 00:07:42] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 00:07:42] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:07:45] Saved full HTML response to amazon_response_2025-05-29_00-07-45.html
-[2025-05-29 00:07:45] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 00:07:45] Found 60 search result containers
-[2025-05-29 00:07:45] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 00:07:45] Bandwidth optimization complete - Original: 1,750,899 bytes, Optimized: 859,695 bytes, Savings: 50.9%
-[2025-05-29 00:07:45] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 00:07:45] Starting to parse Amazon results.
-[2025-05-29 00:07:45] XPath: DOMDocument encountered 147 XML parsing errors (showing first 3)
-[2025-05-29 00:07:45] XPath XML Error 1: ID price-link already defined
-[2025-05-29 00:07:45] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 00:07:45] XPath XML Error 3: ID price-link already defined
-[2025-05-29 00:07:45] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 00:07:45] Successfully extracted 43 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 00:07:45] Found pagination container, extracting URLs...
-[2025-05-29 00:07:45] Trying pagination pattern 1
-[2025-05-29 00:07:45] Pattern 1 found 2 matches
-[2025-05-29 00:07:45] Added pagination URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:07:45] Added pagination URL for page 3: https://www.amazon.com/s?k=6+person+tent&page=3&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_3
-[2025-05-29 00:07:45] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 00:07:45] Pagination URL stored: page_2 => https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:07:45] Pagination URL stored: page_3 => https://www.amazon.com/s?k=6+person+tent&page=3&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_3
-[2025-05-29 00:07:45] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:07:45] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:07:45] ps_cache_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:07:45] Caching results for user user_1 (query: '6 person tent', country: ca): 99.541015625 KB. Items: 55
-[2025-05-29 00:07:45] ps_cache_results: About to insert with user_id = 'user_1', query_hash = 'f06a249ba817f15bbad6006d356b8689'
-[2025-05-29 00:07:45] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 46
-[2025-05-29 00:07:45] Successfully cached results with hash: f06a249ba817f15bbad6006d356b8689, User: user_1
-[2025-05-29 00:07:46] [UNIT PRICE DEBUG] Unit Price Analysis After Live Search | Data: {"totalItems":43,"itemsWithUnitPrice":0,"percentage":0,"shouldDefaultToUnitPrice":false,"sampleItems":[{"index":0,"title":"Amazon Basics Instant Camping Tent with Rainfly, W...","price":"$129.99","price_value":129.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""},{"index":1,"title":"Outsunny 4-6 Person Camping Tent, 2000mm Waterproo...","price":"$198.99","price_value":198.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":198.99,"hasUnitPrice":""},{"index":2,"title":"Coleman Camping Tent with DarkRoom Sun Blocking Te...","price":"$249.99","price_value":249.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":249.99,"hasUnitPrice":""},{"index":3,"title":"UNP Tents 6 Person Waterproof Windproof Easy Setup...","price":"$199.90","price_value":199.9,"price_per_unit":"$229.90","unit":"No unit","price_per_unit_value":229.9,"hasUnitPrice":""},{"index":4,"title":"Amazon Basics Instant Camping Tent with Rainfly, W...","price":"$129.99","price_value":129.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":129.99,"hasUnitPrice":""},{"index":5,"title":"Coleman Skydome Camping Tent, 4\/6\/10 Person Tent f...","price":"$209.99","price_value":209.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":209.99,"hasUnitPrice":""},{"index":6,"title":"Camping Tent with Rainfly, 2\/4\/8 Person Tent,Water...","price":"$169.99","price_value":169.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":169.99,"hasUnitPrice":""},{"index":7,"title":"6 Person Easy Pop Up Tent,12.5&#x2019; x 8.5&#x201...","price":"$189.99","price_value":189.99,"price_per_unit":"$199.99","unit":"No unit","price_per_unit_value":199.99,"hasUnitPrice":""},{"index":8,"title":"Superrella Outdoor Portable Cabin Camping Tent Dou...","price":"$145.99","price_value":145.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":145.99,"hasUnitPrice":""},{"index":9,"title":"4\/6 Person Easy Pop Up Tents, Waterproof Instant F...","price":"$179.99","price_value":179.99,"price_per_unit":"No unit price","unit":"No unit","price_per_unit_value":179.99,"hasUnitPrice":""}]}
-[2025-05-29 00:07:46] [UNIT PRICE DEBUG] Live Search: Starting fresh analysis for unit price sorting
-[2025-05-29 00:07:46] [UNIT PRICE DEBUG] Live Search: Pagination URLs check | Data: {"hasPaginationUrls":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2","paginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_3"},"paginationUrlsType":"object","paginationUrlsKeys":["page_2","page_3"],"hasPage2":true,"hasPage3":true,"responsePaginationUrls":{"page_2":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2","page_3":"https:\/\/www.amazon.com\/s?k=6+person+tent&page=3&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_3"},"responseDataKeys":["success","items","count","base_items_count","query","exclude","sort_by","country_code","pagination_urls","data_source","message"]}
-[2025-05-29 00:07:46] [UNIT PRICE DEBUG] Calculate and Save Default Sorting | Data: {"currentSortValue":"price","shouldDefaultToUnitPrice":false,"savedDefaultSort":"price","willChangeSorting":false}
-[2025-05-29 00:12:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:12:37] [UNIT PRICE DEBUG] Load More: Requesting page 2 | Data: {"query":"6 person tent","country":"ca","currentPage":1,"nextPage":2,"lastSearchQuery":"6 person tent","queryFromInput":"6 person tent"}
-[2025-05-29 00:12:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:12:37] AJAX Load More Request - User: user_1, Query: '6 person tent', Page: 2, Country: 'ca'
-[2025-05-29 00:12:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:12:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:12:37] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:12:37] ps_get_cached_results: Looking for query_hash = 'f06a249ba817f15bbad6006d356b8689' with user_id = 'user_1'
-[2025-05-29 00:12:37] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:12:37] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:12:37] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:12:37] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:12:37] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:12:37] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 00:12:37] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 00:12:37] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 00:12:37] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:12:38] HTTP Error: 503
-[2025-05-29 00:12:38] Load More: Failed to fetch page 2 - No response received
-[2025-05-29 00:12:38] [UNIT PRICE DEBUG] Load More: No more results available | Data: {"response":{"success":false,"message":"Failed to load more results from Amazon.","page_loaded":2}}
-[2025-05-29 00:17:54] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:17:54] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:17:54] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 00:17:54] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:17:54] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:17:54] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:17:54] ps_get_cached_results: Looking for query_hash = '936480ba38662961bf1317c703cd67c9' with user_id = 'user_1'
-[2025-05-29 00:17:54] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 00:17:54] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 00:17:54] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 00:17:54] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:17:54] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:17:54] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:17:54] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 00:17:54] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 00:17:54] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 00:17:54] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:17:56] Saved full HTML response to amazon_response_2025-05-29_00-17-56.html
-[2025-05-29 00:17:56] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 00:17:56] No product containers found - returning original HTML
-[2025-05-29 00:17:56] ps_is_amazon_blocking: Detected blocking indicator: 'automated access'
-[2025-05-29 00:17:56] Amazon is blocking search for query: '6 person tent' page 1 - Blocking page detected
-[2025-05-29 00:19:22] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:19:22] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:19:22] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-29 00:19:22] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:19:22] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:19:22] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:19:22] ps_get_cached_results: Looking for query_hash = 'c7f76af0d12da0deba210189477ede36' with user_id = 'user_1'
-[2025-05-29 00:19:22] Initiating live search for: '6 person tent' in country: us, page: 1
-[2025-05-29 00:19:22] Constructed search URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-29 00:19:22] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent
-[2025-05-29 00:19:22] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:19:22] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:19:22] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:19:22] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-29 00:19:22] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-29 00:19:22] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-29 00:19:22] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:19:23] HTTP Error: 503
-[2025-05-29 00:19:23] Failed to fetch Amazon search results for query: '6 person tent' page 1 - No response received
-[2025-05-29 00:20:18] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:20:18] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:20:18] AJAX Search Request - User: user_1, Query: 'men shorts cotton', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: false
-[2025-05-29 00:20:18] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:20:18] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:20:18] ps_get_cached_results: Generated user_id = 'user_1' for query 'men shorts cotton'
-[2025-05-29 00:20:18] ps_get_cached_results: Looking for query_hash = '01d3b578aa24341d596959ec494115e5' with user_id = 'user_1'
-[2025-05-29 00:20:18] Initiating live search for: 'men shorts cotton' in country: us, page: 1
-[2025-05-29 00:20:18] Constructed search URL: https://www.amazon.com/s?k=men+shorts+cotton
-[2025-05-29 00:20:18] Fetching search results from URL: https://www.amazon.com/s?k=men+shorts+cotton
-[2025-05-29 00:20:18] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:20:18] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:20:18] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:20:18] DEBUG PROXY AUTH: Country = 'us'
-[2025-05-29 00:20:18] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
-[2025-05-29 00:20:18] Using proxy authentication with user: user-sptlq8hpk0-country-us
-[2025-05-29 00:20:18] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:20:19] HTTP Error: 503
-[2025-05-29 00:20:19] Failed to fetch Amazon search results for query: 'men shorts cotton' page 1 - No response received
-[2025-05-29 00:20:28] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:20:28] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:20:28] AJAX Search Request - User: user_1, Query: 'men shorts cotton', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 00:20:28] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:20:28] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:20:28] ps_get_cached_results: Generated user_id = 'user_1' for query 'men shorts cotton'
-[2025-05-29 00:20:28] ps_get_cached_results: Looking for query_hash = 'eb8ccda56c0578add54532dd188ec952' with user_id = 'user_1'
-[2025-05-29 00:20:28] Initiating live search for: 'men shorts cotton' in country: ca, page: 1
-[2025-05-29 00:20:28] Constructed search URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 00:20:28] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 00:20:28] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:20:28] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:20:28] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:20:28] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 00:20:28] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 00:20:28] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 00:20:28] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:20:29] HTTP Error: 503
-[2025-05-29 00:20:29] Failed to fetch Amazon search results for query: 'men shorts cotton' page 1 - No response received
-[2025-05-29 00:23:00] Running proxy IP check for country: us
-[2025-05-29 00:23:00] Proxy IP check: Testing with ipify (https://api.ipify.org?format=json)
-[2025-05-29 00:23:00] Proxy IP check: Using proxy gate.decodo.com:7000 with username: user-sptlq8hpk0-country-us
-[2025-05-29 00:23:01] Proxy IP check: ipify returned IP: 100.33.162.122
-[2025-05-29 00:23:01] Proxy IP check: Testing with httpbin (https://httpbin.org/ip)
-[2025-05-29 00:23:01] Proxy IP check: Using proxy gate.decodo.com:7000 with username: user-sptlq8hpk0-country-us
-[2025-05-29 00:23:02] Proxy IP check: httpbin returned IP: 76.35.80.57
-[2025-05-29 00:23:02] Proxy IP check: Testing with ipecho (https://ipecho.net/plain)
-[2025-05-29 00:23:02] Proxy IP check: Using proxy gate.decodo.com:7000 with username: user-sptlq8hpk0-country-us
-[2025-05-29 00:23:03] Proxy IP check: ipecho returned IP: 76.34.204.188
-[2025-05-29 00:23:03] Proxy IP check: Inconsistent results - found different IPs: 100.33.162.122, 76.35.80.57, 76.34.204.188
-[2025-05-29 00:56:27] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:56:27] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:56:28] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:56:28] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:56:28] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 00:56:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:56:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:56:37] AJAX Load More Request - User: user_1, Query: '6 person tent', Page: 2, Country: 'ca'
-[2025-05-29 00:56:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:56:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:56:37] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:56:37] ps_get_cached_results: Looking for query_hash = 'f06a249ba817f15bbad6006d356b8689' with user_id = 'user_1'
-[2025-05-29 00:56:37] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:56:37] Fetching search results from URL: https://www.amazon.com/s?k=6+person+tent&page=2&xpid=PIqQMK2eMFY82&qid=1748477263&ref=sr_pg_2
-[2025-05-29 00:56:37] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 00:56:37] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 00:56:37] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 00:56:37] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 00:56:37] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 00:56:37] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 00:56:37] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 00:56:41] Saved full HTML response to amazon_response_2025-05-29_00-56-41.html
-[2025-05-29 00:56:41] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 00:56:41] Found 25 search result containers
-[2025-05-29 00:56:41] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 00:56:41] Bandwidth optimization complete - Original: 1,296,848 bytes, Optimized: 407,506 bytes, Savings: 68.6%
-[2025-05-29 00:56:41] Starting to parse Amazon results.
-[2025-05-29 00:56:41] XPath: DOMDocument encountered 72 XML parsing errors (showing first 3)
-[2025-05-29 00:56:41] XPath XML Error 1: ID price-link already defined
-[2025-05-29 00:56:41] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 00:56:41] XPath XML Error 3: ID price-link already defined
-[2025-05-29 00:56:41] XPath: Found 25 product elements using div[@role="listitem"] selector
-[2025-05-29 00:56:41] Product 3 missing essential data. Title: 'Coleman Skylodge Instant Camping Tent, BlackBerry', Link: 'https://www.amazon.com/Coleman-Weatherproof-Pre-Attached-PFAS-Free-Materials/dp/B0D7QHLN63/ref=sr_1_19?dib=eyJ2IjoiMSJ9._LYP-BghNsyC4ra4UYkVth_IlAY70uhhEW1CuKvdtlaAirg8zUapkuRb7mO3eyHYlOLzgHW7Oczxm6PBIcvRafx8amDy2Cs1Hj8oE6sH-QkNO4cVNwbuiRbXUaoaHrJIYGsQxyMscx6CZBMVT3-jOymmwxYuL6zHCWnqS6ulYiYHm-rcEKlvonYq4NsMJIA2ijefbYGWMwhzz0OwWuNuz8vu0vYE8UfuGgcXH2kvrdg.EMbmV7u2G8_x3TgL1PodnFFUlEJiVQt_C3j2uvOzs9Y&dib_tag=se&keywords=6+person+tent&qid=1748480198&sr=8-19&xpid=PIqQMK2eMFY82&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/612U-6EZ-DL._AC_UY218_.jpg'
-[2025-05-29 00:56:41] Product 16 missing essential data. Title: 'Core 9 Person Instant Cabin Tent - 14' x 9', Green (40008)', Link: 'https://www.amazon.com/CORE-Person-Instant-Cabin-Tent/dp/B00VFH1RQS/ref=sr_1_32?dib=eyJ2IjoiMSJ9._LYP-BghNsyC4ra4UYkVth_IlAY70uhhEW1CuKvdtlaAirg8zUapkuRb7mO3eyHYlOLzgHW7Oczxm6PBIcvRafx8amDy2Cs1Hj8oE6sH-QkNO4cVNwbuiRbXUaoaHrJIYGsQxyMscx6CZBMVT3-jOymmwxYuL6zHCWnqS6ulYiYHm-rcEKlvonYq4NsMJIA2ijefbYGWMwhzz0OwWuNuz8vu0vYE8UfuGgcXH2kvrdg.EMbmV7u2G8_x3TgL1PodnFFUlEJiVQt_C3j2uvOzs9Y&dib_tag=se&keywords=6+person+tent&qid=1748480198&sr=8-32&xpid=PIqQMK2eMFY82&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/81ry4uGOeBL._AC_UY218_.jpg'
-[2025-05-29 00:56:41] Product 23 missing essential data. Title: 'CORE Tent for Family Camping | 4 Person & 6 Person Portable Camp Tent with Carry Bag for Outdoor Car Camping | Included Gear Loft Organizer for Camp Accessories', Link: 'https://www.amazon.com/CORE-Portable-Outdoor-Included-Accessories/dp/B07YBFW4D5/ref=sr_1_39?dib=eyJ2IjoiMSJ9._LYP-BghNsyC4ra4UYkVth_IlAY70uhhEW1CuKvdtlaAirg8zUapkuRb7mO3eyHYlOLzgHW7Oczxm6PBIcvRafx8amDy2Cs1Hj8oE6sH-QkNO4cVNwbuiRbXUaoaHrJIYGsQxyMscx6CZBMVT3-jOymmwxYuL6zHCWnqS6ulYiYHm-rcEKlvonYq4NsMJIA2ijefbYGWMwhzz0OwWuNuz8vu0vYE8UfuGgcXH2kvrdg.EMbmV7u2G8_x3TgL1PodnFFUlEJiVQt_C3j2uvOzs9Y&dib_tag=se&keywords=6+person+tent&qid=1748480198&sr=8-39&xpid=PIqQMK2eMFY82&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71WMDeDUogL._AC_UY218_.jpg'
-[2025-05-29 00:56:41] Product 24 missing essential data. Title: 'CORE Tent for Family Camping, Hiking and Backpacking | 3 Person / 4 Person / 6 Person / 9 Person Person Dome Camp Tents with Included Tent Gear Loft for Outdoor Accessories', Link: 'https://www.amazon.com/CORE-Person-Extended-Dome-Tent/dp/B016N7DFMI/ref=sr_1_40?dib=eyJ2IjoiMSJ9._LYP-BghNsyC4ra4UYkVth_IlAY70uhhEW1CuKvdtlaAirg8zUapkuRb7mO3eyHYlOLzgHW7Oczxm6PBIcvRafx8amDy2Cs1Hj8oE6sH-QkNO4cVNwbuiRbXUaoaHrJIYGsQxyMscx6CZBMVT3-jOymmwxYuL6zHCWnqS6ulYiYHm-rcEKlvonYq4NsMJIA2ijefbYGWMwhzz0OwWuNuz8vu0vYE8UfuGgcXH2kvrdg.EMbmV7u2G8_x3TgL1PodnFFUlEJiVQt_C3j2uvOzs9Y&dib_tag=se&keywords=6+person+tent&qid=1748480198&sr=8-40&xpid=PIqQMK2eMFY82&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71tvzN-VRyL._AC_UY218_.jpg'
-[2025-05-29 00:56:41] Successfully extracted 20 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 00:56:41] Found pagination container, extracting URLs...
-[2025-05-29 00:56:41] Trying pagination pattern 1
-[2025-05-29 00:56:41] Pattern 1 found 1 matches
-[2025-05-29 00:56:41] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 00:56:41] Added pagination URL for page 3: https://www.amazon.com/s?k=6+person+tent&page=3
-[2025-05-29 00:56:41] Successfully extracted pagination URLs: ["page_3"]
-[2025-05-29 00:56:41] Pagination URL stored: page_3 => https://www.amazon.com/s?k=6+person+tent&page=3
-[2025-05-29 00:56:41] Load more page 2 completed in 3.90 seconds
-[2025-05-29 00:56:41] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 00:56:41] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 00:56:41] ps_cache_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 00:56:41] Caching results for user user_1 (query: '6 person tent', country: ca): 137.4560546875 KB. Items: 75
-[2025-05-29 00:56:41] ps_cache_results: About to insert with user_id = 'user_1', query_hash = 'f06a249ba817f15bbad6006d356b8689'
-[2025-05-29 00:56:41] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 47
-[2025-05-29 00:56:41] Successfully cached results with hash: f06a249ba817f15bbad6006d356b8689, User: user_1
-[2025-05-29 00:56:41] Load More: Successfully merged 20 new items with existing cache. Total items: 75
-[2025-05-29 03:41:13] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:13] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:13] AJAX Search Request - User: user_1, Query: 'taekwondo target hand', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 03:41:13] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:13] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:13] ps_get_cached_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 03:41:13] ps_get_cached_results: Looking for query_hash = 'd4c6d991e0b67b503557f5aaee612c62' with user_id = 'user_1'
-[2025-05-29 03:41:13] Initiating live search for: 'taekwondo target hand' in country: ca, page: 1
-[2025-05-29 03:41:13] Constructed search URL: https://www.amazon.ca/s?k=taekwondo+target+hand
-[2025-05-29 03:41:13] Fetching search results from URL: https://www.amazon.ca/s?k=taekwondo+target+hand
-[2025-05-29 03:41:13] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 03:41:13] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 03:41:13] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 03:41:13] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 03:41:13] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 03:41:13] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 03:41:13] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 03:41:16] Saved full HTML response to amazon_response_2025-05-29_03-41-16.html
-[2025-05-29 03:41:16] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 03:41:16] Found 60 search result containers
-[2025-05-29 03:41:16] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 03:41:16] Bandwidth optimization complete - Original: 1,412,618 bytes, Optimized: 762,485 bytes, Savings: 46%
-[2025-05-29 03:41:16] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 03:41:16] Starting to parse Amazon results.
-[2025-05-29 03:41:16] XPath: DOMDocument encountered 136 XML parsing errors (showing first 3)
-[2025-05-29 03:41:16] XPath XML Error 1: ID price-link already defined
-[2025-05-29 03:41:16] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 03:41:16] XPath XML Error 3: ID price-link already defined
-[2025-05-29 03:41:16] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 03:41:16] Product 15 missing essential data. Title: '2 Pack Taekwondo Kick Pads, Martial Arts Training Equipment Kickboxing Kicking Target TKD Kicking Target for Kids Youth Adult', Link: 'https://www.amazon.com/Taekwondo-Martial-Training-Equipment-Kickboxing/dp/B0F8NS18MC/ref=sr_1_15?dib=eyJ2IjoiMSJ9.-FIfGPC6cBKD-veRCnsATWK5h9uphkhUSsR29aIV3qVnJ6uetvt8cPJ5YuOwvjbQm85NlMRMAKL0jVN6MHQVV_9LUSbgxMwNAtxw-p5erJOSOk0KcBvGHHKGeM2zxBybr8hYCAANv1qZjs-IWjeEhcqv_NnkbtLi8j-69aoj5obgkIWMNVtcXjjA3FkDEgX1ldCljR1ySLwigRErxtyJznI7o9opjaYyb4XjkVrdIxbTUi4ZSzLEWRkz2WoUBJNOhVj_2mX1d-RNjHnCHrpNPVbXbAsh852GiqUfn9LHeo0.OB3to9fCOwKlufN6afMJAjYsTZlJeiabZ1KiaRtelDk&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490074&sr=8-15&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/51cihd7ZRZL._AC_UL320_.jpg'
-[2025-05-29 03:41:16] Successfully extracted 51 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 03:41:16] Found pagination container, extracting URLs...
-[2025-05-29 03:41:16] Trying pagination pattern 1
-[2025-05-29 03:41:16] Pattern 1 found 2 matches
-[2025-05-29 03:41:16] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 03:41:16] Added pagination URL for page 2: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 03:41:16] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 03:41:16] Added pagination URL for page 3: https://www.amazon.com/s?k=taekwondo+target+hand&page=3
-[2025-05-29 03:41:16] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 03:41:16] Pagination URL stored: page_2 => https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 03:41:16] Pagination URL stored: page_3 => https://www.amazon.com/s?k=taekwondo+target+hand&page=3
-[2025-05-29 03:41:16] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:16] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:16] ps_cache_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 03:41:16] Caching results for user user_1 (query: 'taekwondo target hand', country: ca): 104.0380859375 KB. Items: 59
-[2025-05-29 03:41:16] ps_cache_results: About to insert with user_id = 'user_1', query_hash = '07c6c9476319bef8ef4c8faa8ec4947b'
-[2025-05-29 03:41:16] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 48
-[2025-05-29 03:41:16] Successfully cached results with hash: 07c6c9476319bef8ef4c8faa8ec4947b, User: user_1
-[2025-05-29 03:41:44] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:44] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:44] AJAX Load More Request - User: user_1, Query: 'taekwondo target hand', Page: 2, Country: 'ca'
-[2025-05-29 03:41:44] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:44] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:44] ps_get_cached_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 03:41:44] ps_get_cached_results: Looking for query_hash = '07c6c9476319bef8ef4c8faa8ec4947b' with user_id = 'user_1'
-[2025-05-29 03:41:44] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 03:41:44] Fetching search results from URL: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 03:41:44] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 03:41:44] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 03:41:44] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 03:41:44] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 03:41:44] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 03:41:44] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 03:41:44] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 03:41:47] Saved full HTML response to amazon_response_2025-05-29_03-41-47.html
-[2025-05-29 03:41:47] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 03:41:47] Found 20 search result containers
-[2025-05-29 03:41:47] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 03:41:47] Bandwidth optimization complete - Original: 720,287 bytes, Optimized: 228,508 bytes, Savings: 68.3%
-[2025-05-29 03:41:47] Starting to parse Amazon results.
-[2025-05-29 03:41:47] XPath: DOMDocument encountered 43 XML parsing errors (showing first 3)
-[2025-05-29 03:41:47] XPath XML Error 1: ID price-link already defined
-[2025-05-29 03:41:47] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 03:41:47] XPath XML Error 3: ID price-link already defined
-[2025-05-29 03:41:47] XPath: Found 20 product elements using div[@role="listitem"] selector
-[2025-05-29 03:41:47] Product 8 missing essential data. Title: 'Hayabusa Boxing Target Paddles - Pair', Link: 'https://www.amazon.com/Hayabusa-Boxing-Target-Paddles-Pair/dp/B097G346MQ/ref=sr_1_56?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-56&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71Q-Pgs5KhS._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 9 missing essential data. Title: 'TOPINCN Taekwondo Training Strike Pad, Boxing Pad PU+EVA Karate Target Tae for Batting Practice of Taekwondo Martial Art Etc for Taekwondo (or Other Martial Arts) Fans', Link: 'https://www.amazon.com/TOPINCN-Taekwondo-Training-Batting-Practice/dp/B09GJ2V33H/ref=sr_1_57?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-57&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/51xSBSe8ILL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 12 missing essential data. Title: 'Taekwondo Kick Pad | Reinforced PU Leather & High - Density EVA Sponge | Side Kick Target for Martial Arts/Boxing Training | Arc - Shaped Chest Pad with Shock Absorption', Link: 'https://www.amazon.com/Taekwondo-Kick-Reinforced-Leather-High/dp/B0F2Z99T1R/ref=sr_1_60?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-60&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61-XUXdWUrL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 15 missing essential data. Title: 'Boxing Pads Gloves - Hand Target Curved Training Gear, Punching Mitts | Thick Adjustable Boxing Pads Curved focuss Mitts, Punching Training Hand Pads Boxing Mitts for Karate Kickboxing Taekwondo', Link: 'https://www.amazon.com/Boxing-Mitts-Pads-Adjustable-Kickboxing/dp/B0DQY2ZX9T/ref=sr_1_63?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-63&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71kvqouL7VL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 16 missing essential data. Title: '1 pair Target Hook Jab Focus Punch Pad Training Glove Mitts Suitable For Thai Boxing Kickboxing Karate Taekwondo', Link: 'https://www.amazon.com/Target-Training-Suitable-Kickboxing-Taekwondo/dp/B0796R9XCM/ref=sr_1_64?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-64&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/611LACdwyJL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 18 missing essential data. Title: 'Boxing Pads Gloves - Boxing Mitts | PU Hand Target Curved Training Gear Punching Mitts | Boxing Hand Target, Punching Training Hand Pads Adjustable Thick for Karate Kickboxing Taekwondo', Link: 'https://www.amazon.com/Boxing-Pads-Gloves-Adjustable-Kickboxing/dp/B0DHGN9J4D/ref=sr_1_66?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-66&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61Dvt6VakqL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 19 missing essential data. Title: 'Curve Target Focus MMA Training Mitts with Wrist Support - Ultimate Contoured Fit for Martial Arts Sparring (Pair)', Link: 'https://www.amazon.com/Curve-Target-Focus-Training-Support/dp/B07W7RKY8T/ref=sr_1_67?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-67&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61AvPXIO0wL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Product 20 missing essential data. Title: 'Boxing Bag Body Guide Strike Target and MMA Guides, 2 Pc. Set, Peel-and-Stick Adhesive Striking and Kicking Trainers for Beginners, Improves Punch, Kick, and Strike Accuracy', Link: 'https://www.amazon.com/Adhesive-Striking-Trainers-Beginners-Improves/dp/B0B4KHM4L9/ref=sr_1_68?dib=eyJ2IjoiMSJ9.bnvgNILmq_7T4nr8uX3nIJrq4EnbFTLAQAmingSSsitBndzD9iwEZ50UBRxe4JKLXnemmyJPTRsYa1nADs0rn2Nx0D-3TliMNKJ3iJT-sUfsw5yEXNbSvwtQcswCmyebsMscm5LZbbA6WkThZEq2cjDbJv3w5OWgZfTxDYZpZeHjSHrPTswmUJacJMaOPyolWMoDWoKpzVxdllB-rAbijk2CStGtsJCqw9GI7zodPKggHEh5ly57xtGSKeviFmIKpbR_3GuWpy2k0doXm0vNhxsDGVQnMUF1z3YstbWOqFk.4qfEBhn80OHFZrGxaYU5Ggjcow7fYvH_h7K4K2rfFDM&dib_tag=se&keywords=taekwondo+target+hand&qid=1748490105&sr=8-68&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61ma2+olOJL._AC_UL320_.jpg'
-[2025-05-29 03:41:47] Successfully extracted 10 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 03:41:47] Found pagination container, extracting URLs...
-[2025-05-29 03:41:47] Trying pagination pattern 1
-[2025-05-29 03:41:47] Pattern 1 found no matches
-[2025-05-29 03:41:47] Trying pagination pattern 2
-[2025-05-29 03:41:47] Pattern 2 found no matches
-[2025-05-29 03:41:47] Trying pagination pattern 3
-[2025-05-29 03:41:47] Pattern 3 found no matches
-[2025-05-29 03:41:47] Trying pagination pattern 4
-[2025-05-29 03:41:47] Pattern 4 found no matches
-[2025-05-29 03:41:47] Successfully extracted pagination URLs: []
-[2025-05-29 03:41:47] Load more page 2 completed in 2.69 seconds
-[2025-05-29 03:41:47] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 03:41:47] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 03:41:47] ps_cache_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 03:41:47] Caching results for user user_1 (query: 'taekwondo target hand', country: ca): 120.29296875 KB. Items: 69
-[2025-05-29 03:41:47] ps_cache_results: About to insert with user_id = 'user_1', query_hash = '07c6c9476319bef8ef4c8faa8ec4947b'
-[2025-05-29 03:41:47] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 49
-[2025-05-29 03:41:47] Successfully cached results with hash: 07c6c9476319bef8ef4c8faa8ec4947b, User: user_1
-[2025-05-29 03:41:47] Load More: Successfully merged 10 new items with existing cache. Total items: 69
-[2025-05-29 04:43:41] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:43:41] Found 20 search result containers
-[2025-05-29 04:43:41] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:43:41] Bandwidth optimization complete - Original: 711,658 bytes, Optimized: 228,508 bytes, Savings: 67.9%
-[2025-05-29 04:44:06] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:44:06] Found 60 search result containers
-[2025-05-29 04:44:06] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:44:06] Bandwidth optimization complete - Original: 1,741,800 bytes, Optimized: 862,425 bytes, Savings: 50.5%
-[2025-05-29 04:46:36] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:46:36] Found 60 search result containers
-[2025-05-29 04:46:36] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:46:36] Bandwidth optimization complete - Original: 1,741,800 bytes, Optimized: 862,425 bytes, Savings: 50.5%
-[2025-05-29 04:46:57] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:46:57] Found 20 search result containers
-[2025-05-29 04:46:57] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:46:57] Bandwidth optimization complete - Original: 711,658 bytes, Optimized: 228,508 bytes, Savings: 67.9%
-[2025-05-29 04:50:14] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:50:14] Found 60 search result containers
-[2025-05-29 04:50:14] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:50:14] Bandwidth optimization complete - Original: 1,741,800 bytes, Optimized: 862,425 bytes, Savings: 50.5%
-[2025-05-29 04:50:30] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:50:30] Found 20 search result containers
-[2025-05-29 04:50:30] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:50:30] Bandwidth optimization complete - Original: 711,658 bytes, Optimized: 228,508 bytes, Savings: 67.9%
-[2025-05-29 04:53:31] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 04:53:31] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 04:53:31] AJAX Search Request - User: user_1, Query: 'taekwondo target hand', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 04:53:31] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 04:53:31] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 04:53:31] ps_get_cached_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 04:53:31] ps_get_cached_results: Looking for query_hash = 'd4c6d991e0b67b503557f5aaee612c62' with user_id = 'user_1'
-[2025-05-29 04:53:31] Initiating live search for: 'taekwondo target hand' in country: ca, page: 1
-[2025-05-29 04:53:31] Constructed search URL: https://www.amazon.ca/s?k=taekwondo+target+hand
-[2025-05-29 04:53:31] Fetching search results from URL: https://www.amazon.ca/s?k=taekwondo+target+hand
-[2025-05-29 04:53:31] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 04:53:31] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 04:53:31] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 04:53:31] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 04:53:31] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 04:53:31] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 04:53:31] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 04:53:34] Saved full HTML response to amazon_response_2025-05-29_04-53-34.html
-[2025-05-29 04:53:34] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 04:53:34] Found 60 search result containers
-[2025-05-29 04:53:34] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 04:53:34] Bandwidth optimization complete - Original: 1,401,468 bytes, Optimized: 768,768 bytes, Savings: 45.1%
-[2025-05-29 04:53:34] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 04:53:34] Starting to parse Amazon results.
-[2025-05-29 04:53:34] XPath: DOMDocument encountered 135 XML parsing errors (showing first 3)
-[2025-05-29 04:53:34] XPath XML Error 1: ID price-link already defined
-[2025-05-29 04:53:34] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 04:53:34] XPath XML Error 3: ID price-link already defined
-[2025-05-29 04:53:34] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 04:53:34] Product 14 missing essential data. Title: '2 Pack Taekwondo Kick Pads, Martial Arts Training Equipment Kickboxing Kicking Target TKD Kicking Target for Kids Youth Adult', Link: 'https://www.amazon.com/Taekwondo-Martial-Training-Equipment-Kickboxing/dp/B0F8NS18MC/ref=sr_1_14?dib=eyJ2IjoiMSJ9.-FIfGPC6cBKD-veRCnsATWK5h9uphkhUSsR29aIV3qVnJ6uetvt8cPJ5YuOwvjbQm85NlMRMAKL0jVN6MHQVV8NMLYB0qCXa2fRruwv9ri_AIMpI99xATsvwys1bI1p9EQ6ya2t_Ep2wIgYJNxoH_u-H4BGP1BXsAvhPjnzoqoeSHdhW_SS9Ox0PJMw7ZTtxRGl6_Sf48mH6jhL3Z6U7IHI7o9opjaYyb4XjkVrdIxbSwLJ0ElzlyapLatWiksf_ao2JuPivbPWunSqQ-TeMNS7ltSEZm9b4olzjRveY5cc.PR_vI8kiVf8VFqbsz7eeR9lwC9XOJOmE1agr1nVm3p4&dib_tag=se&keywords=taekwondo+target+hand&qid=1748494411&sr=8-14&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/51cihd7ZRZL._AC_UL320_.jpg'
-[2025-05-29 04:53:34] Successfully extracted 54 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 04:53:34] Found pagination container, extracting URLs...
-[2025-05-29 04:53:34] Trying pagination pattern 1
-[2025-05-29 04:53:34] Pattern 1 found 2 matches
-[2025-05-29 04:53:34] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 04:53:34] Added pagination URL for page 2: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 04:53:34] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 04:53:34] Added pagination URL for page 3: https://www.amazon.com/s?k=taekwondo+target+hand&page=3
-[2025-05-29 04:53:34] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 04:53:34] Pagination URL stored: page_2 => https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 04:53:34] Pagination URL stored: page_3 => https://www.amazon.com/s?k=taekwondo+target+hand&page=3
-[2025-05-29 04:53:34] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 04:53:34] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 04:53:34] ps_cache_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 04:53:34] Caching results for user user_1 (query: 'taekwondo target hand', country: ca): 103.0146484375 KB. Items: 59
-[2025-05-29 04:53:34] ps_cache_results: About to insert with user_id = 'user_1', query_hash = '07c6c9476319bef8ef4c8faa8ec4947b'
-[2025-05-29 04:53:34] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 50
-[2025-05-29 04:53:34] Successfully cached results with hash: 07c6c9476319bef8ef4c8faa8ec4947b, User: user_1
-[2025-05-29 05:09:42] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:09:42] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:09:46] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:09:46] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:09:46] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 05:10:23] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:10:23] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:10:25] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:10:25] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:10:25] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 05:10:52] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:10:52] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:10:55] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:10:55] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:10:55] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 05:13:48] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:13:48] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:13:50] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:13:50] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:13:50] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 05:16:57] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:16:57] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:16:57] AJAX Load More Request - User: user_1, Query: 'taekwondo target hand', Page: 2, Country: 'ca'
-[2025-05-29 05:16:57] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:16:57] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:16:57] ps_get_cached_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 05:16:57] ps_get_cached_results: Looking for query_hash = '07c6c9476319bef8ef4c8faa8ec4947b' with user_id = 'user_1'
-[2025-05-29 05:16:57] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 05:16:57] Fetching search results from URL: https://www.amazon.com/s?k=taekwondo+target+hand&page=2
-[2025-05-29 05:16:57] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 05:16:57] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 05:16:57] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 05:16:57] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 05:16:57] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 05:16:57] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 05:16:57] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 05:16:58] Saved full HTML response to amazon_response_2025-05-29_05-16-58.html
-[2025-05-29 05:16:58] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 05:16:58] Found 34 search result containers
-[2025-05-29 05:16:58] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 05:16:58] Bandwidth optimization complete - Original: 996,147 bytes, Optimized: 469,521 bytes, Savings: 52.9%
-[2025-05-29 05:16:58] Starting to parse Amazon results.
-[2025-05-29 05:16:58] XPath: DOMDocument encountered 77 XML parsing errors (showing first 3)
-[2025-05-29 05:16:58] XPath XML Error 1: ID price-link already defined
-[2025-05-29 05:16:58] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 05:16:58] XPath XML Error 3: ID price-link already defined
-[2025-05-29 05:16:58] XPath: Found 34 product elements using div[@role="listitem"] selector
-[2025-05-29 05:16:58] Product 12 missing essential data. Title: 'TOPINCN Taekwondo Training Strike Pad, Boxing Pad PU+EVA Karate Target Tae for Batting Practice of Taekwondo Martial Art Etc for Taekwondo (or Other Martial Arts) Fans', Link: 'https://www.amazon.com/TOPINCN-Taekwondo-Training-Batting-Practice/dp/B09GJ2V33H/ref=sr_1_60?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-60&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/51xSBSe8ILL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 13 missing essential data. Title: 'Hayabusa Boxing Target Paddles - Pair', Link: 'https://www.amazon.com/Hayabusa-Boxing-Target-Paddles-Pair/dp/B097G346MQ/ref=sr_1_61?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-61&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71Q-Pgs5KhS._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 21 missing essential data. Title: 'Taekwondo Kick Pad | Reinforced PU Leather & High - Density EVA Sponge | Side Kick Target for Martial Arts/Boxing Training | Arc - Shaped Chest Pad with Shock Absorption', Link: 'https://www.amazon.com/Taekwondo-Kick-Reinforced-Leather-High/dp/B0F2Z99T1R/ref=sr_1_69?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-69&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61-XUXdWUrL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 23 missing essential data. Title: 'Boxing Pads Gloves - Hand Target Curved Training Gear, Punching Mitts | Thick Adjustable Boxing Pads Curved focuss Mitts, Punching Training Hand Pads Boxing Mitts for Karate Kickboxing Taekwondo', Link: 'https://www.amazon.com/Boxing-Mitts-Pads-Adjustable-Kickboxing/dp/B0DQY2ZX9T/ref=sr_1_71?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-71&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71kvqouL7VL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 28 missing essential data. Title: '1 pair Target Hook Jab Focus Punch Pad Training Glove Mitts Suitable For Thai Boxing Kickboxing Karate Taekwondo', Link: 'https://www.amazon.com/Target-Training-Suitable-Kickboxing-Taekwondo/dp/B0796R9XCM/ref=sr_1_76?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-76&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/611LACdwyJL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 31 missing essential data. Title: 'Boxing Pads Gloves - Boxing Mitts | PU Hand Target Curved Training Gear Punching Mitts | Boxing Hand Target, Punching Training Hand Pads Adjustable Thick for Karate Kickboxing Taekwondo', Link: 'https://www.amazon.com/Boxing-Pads-Gloves-Adjustable-Kickboxing/dp/B0DHGN9J4D/ref=sr_1_79?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-79&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61Dvt6VakqL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 33 missing essential data. Title: 'Curve Target Focus MMA Training Mitts with Wrist Support - Ultimate Contoured Fit for Martial Arts Sparring (Pair)', Link: 'https://www.amazon.com/Curve-Target-Focus-Training-Support/dp/B07W7RKY8T/ref=sr_1_81?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-81&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61AvPXIO0wL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Product 34 missing essential data. Title: 'Boxing Bag Body Guide Strike Target and MMA Guides, 2 Pc. Set, Peel-and-Stick Adhesive Striking and Kicking Trainers for Beginners, Improves Punch, Kick, and Strike Accuracy', Link: 'https://www.amazon.com/Adhesive-Striking-Trainers-Beginners-Improves/dp/B0B4KHM4L9/ref=sr_1_82?dib=eyJ2IjoiMSJ9.JoR0WnyyfIYnPgpkINOoXCbEBVD-YQKRKgZ25zMxC-45sdWAB8AFbsorT93Rzw1rRZcAZp_Na5_tSPYi4sZkPF9y62s791qLgCNUAfZrUmy3vBN2w2TyN-QZULt0aooi9CB5pxSwY5eqfETsFDqIglWfv_Y4Iu4pEH_no56BuqwsXg-yNW7CZSG4D9t2g4ih5cQFCbCQvmbtMdRCNqLoID9U7X9NdPW8dvnGrrZT9ysz0Yq2H6Qx4waTD-eP-5-0vljzWBolX3G73VaghwEncrCPUmRN6RQgqDrFat7Z3Hg.EvhcmkvGgqolYjXr3rN--ulTKtoMuk4wUgioMND2mVs&dib_tag=se&keywords=taekwondo+target+hand&qid=1748495817&sr=8-82&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61ma2+olOJL._AC_UL320_.jpg'
-[2025-05-29 05:16:58] Successfully extracted 14 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 05:16:58] Found pagination container, extracting URLs...
-[2025-05-29 05:16:58] Trying pagination pattern 1
-[2025-05-29 05:16:58] Pattern 1 found no matches
-[2025-05-29 05:16:58] Trying pagination pattern 2
-[2025-05-29 05:16:58] Pattern 2 found no matches
-[2025-05-29 05:16:58] Trying pagination pattern 3
-[2025-05-29 05:16:58] Pattern 3 found no matches
-[2025-05-29 05:16:58] Trying pagination pattern 4
-[2025-05-29 05:16:58] Pattern 4 found no matches
-[2025-05-29 05:16:58] Successfully extracted pagination URLs: []
-[2025-05-29 05:16:58] Load more page 2 completed in 1.69 seconds
-[2025-05-29 05:16:58] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 05:16:58] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 05:16:58] ps_cache_results: Generated user_id = 'user_1' for query 'taekwondo target hand'
-[2025-05-29 05:16:58] Caching results for user user_1 (query: 'taekwondo target hand', country: ca): 128.5458984375 KB. Items: 73
-[2025-05-29 05:16:58] ps_cache_results: About to insert with user_id = 'user_1', query_hash = '07c6c9476319bef8ef4c8faa8ec4947b'
-[2025-05-29 05:16:58] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 51
-[2025-05-29 05:16:58] Successfully cached results with hash: 07c6c9476319bef8ef4c8faa8ec4947b, User: user_1
-[2025-05-29 05:16:58] Load More: Successfully merged 14 new items with existing cache. Total items: 73
-[2025-05-29 08:54:06] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 08:54:06] ps_get_user_identifier: No existing cookie found
-[2025-05-29 08:54:06] ps_get_user_identifier: Creating new visitor ID: 'visitor_6677c46b93'
-[2025-05-29 08:54:06] ps_get_user_identifier: Headers already sent, cannot set cookie. Using session fallback for visitor ID: 'visitor_6677c46b93'
-[2025-05-29 10:41:58] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 10:41:58] ps_get_user_identifier: No existing cookie found
-[2025-05-29 10:41:58] ps_get_user_identifier: Creating new visitor ID: 'visitor_f0c970e7a9'
-[2025-05-29 10:41:58] ps_get_user_identifier: Headers already sent, cannot set cookie. Using session fallback for visitor ID: 'visitor_f0c970e7a9'
-[2025-05-29 14:20:46] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 14:20:46] ps_get_user_identifier: No existing cookie found
-[2025-05-29 14:20:46] ps_get_user_identifier: Creating new visitor ID: 'visitor_c28e24ea4b'
-[2025-05-29 14:20:46] ps_get_user_identifier: Headers already sent, cannot set cookie. Using session fallback for visitor ID: 'visitor_c28e24ea4b'
-[2025-05-29 18:14:49] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:14:49] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:14:49] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:14:49] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:14:49] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:14:49] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:14:49] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 18:15:13] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:13] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:13] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:13] AJAX Search Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 18:15:13] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:13] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:13] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:13] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 18:15:13] ps_get_cached_results: Looking for query_hash = 'bbda81c358024d7bd23b698645cf74d0' with user_id = 'visitor_f415c46c99'
-[2025-05-29 18:15:13] Initiating live search for: 'men shorts cotton' in country: ca, page: 1
-[2025-05-29 18:15:13] Constructed search URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 18:15:13] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 18:15:13] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 18:15:13] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 18:15:13] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 18:15:13] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 18:15:13] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 18:15:13] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 18:15:13] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 18:15:15] Saved full HTML response to amazon_response_2025-05-29_18-15-15.html
-[2025-05-29 18:15:15] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 18:15:15] Found 48 search result containers
-[2025-05-29 18:15:15] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 18:15:15] Bandwidth optimization complete - Original: 1,870,825 bytes, Optimized: 932,077 bytes, Savings: 50.2%
-[2025-05-29 18:15:15] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 18:15:15] Starting to parse Amazon results.
-[2025-05-29 18:15:15] XPath: DOMDocument encountered 53 XML parsing errors (showing first 3)
-[2025-05-29 18:15:15] XPath XML Error 1: ID price-link already defined
-[2025-05-29 18:15:15] XPath XML Error 2: ID price-link already defined
-[2025-05-29 18:15:15] XPath XML Error 3: ID price-link already defined
-[2025-05-29 18:15:15] XPath: Found 48 product elements using div[@role="listitem"] selector
-[2025-05-29 18:15:15] Successfully extracted 48 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 18:15:15] Found pagination container, extracting URLs...
-[2025-05-29 18:15:15] Trying pagination pattern 1
-[2025-05-29 18:15:15] Pattern 1 found 2 matches
-[2025-05-29 18:15:15] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 18:15:15] Added pagination URL for page 2: https://www.amazon.com/s?k=men+shorts+cotton&page=2
-[2025-05-29 18:15:15] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 18:15:15] Added pagination URL for page 3: https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 18:15:15] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 18:15:15] Pagination URL stored: page_2 => https://www.amazon.com/s?k=men+shorts+cotton&page=2
-[2025-05-29 18:15:15] Pagination URL stored: page_3 => https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 18:15:15] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:15] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:15] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:15] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 18:15:15] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 81.4970703125 KB. Items: 48
-[2025-05-29 18:15:15] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 18:15:15] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 52
-[2025-05-29 18:15:15] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 18:15:40] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:40] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:40] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:40] AJAX Load More Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Page: 2, Country: 'ca'
-[2025-05-29 18:15:40] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:40] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:40] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:40] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 18:15:40] ps_get_cached_results: Looking for query_hash = '12287ff2d35880eb21684b04b0707073' with user_id = 'visitor_f415c46c99'
-[2025-05-29 18:15:40] Load More: Using parsed URL for page 2: https://www.amazon.com/s?k=men+shorts+cotton&page=2
-[2025-05-29 18:15:40] Fetching search results from URL: https://www.amazon.com/s?k=men+shorts+cotton&page=2
-[2025-05-29 18:15:40] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 18:15:40] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 18:15:40] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 18:15:40] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 18:15:40] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 18:15:40] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 18:15:40] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 18:15:42] Saved full HTML response to amazon_response_2025-05-29_18-15-42.html
-[2025-05-29 18:15:42] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 18:15:42] Found 60 search result containers
-[2025-05-29 18:15:42] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 18:15:42] Bandwidth optimization complete - Original: 1,455,250 bytes, Optimized: 588,974 bytes, Savings: 59.5%
-[2025-05-29 18:15:42] Starting to parse Amazon results.
-[2025-05-29 18:15:42] XPath: DOMDocument encountered 64 XML parsing errors (showing first 3)
-[2025-05-29 18:15:42] XPath XML Error 1: ID price-link already defined
-[2025-05-29 18:15:42] XPath XML Error 2: ID price-link already defined
-[2025-05-29 18:15:42] XPath XML Error 3: ID price-link already defined
-[2025-05-29 18:15:42] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 18:15:42] Product 5 missing essential data. Title: 'Champion mens 8187', Link: 'https://www.amazon.com/Champion-Adult-Cotton-Shorts-X-Large/dp/B014WCVGFO/ref=sr_1_53?dib=eyJ2IjoiMSJ9.kFw0rGr6dqnqlZFuS15U7b_JA-ybsShG9wpaj0jD6pAD2B2blJYpexTfn37gN4Gs74IyGMVLOPYOWbUC4wKSde6MMeJFIsHH5ipluK7-f8HDTmTGz2PK4cp2E_ULm25lOAI6jEpBn4HPzUjDhrMEU734UBWE8ppJCbLDIh_AyCzhbYeDjrniYWktMoJgP4MvzEl5NBU8rvHs-ZRmOLseesCKxFkqCAN29lSq3_3s36qzfi236TWrgyhYmgsnWh-sH6NjezBwSCQaApQCtng-eHhdFbWp2S-1W8UibPw_1Ww.OQNAKeQH1s2O_3N6N-PQwZNgeK5HrPPfi0hg-yl8bac&dib_tag=se&keywords=men+shorts+cotton&qid=1748542541&sr=8-53&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61D4TMAFq6L._AC_UL320_.jpg'
-[2025-05-29 18:15:42] Successfully extracted 58 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 18:15:42] Found pagination container, extracting URLs...
-[2025-05-29 18:15:42] Trying pagination pattern 1
-[2025-05-29 18:15:42] Pattern 1 found 1 matches
-[2025-05-29 18:15:42] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 18:15:42] Added pagination URL for page 3: https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 18:15:42] Successfully extracted pagination URLs: ["page_3"]
-[2025-05-29 18:15:42] Pagination URL stored: page_3 => https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 18:15:42] Load more page 2 completed in 1.90 seconds
-[2025-05-29 18:15:42] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 18:15:42] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 18:15:42] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 18:15:42] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 18:15:42] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 183.9951171875 KB. Items: 106
-[2025-05-29 18:15:42] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 18:15:42] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 53
-[2025-05-29 18:15:42] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 18:15:42] Load More: Successfully merged 58 new items with existing cache. Total items: 106
-[2025-05-29 19:20:29] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:20:29] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:20:29] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:20:29] AJAX Search Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 19:20:29] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:20:29] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:20:29] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:20:29] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 19:20:29] ps_get_cached_results: Looking for query_hash = 'bbda81c358024d7bd23b698645cf74d0' with user_id = 'visitor_f415c46c99'
-[2025-05-29 19:20:29] Initiating live search for: 'men shorts cotton' in country: ca, page: 1
-[2025-05-29 19:20:29] Constructed search URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 19:20:29] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 19:20:29] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 19:20:29] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 19:20:29] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 19:20:29] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 19:20:29] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 19:20:29] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 19:20:29] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 19:20:30] Saved full HTML response to amazon_response_2025-05-29_19-20-30.html
-[2025-05-29 19:20:30] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 19:20:30] Found 48 search result containers
-[2025-05-29 19:20:30] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 19:20:30] Bandwidth optimization complete - Original: 1,793,194 bytes, Optimized: 930,686 bytes, Savings: 48.1%
-[2025-05-29 19:20:30] Using associate tag for ca: ''
-[2025-05-29 19:20:30] Starting to parse Amazon results.
-[2025-05-29 19:20:30] XPath: DOMDocument encountered 53 XML parsing errors (showing first 3)
-[2025-05-29 19:20:30] XPath XML Error 1: ID price-link already defined
-[2025-05-29 19:20:30] XPath XML Error 2: ID price-link already defined
-[2025-05-29 19:20:30] XPath XML Error 3: ID price-link already defined
-[2025-05-29 19:20:30] XPath: Found 48 product elements using div[@role="listitem"] selector
-[2025-05-29 19:20:30] Successfully extracted 48 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 19:20:30] Found pagination container, extracting URLs...
-[2025-05-29 19:20:30] Trying pagination pattern 1
-[2025-05-29 19:20:30] Pattern 1 found 2 matches
-[2025-05-29 19:20:30] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 19:20:30] Added pagination URL for page 2: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 19:20:30] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 19:20:30] Added pagination URL for page 3: https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 19:20:30] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 19:20:30] Pagination URL stored: page_2 => https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 19:20:30] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 19:20:30] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:20:30] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:20:30] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:20:30] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 19:20:30] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 80.482421875 KB. Items: 48
-[2025-05-29 19:20:30] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 19:20:30] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 54
-[2025-05-29 19:20:30] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 19:22:16] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:22:16] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:22:16] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:22:16] AJAX Load More Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Page: 2, Country: 'ca'
-[2025-05-29 19:22:16] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:22:16] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:22:16] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:22:16] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 19:22:16] ps_get_cached_results: Looking for query_hash = '12287ff2d35880eb21684b04b0707073' with user_id = 'visitor_f415c46c99'
-[2025-05-29 19:22:16] Load More: Using parsed URL for page 2: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 19:22:16] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 19:22:16] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 19:22:16] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 19:22:16] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 19:22:16] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 19:22:16] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 19:22:16] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 19:22:16] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 19:22:17] Saved full HTML response to amazon_response_2025-05-29_19-22-17.html
-[2025-05-29 19:22:17] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 19:22:17] Found 48 search result containers
-[2025-05-29 19:22:18] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 19:22:18] Bandwidth optimization complete - Original: 1,880,601 bytes, Optimized: 955,735 bytes, Savings: 49.2%
-[2025-05-29 19:22:18] Starting to parse Amazon results.
-[2025-05-29 19:22:18] XPath: DOMDocument encountered 56 XML parsing errors (showing first 3)
-[2025-05-29 19:22:18] XPath XML Error 1: ID price-link already defined
-[2025-05-29 19:22:18] XPath XML Error 2: ID price-link already defined
-[2025-05-29 19:22:18] XPath XML Error 3: ID price-link already defined
-[2025-05-29 19:22:18] XPath: Found 48 product elements using div[@role="listitem"] selector
-[2025-05-29 19:22:18] Product 46 missing essential data. Title: 'Men's Sweat Shorts 7 Inch Athletic Workout Shorts 2 Pack Casual Lounge Joggers Short Pants with Pockets', Link: 'https://www.amazon.ca/COOFANDY-Athletic-Running-Pockets-X-Large/dp/B0CPW7J9BX/ref=sr_1_94?dib=eyJ2IjoiMSJ9.hDL2hIEivyGpihG2HsVLeqddWrL8v4tgwaJwJR4fbz9O621cDqUSk1xpOycuTKQPnLkLZa35W5i1bvp-JOwpN4qLjK0oRPbQLiyxKyeuf0y_fCdZfCFS6pw4j-ET1rs6eKVdlAOVXOz1m8TDqRNcMHA-JsAwjk1BzzTXwQp0f-0Z1nK6KPxrMOkbBh6thJq--a1fA__gcw_HYYv_2aLgyWBVtO7TAt4e0LI4oB1e9Tx-zgLx--wAzsJ89pUlreRmrNNHll8vgDj_oSTzj7XNJzjoyUCjgCmyW2MdApmnFFs.BWvIO1lF9ZMNtoEx7rrdZz-Am65mZPlMjAUTgNPDUvA&dib_tag=se&keywords=men+shorts+cotton&qid=1748546536&sr=8-94', Price: 0, Image: 'https://m.media-amazon.com/images/I/711qGWCG+BL._AC_UL320_.jpg'
-[2025-05-29 19:22:18] Successfully extracted 43 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 19:22:18] Found pagination container, extracting URLs...
-[2025-05-29 19:22:18] Trying pagination pattern 1
-[2025-05-29 19:22:18] Pattern 1 found 1 matches
-[2025-05-29 19:22:18] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 19:22:18] Added pagination URL for page 3: https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 19:22:18] Successfully extracted pagination URLs: ["page_3"]
-[2025-05-29 19:22:18] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 19:22:18] Load more page 2 completed in 1.95 seconds
-[2025-05-29 19:22:18] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:22:18] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:22:18] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:22:18] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 19:22:18] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 152.4677734375 KB. Items: 91
-[2025-05-29 19:22:18] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 19:22:18] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 55
-[2025-05-29 19:22:18] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 19:22:18] Load More: Successfully merged 43 new items with existing cache. Total items: 91
-[2025-05-29 19:32:29] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:32:29] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:32:29] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:32:31] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:32:31] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:32:31] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:32:31] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 19:36:12] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:36:12] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:36:12] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:36:13] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:36:13] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:36:13] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:36:13] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 19:43:42] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:43:42] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:43:42] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:43:42] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 19:43:42] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 19:43:42] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 19:43:42] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:23:00] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:00] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:00] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:02] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:02] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:02] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:02] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:23:10] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:10] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:10] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:10] AJAX Search Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 20:23:10] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:10] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:10] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:10] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 20:23:10] ps_get_cached_results: Looking for query_hash = 'bbda81c358024d7bd23b698645cf74d0' with user_id = 'visitor_f415c46c99'
-[2025-05-29 20:23:10] Initiating live search for: 'men shorts cotton' in country: ca, page: 1
-[2025-05-29 20:23:10] Constructed search URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 20:23:10] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton
-[2025-05-29 20:23:10] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 20:23:10] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 20:23:10] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 20:23:10] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 20:23:10] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 20:23:10] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 20:23:10] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 20:23:12] Saved full HTML response to amazon_response_2025-05-29_20-23-12.html
-[2025-05-29 20:23:12] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 20:23:13] Found 60 search result containers
-[2025-05-29 20:23:13] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 20:23:13] Bandwidth optimization complete - Original: 1,936,939 bytes, Optimized: 1,118,167 bytes, Savings: 42.3%
-[2025-05-29 20:23:13] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 20:23:13] Starting to parse Amazon results.
-[2025-05-29 20:23:13] XPath: DOMDocument encountered 66 XML parsing errors (showing first 3)
-[2025-05-29 20:23:13] XPath XML Error 1: ID price-link already defined
-[2025-05-29 20:23:13] XPath XML Error 2: ID price-link already defined
-[2025-05-29 20:23:13] XPath XML Error 3: ID price-link already defined
-[2025-05-29 20:23:13] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 20:23:13] Successfully extracted 60 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 20:23:13] Found pagination container, extracting URLs...
-[2025-05-29 20:23:13] Trying pagination pattern 1
-[2025-05-29 20:23:13] Pattern 1 found 2 matches
-[2025-05-29 20:23:13] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 20:23:13] Added pagination URL for page 2: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:23:13] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 20:23:13] Added pagination URL for page 3: https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 20:23:13] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 20:23:13] Pagination URL stored: page_2 => https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:23:13] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=men+shorts+cotton&page=3
-[2025-05-29 20:23:13] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:13] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:13] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:13] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 20:23:13] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 106.6337890625 KB. Items: 60
-[2025-05-29 20:23:13] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 20:23:13] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 56
-[2025-05-29 20:23:13] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 20:23:28] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:28] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:28] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:28] AJAX Load More Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Page: 2, Country: 'ca'
-[2025-05-29 20:23:28] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:23:28] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:23:28] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:23:28] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 20:23:28] ps_get_cached_results: Looking for query_hash = '12287ff2d35880eb21684b04b0707073' with user_id = 'visitor_f415c46c99'
-[2025-05-29 20:23:28] Load More: Using parsed URL for page 2: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:23:28] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:23:28] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 20:23:28] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 20:23:28] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 20:23:28] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 20:23:28] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 20:23:28] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 20:23:28] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 20:23:30] Saved full HTML response to amazon_response_2025-05-29_20-23-30.html
-[2025-05-29 20:23:30] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 20:23:30] No product containers found - returning original HTML
-[2025-05-29 20:23:30] Load More: Invalid search page format for page 2
-[2025-05-29 20:35:54] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:35:54] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:35:55] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:35:55] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:35:55] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:36:47] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:36:47] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:36:47] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:36:48] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:36:48] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:36:48] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:36:48] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:36:56] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:36:56] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:36:56] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:36:56] AJAX Load More Request - User: visitor_f415c46c99, Query: 'men shorts cotton', Page: 2, Country: 'ca'
-[2025-05-29 20:36:56] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:36:56] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:36:56] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:36:56] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 20:36:56] ps_get_cached_results: Looking for query_hash = '12287ff2d35880eb21684b04b0707073' with user_id = 'visitor_f415c46c99'
-[2025-05-29 20:36:56] Load More: Using parsed URL for page 2: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:36:56] Fetching search results from URL: https://www.amazon.ca/s?k=men+shorts+cotton&page=2
-[2025-05-29 20:36:56] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 20:36:56] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 20:36:56] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 20:36:56] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 20:36:56] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 20:36:56] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 20:36:56] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 20:36:57] Saved full HTML response to amazon_response_2025-05-29_20-36-57.html
-[2025-05-29 20:36:57] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 20:36:57] Found 60 search result containers
-[2025-05-29 20:36:57] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 20:36:57] Bandwidth optimization complete - Original: 2,253,028 bytes, Optimized: 1,168,896 bytes, Savings: 48.1%
-[2025-05-29 20:36:57] Starting to parse Amazon results.
-[2025-05-29 20:36:57] XPath: DOMDocument encountered 68 XML parsing errors (showing first 3)
-[2025-05-29 20:36:57] XPath XML Error 1: ID price-link already defined
-[2025-05-29 20:36:57] XPath XML Error 2: ID price-link already defined
-[2025-05-29 20:36:57] XPath XML Error 3: ID price-link already defined
-[2025-05-29 20:36:57] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 20:36:58] Product 55 missing essential data. Title: 'Men's Sweat Shorts 7 Inch Athletic Workout Shorts 2 Pack Casual Lounge Joggers Short Pants with Pockets', Link: 'https://www.amazon.com/COOFANDY-Athletic-Running-Pockets-X-Large/dp/B0CPW7J9BX/ref=sr_1_103?dib=eyJ2IjoiMSJ9.jp62zElD4iWraXQeuDz8IJSzFyMrU7cDnS1wM29CE95V3l4hl_So8s28czDmSDuJ5gmxJvybc5Vfej0B0EBPBJNEFAhsNfupGHqAPykDscKeJe2gq5IXb8zFsjKqB4SpxnWuLv51ZizflEUlbgQeDFRBTXJDWlPO26z58D-OaC1aUZ5ks1kI1SvGQLSlfIOTXz5bLs5VyMyonWt1dpgmXMBFJeYgXMFe3-_Jau8fywnMkcLNfB0fOhxlcomrVNisF-zrTyKr49ouprIgTtkcUPYHW2-IWaTWiCzJy201DqU.uX-2vFBdjvlRDFYTMMqjPmgGfCFqhHmPv_mjh3ZAMno&dib_tag=se&keywords=men+shorts+cotton&qid=1748551016&sr=8-103&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/711qGWCG+BL._AC_UL320_.jpg'
-[2025-05-29 20:36:58] Successfully extracted 54 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 20:36:58] Found pagination container, extracting URLs...
-[2025-05-29 20:36:58] Trying pagination pattern 1
-[2025-05-29 20:36:58] Pattern 1 found 1 matches
-[2025-05-29 20:36:58] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 20:36:58] Added pagination URL for page 3: https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 20:36:58] Successfully extracted pagination URLs: ["page_3"]
-[2025-05-29 20:36:58] Pagination URL stored: page_3 => https://www.amazon.com/s?k=men+shorts+cotton&page=3
-[2025-05-29 20:36:58] Load more page 2 completed in 1.74 seconds
-[2025-05-29 20:36:58] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:36:58] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:36:58] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:36:58] ps_cache_results: Generated user_id = 'visitor_f415c46c99' for query 'men shorts cotton'
-[2025-05-29 20:36:58] Caching results for user visitor_f415c46c99 (query: 'men shorts cotton', country: ca): 203.91796875 KB. Items: 114
-[2025-05-29 20:36:58] ps_cache_results: About to insert with user_id = 'visitor_f415c46c99', query_hash = '12287ff2d35880eb21684b04b0707073'
-[2025-05-29 20:36:58] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 57
-[2025-05-29 20:36:58] Successfully cached results with hash: 12287ff2d35880eb21684b04b0707073, User: visitor_f415c46c99
-[2025-05-29 20:36:58] Load More: Successfully merged 54 new items with existing cache. Total items: 114
-[2025-05-29 20:38:29] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:38:29] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:38:29] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:38:29] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:38:29] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:38:29] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:38:29] AJAX Search Request - User: visitor_f415c46c99, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:53:35] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:53:35] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:53:35] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:53:35] AJAX Search Request - User: visitor_f415c46c99, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 20:53:35] ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie
-[2025-05-29 20:53:35] ps_get_user_identifier: Found existing cookie: 'visitor_f415c46c99'
-[2025-05-29 20:53:35] ps_get_user_identifier: Cookie is valid, returning: 'visitor_f415c46c99'
-[2025-05-29 20:53:35] ps_get_cached_results: Generated user_id = 'visitor_f415c46c99' for query '6 person tent'
-[2025-05-29 20:53:35] ps_get_cached_results: Looking for query_hash = 'c67515790a055718343e5447194989e7' with user_id = 'visitor_f415c46c99'
-[2025-05-29 20:53:35] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 20:53:35] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 20:53:35] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 20:53:35] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 20:53:35] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 20:53:35] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 20:53:35] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 20:53:35] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 20:53:35] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 20:53:35] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 20:53:37] HTTP Error: 503
-[2025-05-29 20:53:37] Failed to fetch Amazon search results for query: '6 person tent' page 1 - No response received
-[2025-05-29 20:55:28] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:55:28] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:55:29] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:55:29] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:55:29] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 20:55:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:55:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:55:37] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 20:55:37] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 20:55:37] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 20:55:37] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 20:55:37] ps_get_cached_results: Looking for query_hash = '936480ba38662961bf1317c703cd67c9' with user_id = 'user_1'
-[2025-05-29 20:55:37] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 20:55:37] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 20:55:37] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 20:55:37] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 20:55:37] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 20:55:37] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 20:55:37] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 20:55:37] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 20:55:37] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 20:55:37] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 20:55:38] HTTP Error: 503
-[2025-05-29 20:55:38] Failed to fetch Amazon search results for query: '6 person tent' page 1 - No response received
-[2025-05-29 21:06:28] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 21:06:28] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 21:06:30] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 21:06:30] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 21:06:30] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'us', Filter Cached: true
-[2025-05-29 21:06:41] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 21:06:41] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 21:06:41] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 21:06:41] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 21:06:41] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 21:06:41] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 21:06:41] ps_get_cached_results: Looking for query_hash = '936480ba38662961bf1317c703cd67c9' with user_id = 'user_1'
-[2025-05-29 21:06:41] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 21:06:41] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 21:06:41] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 21:06:41] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 21:06:41] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 21:06:41] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 21:06:41] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 21:06:41] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 21:06:41] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 21:06:41] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 21:06:42] HTTP Error: 503
-[2025-05-29 21:06:42] Failed to fetch Amazon search results for query: '6 person tent' page 1 - HTTP 503
-[2025-05-29 23:16:46] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 23:16:46] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 23:16:46] AJAX Search Request - User: user_1, Query: '6 person tent', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
-[2025-05-29 23:16:46] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 23:16:46] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 23:16:46] ps_get_cached_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 23:16:46] ps_get_cached_results: Looking for query_hash = '936480ba38662961bf1317c703cd67c9' with user_id = 'user_1'
-[2025-05-29 23:16:46] Initiating live search for: '6 person tent' in country: ca, page: 1
-[2025-05-29 23:16:46] Constructed search URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 23:16:46] Fetching search results from URL: https://www.amazon.ca/s?k=6+person+tent
-[2025-05-29 23:16:46] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
-[2025-05-29 23:16:46] Using Decodo proxy: gate.decodo.com:7000
-[2025-05-29 23:16:46] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
-[2025-05-29 23:16:46] DEBUG PROXY AUTH: Country = 'ca'
-[2025-05-29 23:16:46] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
-[2025-05-29 23:16:46] Using proxy authentication with user: user-sptlq8hpk0-country-ca
-[2025-05-29 23:16:46] CONFIRMED: Proxy username has correct country-specific format
-[2025-05-29 23:16:47] Saved full HTML response to amazon_response_2025-05-29_23-16-47.html
-[2025-05-29 23:16:47] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-29 23:16:48] Found 60 search result containers
-[2025-05-29 23:16:48] Found 1 pagination containers - preserving for load more functionality
-[2025-05-29 23:16:48] Bandwidth optimization complete - Original: 1,797,822 bytes, Optimized: 866,098 bytes, Savings: 51.8%
-[2025-05-29 23:16:48] Using associate tag for ca: 'primatessho0c-20'
-[2025-05-29 23:16:48] Starting to parse Amazon results.
-[2025-05-29 23:16:48] XPath: DOMDocument encountered 144 XML parsing errors (showing first 3)
-[2025-05-29 23:16:48] XPath XML Error 1: ID price-link already defined
-[2025-05-29 23:16:48] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
-[2025-05-29 23:16:48] XPath XML Error 3: ID price-link already defined
-[2025-05-29 23:16:48] XPath: Found 60 product elements using div[@role="listitem"] selector
-[2025-05-29 23:16:48] Product 30 missing essential data. Title: 'Vidalido 4-6 Person /8-10 Person Camping Tent with 3 Door 2 Room Large Family Cabin Tents, Double Layer Waterproof Portable Glamping Tent, Big Tents for Outdoor Camping Hiking and Backpacking', Link: 'https://www.amazon.ca/Vidalido-Waterproof-Portable-Glamping-Backpacking/dp/B0C5XHJMWF/ref=sr_1_30?dib=eyJ2IjoiMSJ9.sLWhy3aAEVCnCgx7p2RlGvBAscYMu9BhOyGwQFkimO5cg5enI7kG68Oqx5CALOANwBMssvQbMjI4pcnx1Jiko76ZqzActZrmtVdptYyjVx93-eJMhwIiMrHkUaYHf7sTxEU09-4Z1dw5MqClwQpKAlnjgnd2Bd2i55e-lx22AznCSwTtVPG1h-U3aJ_YgHaZfY07dV3zoFPue1ErYCmkptgeTDM3w8YMvWzclGNzW_gPEQ98Sy7aae1y9z6Bi1M1F6kfRTzmzozJe2PZDVdBcTxbnFoiZF7iQzONfS1fnXY.DfIE8jP339bfN0N-08eQ8YJF3w83Vq_kjoYYIERgcc0&dib_tag=se&keywords=6+person+tent&qid=1748560606&sr=8-30&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/610GeTKA1ZL._AC_UL320_.jpg'
-[2025-05-29 23:16:48] Product 36 missing essential data. Title: 'Toogh 3/4 Person/6 Person Camping Tent with 1 Door, 4 Windows, and Upgraded Ventilation&#x2013; Instant Setup, Waterproof, 8'x 8'x 67''Oxford Fabric Floor Pop Up in 60 Seconds Includes Rainfly and Backpack', Link: 'https://www.amazon.ca/Toogh-Tent-Upgraded-Ventilation-Waterproof/dp/B0DSVHF21L/ref=sr_1_36?dib=eyJ2IjoiMSJ9.sLWhy3aAEVCnCgx7p2RlGvBAscYMu9BhOyGwQFkimO5cg5enI7kG68Oqx5CALOANwBMssvQbMjI4pcnx1Jiko76ZqzActZrmtVdptYyjVx93-eJMhwIiMrHkUaYHf7sTxEU09-4Z1dw5MqClwQpKAlnjgnd2Bd2i55e-lx22AznCSwTtVPG1h-U3aJ_YgHaZfY07dV3zoFPue1ErYCmkptgeTDM3w8YMvWzclGNzW_gPEQ98Sy7aae1y9z6Bi1M1F6kfRTzmzozJe2PZDVdBcTxbnFoiZF7iQzONfS1fnXY.DfIE8jP339bfN0N-08eQ8YJF3w83Vq_kjoYYIERgcc0&dib_tag=se&keywords=6+person+tent&qid=1748560606&sr=8-36&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71e7uae5CEL._AC_UL320_.jpg'
-[2025-05-29 23:16:48] Product 40 missing essential data. Title: 'NTK Colorado GT 2/4/6/8 Person Outdoor Dome Family Camping Tent 100% Waterproof, Easy Assembly, Durable Fabric Full Coverage Rainfly - Micro Mosquito Mesh', Link: 'https://www.amazon.ca/NTK-COLORADO-Person-Camping-Waterproof/dp/B01LZY8WYX/ref=sr_1_40?dib=eyJ2IjoiMSJ9.sLWhy3aAEVCnCgx7p2RlGvBAscYMu9BhOyGwQFkimO5cg5enI7kG68Oqx5CALOANwBMssvQbMjI4pcnx1Jiko76ZqzActZrmtVdptYyjVx93-eJMhwIiMrHkUaYHf7sTxEU09-4Z1dw5MqClwQpKAlnjgnd2Bd2i55e-lx22AznCSwTtVPG1h-U3aJ_YgHaZfY07dV3zoFPue1ErYCmkptgeTDM3w8YMvWzclGNzW_gPEQ98Sy7aae1y9z6Bi1M1F6kfRTzmzozJe2PZDVdBcTxbnFoiZF7iQzONfS1fnXY.DfIE8jP339bfN0N-08eQ8YJF3w83Vq_kjoYYIERgcc0&dib_tag=se&keywords=6+person+tent&qid=1748560606&sr=8-40&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/61Uf7rYaA0L._AC_UL320_.jpg'
-[2025-05-29 23:16:48] Product 56 missing essential data. Title: 'Toogh 3/4 Person/6 Person Camping Tent Fast Cabin Tent with Instant Setup Tent, Weatherproof Tent Easy Quick Set Up & Pop Up in 60 Seconds with Rainfly Backpack for Family Camping,Upgraded Ventilation', Link: 'https://www.amazon.ca/Toogh-Tent-Upgraded-Ventilation-Waterproof/dp/B0DSVG4G9F/ref=sr_1_56?dib=eyJ2IjoiMSJ9.sLWhy3aAEVCnCgx7p2RlGvBAscYMu9BhOyGwQFkimO5cg5enI7kG68Oqx5CALOANwBMssvQbMjI4pcnx1Jiko76ZqzActZrmtVdptYyjVx93-eJMhwIiMrHkUaYHf7sTxEU09-4Z1dw5MqClwQpKAlnjgnd2Bd2i55e-lx22AznCSwTtVPG1h-U3aJ_YgHaZfY07dV3zoFPue1ErYCmkptgeTDM3w8YMvWzclGNzW_gPEQ98Sy7aae1y9z6Bi1M1F6kfRTzmzozJe2PZDVdBcTxbnFoiZF7iQzONfS1fnXY.DfIE8jP339bfN0N-08eQ8YJF3w83Vq_kjoYYIERgcc0&dib_tag=se&keywords=6+person+tent&qid=1748560606&sr=8-56&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71phBpKskqL._AC_UL320_.jpg'
-[2025-05-29 23:16:48] Successfully extracted 44 products using XPath parsing (div[@role="listitem"]).
-[2025-05-29 23:16:48] Found pagination container, extracting URLs...
-[2025-05-29 23:16:48] Trying pagination pattern 1
-[2025-05-29 23:16:48] Pattern 1 found 2 matches
-[2025-05-29 23:16:48] Cleaned pagination URL for page 2: removed extra parameters
-[2025-05-29 23:16:48] Added pagination URL for page 2: https://www.amazon.ca/s?k=6+person+tent&page=2
-[2025-05-29 23:16:48] Cleaned pagination URL for page 3: removed extra parameters
-[2025-05-29 23:16:48] Added pagination URL for page 3: https://www.amazon.ca/s?k=6+person+tent&page=3
-[2025-05-29 23:16:48] Successfully extracted pagination URLs: ["page_2","page_3"]
-[2025-05-29 23:16:48] Pagination URL stored: page_2 => https://www.amazon.ca/s?k=6+person+tent&page=2
-[2025-05-29 23:16:48] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=6+person+tent&page=3
-[2025-05-29 23:16:48] ps_get_user_identifier: User is logged in, wp_user_id = '1'
-[2025-05-29 23:16:48] ps_get_user_identifier: Returning logged-in user ID: 'user_1'
-[2025-05-29 23:16:48] ps_cache_results: Generated user_id = 'user_1' for query '6 person tent'
-[2025-05-29 23:16:48] Caching results for user user_1 (query: '6 person tent', country: ca): 102.484375 KB. Items: 56
-[2025-05-29 23:16:48] ps_cache_results: About to insert with user_id = 'user_1', query_hash = 'f06a249ba817f15bbad6006d356b8689'
-[2025-05-29 23:16:48] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 58
-[2025-05-29 23:16:48] Successfully cached results with hash: f06a249ba817f15bbad6006d356b8689, User: user_1
-[2025-05-30 02:46:08] Starting bandwidth optimization - extracting product-only HTML
-[2025-05-30 02:46:08] Found 60 search result containers
-[2025-05-30 02:46:08] Found 1 pagination containers - preserving for load more functionality
-[2025-05-30 02:46:08] Bandwidth optimization complete - Original: 1,789,358 bytes, Optimized: 869,278 bytes, Savings: 51.4%
+[2025-06-11 00:30:02] Network detection: Current server IP: 192.157.119.203
+[2025-06-11 00:30:02] Network detection: IP range check (192.168.0.1/24): NO
+[2025-06-11 00:30:02] Network detection: SERVER_ADDR (172.24.0.3): LOCAL/PRIVATE
+[2025-06-11 00:30:02] Network detection: HTTP_HOST (primates.life): PUBLIC
+[2025-06-11 00:30:02] Network detection: Identified as current network based on: SERVER_ADDR
+[2025-06-11 00:30:02] Network detection: Final result - On current network: YES (will NOT use proxy)
+[2025-06-11 00:30:51] Network detection: Current server IP: 192.157.119.203
+[2025-06-11 00:30:51] Network detection: IP range check (192.157.119.203): YES
+[2025-06-11 00:30:51] Network detection: SERVER_ADDR (172.24.0.3): LOCAL/PRIVATE
+[2025-06-11 00:30:51] Network detection: HTTP_HOST (primates.life): PUBLIC
+[2025-06-11 00:30:51] Network detection: Identified as current network based on: ip_range
+[2025-06-11 00:30:51] Network detection: Final result - On current network: YES (will NOT use proxy)
+[2025-06-11 00:32:34] Network detection: Current server IP: 192.157.119.203
+[2025-06-11 00:32:34] Network detection: IP range check (192.157.119.203): YES
+[2025-06-11 00:32:34] Network detection: SERVER_ADDR (172.24.0.3): LOCAL/PRIVATE
+[2025-06-11 00:32:34] Network detection: HTTP_HOST (primates.life): PUBLIC
+[2025-06-11 00:32:34] Network detection: Identified as current network based on: ip_range
+[2025-06-11 00:32:34] Network detection: Final result - On current network: YES (will NOT use proxy)
+[2025-06-11 00:34:44] Network detection: Current server IP: 207.23.192.189
+[2025-06-11 00:34:44] Network detection: IP range check (192.157.119.203): NO
+[2025-06-11 00:34:44] Network detection: SERVER_ADDR (172.24.0.3): LOCAL/PRIVATE
+[2025-06-11 00:34:44] Network detection: HTTP_HOST (primates.life): PUBLIC
+[2025-06-11 00:34:44] Network detection: Identified as current network based on: SERVER_ADDR
+[2025-06-11 00:34:44] Network detection: Final result - On current network: YES (will NOT use proxy)
+[2025-06-11 00:37:43] Network detection: Current server IP: 207.23.192.189
+[2025-06-11 00:37:43] Network detection: IP range check (192.157.119.203): NO
+[2025-06-11 00:37:43] Network detection: Main IP (207.23.192.189): PUBLIC
+[2025-06-11 00:37:43] Network detection: Final result - On current network: NO (will use proxy)
+[2025-06-11 00:40:21] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: true
+[2025-06-11 00:40:56] AJAX Search Request - User: user_1, Query: 'Double sided tape', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
+[2025-06-11 00:40:56] ps_get_cached_results: Generated user_id = 'user_1' for query 'Double sided tape'
+[2025-06-11 00:40:56] ps_get_cached_results: Looking for query_hash = '1474f8e1057e3205a77e1313c27c1980' with user_id = 'user_1'
+[2025-06-11 00:40:57] Initiating live search for: 'Double sided tape' in country: ca, page: 1
+[2025-06-11 00:40:57] Constructed search URL: https://www.amazon.ca/s?k=Double+sided+tape
+[2025-06-11 00:40:57] Fetching search results from URL: https://www.amazon.ca/s?k=Double+sided+tape
+[2025-06-11 00:40:57] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-06-11 00:40:57] Network detection: Current server IP: 207.23.192.189
+[2025-06-11 00:40:57] Network detection: IP range check (192.157.119.203): NO
+[2025-06-11 00:40:57] Network detection: Main IP (207.23.192.189): PUBLIC
+[2025-06-11 00:40:57] Network detection: Final result - On current network: NO (will use proxy)
+[2025-06-11 00:40:57] Network detection result: On current network = NO, Will use proxy = NO
+[2025-06-11 00:40:57] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Double+sided+tape
+[2025-06-11 00:40:57] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-06-11 00:40:58] Saved full HTML response to amazon_response_2025-06-11_00-40-58.html
+[2025-06-11 00:40:58] Starting bandwidth optimization - extracting product-only HTML
+[2025-06-11 00:40:58] Found 60 search result containers
+[2025-06-11 00:40:58] Found 1 pagination containers - preserving for load more functionality
+[2025-06-11 00:40:58] Bandwidth optimization complete - Original: 1,796,133 bytes, Optimized: 806,771 bytes, Savings: 55.1%
+[2025-06-11 00:40:58] Using associate tag for ca: 'primatessho0c-20'
+[2025-06-11 00:40:58] Starting to parse Amazon results.
+[2025-06-11 00:40:58] XPath: DOMDocument encountered 224 XML parsing errors (showing first 3)
+[2025-06-11 00:40:58] XPath XML Error 1: ID price-link already defined
+[2025-06-11 00:40:58] XPath XML Error 2: ID WVCRIAFWG already defined
+[2025-06-11 00:40:58] XPath XML Error 3: ID WVCRIAFWG already defined
+[2025-06-11 00:40:58] XPath: Found 60 regular products and 0 sponsored products (total: 60)
+[2025-06-11 00:40:58] Product 2 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 3 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 4 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 10 duplicate detected by ASIN: B098XGZ1H4 (skipping)
+[2025-06-11 00:40:58] Product 21 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 22 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 23 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 24 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 57 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 58 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Unit price reasonableness check failed (alt): Product price , Unit price $0.01/metre (ratio: 0.000413). Marking as invalid.
+[2025-06-11 00:40:58] Product 59 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Product 60 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:40:58] Successfully extracted 46 products using XPath parsing (div[@role="listitem"]).
+[2025-06-11 00:40:58] XPath: Found 60 puis-card-container product elements
+[2025-06-11 00:40:58] Successfully processed 60 puis-card elements.
+[2025-06-11 00:40:58] Found pagination container, extracting URLs...
+[2025-06-11 00:40:58] Trying pagination pattern 1
+[2025-06-11 00:40:58] Pattern 1 found 2 matches
+[2025-06-11 00:40:58] Cleaned pagination URL for page 2: removed extra parameters
+[2025-06-11 00:40:58] Added pagination URL for page 2: https://www.amazon.ca/s?k=Double+sided+tape&page=2
+[2025-06-11 00:40:58] Cleaned pagination URL for page 3: removed extra parameters
+[2025-06-11 00:40:58] Added pagination URL for page 3: https://www.amazon.ca/s?k=Double+sided+tape&page=3
+[2025-06-11 00:40:58] Successfully extracted pagination URLs: ["page_2","page_3"]
+[2025-06-11 00:40:58] Pagination URL stored: page_2 => https://www.amazon.ca/s?k=Double+sided+tape&page=2
+[2025-06-11 00:40:58] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=Double+sided+tape&page=3
+[2025-06-11 00:40:58] Duplicate prevention summary: 48 unique products added, 48 unique links tracked, 48 unique ASINs tracked
+[2025-06-11 00:40:58] ps_cache_results: Generated user_id = 'user_1' for query 'Double sided tape'
+[2025-06-11 00:40:58] Caching results for user user_1 (query: 'Double sided tape', country: ca): 88.6474609375 KB. Items: 48
+[2025-06-11 00:40:58] ps_cache_results: Creating new cache record with user_id = 'user_1', query_hash = '7e3a5a877897873eab883dc44e0d3dad'
+[2025-06-11 00:40:59] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 76
+[2025-06-11 00:40:59] Successfully cached results with hash: 7e3a5a877897873eab883dc44e0d3dad, User: user_1
+[2025-06-11 00:44:17] AJAX Search Request - User: user_1, Query: 'Flat pillow', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: false
+[2025-06-11 00:44:17] ps_get_cached_results: Generated user_id = 'user_1' for query 'Flat pillow'
+[2025-06-11 00:44:17] ps_get_cached_results: Looking for query_hash = '04dff50645dad07d87abf071e545580c' with user_id = 'user_1'
+[2025-06-11 00:44:17] Initiating live search for: 'Flat pillow' in country: ca, page: 1
+[2025-06-11 00:44:17] Constructed search URL: https://www.amazon.ca/s?k=Flat+pillow
+[2025-06-11 00:44:17] Fetching search results from URL: https://www.amazon.ca/s?k=Flat+pillow
+[2025-06-11 00:44:17] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-06-11 00:44:17] Network detection: Current server IP: 207.23.192.189
+[2025-06-11 00:44:17] Network detection: IP range check (192.157.119.203): NO
+[2025-06-11 00:44:17] Network detection: Main IP (207.23.192.189): PUBLIC
+[2025-06-11 00:44:17] Network detection: Final result - On current network: NO (will use proxy)
+[2025-06-11 00:44:17] Network detection result: On current network = NO, Will use proxy = NO
+[2025-06-11 00:44:17] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Flat+pillow
+[2025-06-11 00:44:17] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-06-11 00:44:18] Saved full HTML response to amazon_response_2025-06-11_00-44-18.html
+[2025-06-11 00:44:18] Starting bandwidth optimization - extracting product-only HTML
+[2025-06-11 00:44:18] Found 60 search result containers
+[2025-06-11 00:44:18] Found 1 pagination containers - preserving for load more functionality
+[2025-06-11 00:44:18] Bandwidth optimization complete - Original: 1,872,741 bytes, Optimized: 1,084,388 bytes, Savings: 42.1%
+[2025-06-11 00:44:18] Using associate tag for ca: 'primatessho0c-20'
+[2025-06-11 00:44:18] Starting to parse Amazon results.
+[2025-06-11 00:44:18] XPath: DOMDocument encountered 256 XML parsing errors (showing first 3)
+[2025-06-11 00:44:18] XPath XML Error 1: ID price-link already defined
+[2025-06-11 00:44:18] XPath XML Error 2: ID WVCRIAFWG already defined
+[2025-06-11 00:44:18] XPath XML Error 3: ID ax-atc-EUIC_AddToCart_Search already defined
+[2025-06-11 00:44:18] XPath: Found 60 regular products and 0 sponsored products (total: 60)
+[2025-06-11 00:44:18] Product 2 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 3 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 4 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 21 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 22 duplicate detected by ASIN: B0C2KPM8N5 (skipping)
+[2025-06-11 00:44:18] Product 23 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 24 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 57 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 58 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 59 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Product 60 duplicate detected by link: https://www.amazon.ca/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:44:18] Successfully extracted 41 products using XPath parsing (div[@role="listitem"]).
+[2025-06-11 00:44:18] XPath: Found 60 puis-card-container product elements
+[2025-06-11 00:44:18] Successfully processed 60 puis-card elements.
+[2025-06-11 00:44:18] Found pagination container, extracting URLs...
+[2025-06-11 00:44:18] Trying pagination pattern 1
+[2025-06-11 00:44:18] Pattern 1 found 2 matches
+[2025-06-11 00:44:18] Cleaned pagination URL for page 2: removed extra parameters
+[2025-06-11 00:44:18] Added pagination URL for page 2: https://www.amazon.ca/s?k=Flat+pillow&page=2
+[2025-06-11 00:44:18] Cleaned pagination URL for page 3: removed extra parameters
+[2025-06-11 00:44:18] Added pagination URL for page 3: https://www.amazon.ca/s?k=Flat+pillow&page=3
+[2025-06-11 00:44:18] Successfully extracted pagination URLs: ["page_2","page_3"]
+[2025-06-11 00:44:18] Pagination URL stored: page_2 => https://www.amazon.ca/s?k=Flat+pillow&page=2
+[2025-06-11 00:44:18] Pagination URL stored: page_3 => https://www.amazon.ca/s?k=Flat+pillow&page=3
+[2025-06-11 00:44:18] Duplicate prevention summary: 49 unique products added, 49 unique links tracked, 49 unique ASINs tracked
+[2025-06-11 00:44:18] ps_cache_results: Generated user_id = 'user_1' for query 'Flat pillow'
+[2025-06-11 00:44:18] Caching results for user user_1 (query: 'Flat pillow', country: ca): 90.1591796875 KB. Items: 49
+[2025-06-11 00:44:18] ps_cache_results: Creating new cache record with user_id = 'user_1', query_hash = 'dbec590a07de4a1c20ce58ed3e005328'
+[2025-06-11 00:44:18] ps_cache_results: Insert result = SUCCESS, wpdb->insert_id = 77
+[2025-06-11 00:44:18] Successfully cached results with hash: dbec590a07de4a1c20ce58ed3e005328, User: user_1
+[2025-06-11 00:47:39] AJAX Load More Request - User: user_1, Query: 'Flat pillow', Page: 2, Country: 'ca'
+[2025-06-11 00:47:39] ps_get_cached_results: Generated user_id = 'user_1' for query 'Flat pillow'
+[2025-06-11 00:47:39] ps_get_cached_results: Looking for query_hash = 'dbec590a07de4a1c20ce58ed3e005328' with user_id = 'user_1'
+[2025-06-11 00:47:39] Load More: Using parsed URL for page 2: https://www.amazon.ca/s?k=Flat+pillow&page=2
+[2025-06-11 00:47:39] Fetching search results from URL: https://www.amazon.ca/s?k=Flat+pillow&page=2
+[2025-06-11 00:47:39] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-06-11 00:47:39] Network detection: Current server IP: 207.23.192.189
+[2025-06-11 00:47:39] Network detection: IP range check (192.157.119.203): NO
+[2025-06-11 00:47:39] Network detection: Main IP (207.23.192.189): PUBLIC
+[2025-06-11 00:47:39] Network detection: Final result - On current network: NO (will use proxy)
+[2025-06-11 00:47:39] Network detection result: On current network = NO, Will use proxy = NO
+[2025-06-11 00:47:39] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Flat+pillow&page=2
+[2025-06-11 00:47:39] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-06-11 00:47:40] Saved full HTML response to amazon_response_2025-06-11_00-47-40.html
+[2025-06-11 00:47:40] Starting bandwidth optimization - extracting product-only HTML
+[2025-06-11 00:47:40] Found 60 search result containers
+[2025-06-11 00:47:40] Found 1 pagination containers - preserving for load more functionality
+[2025-06-11 00:47:40] Bandwidth optimization complete - Original: 1,920,468 bytes, Optimized: 1,103,671 bytes, Savings: 42.5%
+[2025-06-11 00:47:40] Starting to parse Amazon results.
+[2025-06-11 00:47:41] XPath: DOMDocument encountered 148 XML parsing errors (showing first 3)
+[2025-06-11 00:47:41] XPath XML Error 1: ID price-link already defined
+[2025-06-11 00:47:41] XPath XML Error 2: ID ax-atc-EUIC_AddToCart_Search already defined
+[2025-06-11 00:47:41] XPath XML Error 3: ID price-link already defined
+[2025-06-11 00:47:41] XPath: Found 60 regular products and 0 sponsored products (total: 60)
+[2025-06-11 00:47:41] Product 2 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 3 missing essential data. Title: 'Sponsored Ad &#x2013; Double-Sided Cooling Shredded Memory Foam Pillow: Queen Size Adjustable Sleeping Pillow with Breathable Zipper Cover for Easy wash. for Side Back Stomach Sleepers (1pack)', Link: 'https://www.amazon.com/sspa/click?ie=UTF8&spc=MTo3OTYwMDI4MDUzOTAzNTk6MTc0OTYwMjg1OTpzcF9hdGZfbmV4dDozMDA3Nzk3Mzg1MzAxMDI6OjA6Og&url=%2FDouble-Sided-Cooling-Shredded-Memory-Pillow%2Fdp%2FB0DR19DPQD%2Fref%3Dsr_1_51_sspa%3Fdib%3DeyJ2IjoiMSJ9.NBcxrpT9kwQwWRZNb62mzbk7pVnyEH1z4LuDO92D5qppccPwwGvyc7bt2K76Q2YoarwSm_QiF41bEsihnsPmnQPo1qIOnQQeoFAr5GJV2Y69c-aoGe49W6xqDfaACynsWUuABNtVe_kaJ44ytlxxMw7eA1d-f2yOhbFcamtfFKENrviKL9YJmquueukd0vUjOUG-gq5-BpRNF0GFgfd68ZXCVinzvrTVqZwlL_Cwf0IY4XvtKAdglTnUvVNk1l5-RVZIkZChPz_zf1nwvNJPqRy9HKPUEkrZHHa5soFATR4.ApqkAOfO6QOfdzpW2FN-spGle65h8NSQPZDUlxc_vp8%26dib_tag%3Dse%26keywords%3DFlat%2Bpillow%26qid%3D1749602859%26sr%3D8-51-spons%26sp_csd%3Dd2lkZ2V0TmFtZT1zcF9hdGZfbmV4dA%26psc%3D1&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71nS9-3+F0L._AC_UL320_.jpg'
+[2025-06-11 00:47:41] Product 4 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 21 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 22 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 23 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 24 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 57 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 58 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 59 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Product 60 duplicate detected by link: https://www.amazon.com/sspa/click&tag=primatessho0c-20 (skipping)
+[2025-06-11 00:47:41] Successfully extracted 45 products using XPath parsing (div[@role="listitem"]).
+[2025-06-11 00:47:41] XPath: Found 60 puis-card-container product elements
+[2025-06-11 00:47:41] Puis-card product 3 missing essential data. Title: 'Sponsored Ad &#x2013; Double-Sided Cooling Shredded Memory Foam Pillow: Queen Size Adjustable Sleeping Pillow with Breathable Zipper Cover for Easy wash. for Side Back Stomach Sleepers (1pack)', Link: 'https://www.amazon.com/sspa/click?ie=UTF8&spc=MTo3OTYwMDI4MDUzOTAzNTk6MTc0OTYwMjg1OTpzcF9hdGZfbmV4dDozMDA3Nzk3Mzg1MzAxMDI6OjA6Og&url=%2FDouble-Sided-Cooling-Shredded-Memory-Pillow%2Fdp%2FB0DR19DPQD%2Fref%3Dsr_1_51_sspa%3Fdib%3DeyJ2IjoiMSJ9.NBcxrpT9kwQwWRZNb62mzbk7pVnyEH1z4LuDO92D5qppccPwwGvyc7bt2K76Q2YoarwSm_QiF41bEsihnsPmnQPo1qIOnQQeoFAr5GJV2Y69c-aoGe49W6xqDfaACynsWUuABNtVe_kaJ44ytlxxMw7eA1d-f2yOhbFcamtfFKENrviKL9YJmquueukd0vUjOUG-gq5-BpRNF0GFgfd68ZXCVinzvrTVqZwlL_Cwf0IY4XvtKAdglTnUvVNk1l5-RVZIkZChPz_zf1nwvNJPqRy9HKPUEkrZHHa5soFATR4.ApqkAOfO6QOfdzpW2FN-spGle65h8NSQPZDUlxc_vp8%26dib_tag%3Dse%26keywords%3DFlat%2Bpillow%26qid%3D1749602859%26sr%3D8-51-spons%26sp_csd%3Dd2lkZ2V0TmFtZT1zcF9hdGZfbmV4dA%26psc%3D1&tag=primatessho0c-20', Price: 0, Image: 'https://m.media-amazon.com/images/I/71nS9-3+F0L._AC_UL320_.jpg'
+[2025-06-11 00:47:41] Successfully processed 60 puis-card elements.
+[2025-06-11 00:47:41] Found pagination container, extracting URLs...
+[2025-06-11 00:47:41] Trying pagination pattern 1
+[2025-06-11 00:47:41] Pattern 1 found 1 matches
+[2025-06-11 00:47:41] Cleaned pagination URL for page 3: removed extra parameters
+[2025-06-11 00:47:41] Added pagination URL for page 3: https://www.amazon.com/s?k=Flat+pillow&page=3
+[2025-06-11 00:47:41] Successfully extracted pagination URLs: ["page_3"]
+[2025-06-11 00:47:41] Pagination URL stored: page_3 => https://www.amazon.com/s?k=Flat+pillow&page=3
+[2025-06-11 00:47:41] Duplicate prevention summary: 49 unique products added, 49 unique links tracked, 49 unique ASINs tracked
+[2025-06-11 00:47:41] Load more page 2 completed in 1.50 seconds
+[2025-06-11 00:47:41] ps_cache_results: Generated user_id = 'user_1' for query 'Flat pillow'
+[2025-06-11 00:47:41] Caching results for user user_1 (query: 'Flat pillow', country: ca): 167.900390625 KB. Items: 94
+[2025-06-11 00:47:41] ps_cache_results: Updating existing cache record ID 77 with user_id = 'user_1', query_hash = 'dbec590a07de4a1c20ce58ed3e005328'
+[2025-06-11 00:47:41] ps_cache_results: Update result = SUCCESS for record ID 77
+[2025-06-11 00:47:41] Successfully updated cache results with hash: dbec590a07de4a1c20ce58ed3e005328, User: user_1
+[2025-06-11 00:47:41] Load More: Successfully merged 45 new items with existing cache. Total items: 94
+[2025-06-11 00:47:41] Load More: has_more_pages calculation - Page: 2, Page < 3: true, Next page key exists: true, Result: true
+[2025-06-11 00:49:39] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: true
+[2025-06-11 00:50:24] AJAX Search Request - User: user_1, Query: '', Exclude: '', Sort: 'price', Min Rating: '4', Country: 'ca', Filter Cached: true

@@ -108,7 +108,7 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
         </table>
         <div class="ps-search-row">
             <div class="ps-search-actions">
-                <button type="button" id="ps-filter-button" class="ps-filter-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Filter Results</button>
+                <button type="button" id="ps-filter-button" class="ps-filter-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Apply</button>
                 <button type="button" id="ps-show-all-button" class="ps-show-all-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Show All</button>
                 <button type="submit" class="ps-search-button">Search Amazon</button>
                 <button type="button" id="ps-load-more-top-button" class="ps-load-more-button ps-load-more-top" style="display: none;">

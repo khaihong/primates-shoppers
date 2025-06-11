@@ -58,6 +58,7 @@
     font-size: 14px;
     height: 28px;
     line-height: 20px;
+    background-color: white;
 }
 
 .ps-search-field select {
@@ -157,6 +158,7 @@
     height: 28px;
     line-height: 20px;
     box-sizing: border-box;
+    background-color: white;
 }
 
 .ps-search-input:nth-child(2) input,
@@ -708,4 +710,112 @@
 
 .ps-load-more-top:disabled:hover {
     background-color: #ccc !important;
+}
+
+/* Force white background for search input fields */
+.ps-search-form input[type="text"],
+.ps-search-table input[type="text"],
+#ps-search-query,
+#ps-exclude-keywords {
+    background-color: white !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    font-size: 14px !important;
+    height: 28px !important;
+    line-height: 20px !important;
+    box-sizing: border-box !important;
+}
+
+/* Error message styling for better mobile display */
+.ps-error {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 20px 0;
+    color: #856404;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    /* Break out of container width constraints */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+    padding-left: max(15px, 50vw - 400px);
+    padding-right: max(15px, 50vw - 400px);
+}
+
+.ps-error a {
+    color: #007cba;
+    text-decoration: underline;
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.ps-error a:hover {
+    color: #005a87;
+}
+
+.ps-load-more-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 20px 0;
+    color: #721c24;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    /* Break out of container width constraints */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+    padding-left: max(15px, 50vw - 400px);
+    padding-right: max(15px, 50vw - 400px);
+}
+
+.ps-load-more-error a {
+    color: #007cba;
+    text-decoration: underline;
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.ps-load-more-error a:hover {
+    color: #005a87;
+}
+
+/* Mobile-specific error message adjustments */
+@media (max-width: 768px) {
+    .ps-error,
+    .ps-load-more-error {
+        padding: 12px;
+        font-size: 13px;
+        margin: 15px 0;
+        /* Simpler padding for mobile */
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .ps-error a,
+    .ps-load-more-error a {
+        font-size: 13px;
+        word-break: break-all;
+        line-height: 1.4;
+    }
 }

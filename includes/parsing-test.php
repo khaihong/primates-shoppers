@@ -637,6 +637,13 @@ function ps_ajax_test_parsing() {
                     $debug_extraction[$i]['unit_set_to_default'] = true;
                 }
                 
+                // Clear unit price data if no actual unit of measure exists
+                if (!empty($unit_price) && (empty($unit) || $unit === 'No unit' || !preg_match('/(?:ml|g|gram|grams|oz|ounce|ounces|lb|pound|pounds|kg|kilogram|kilograms|unit|count|piece|pieces|pack|packs|each|item|items|fl\s*oz)\b/i', $unit))) {
+                    $unit_price = '';
+                    $unit = '';
+                    $debug_extraction[$i]['unit_cleared_no_valid_measure'] = true;
+                }
+                
                 $debug_extraction[$i]['final_unit_price'] = $unit_price;
                 $debug_extraction[$i]['final_unit'] = $unit;
                 

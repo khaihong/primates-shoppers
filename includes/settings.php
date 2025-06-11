@@ -35,7 +35,10 @@ function ps_settings_page() {
             'amazon_associate_tag_ca' => sanitize_text_field($_POST['ps_settings']['amazon_associate_tag_ca']),
             'amazon_associate_tag_us' => sanitize_text_field($_POST['ps_settings']['amazon_associate_tag_us']),
             'cache_duration' => intval($_POST['ps_settings']['cache_duration']),
-            'bandwidth_optimization' => isset($_POST['ps_settings']['bandwidth_optimization']) ? 1 : 0
+            'bandwidth_optimization' => isset($_POST['ps_settings']['bandwidth_optimization']) ? 1 : 0,
+            'use_network_detection' => isset($_POST['ps_settings']['use_network_detection']) ? 1 : 0,
+            'current_network_range' => sanitize_text_field($_POST['ps_settings']['current_network_range']),
+            'current_network_hostnames' => sanitize_text_field($_POST['ps_settings']['current_network_hostnames'])
         );
         
         update_option('ps_settings', $settings);
@@ -59,6 +62,9 @@ function ps_settings_page() {
     $amazon_associate_tag_us = isset($settings['amazon_associate_tag_us']) ? $settings['amazon_associate_tag_us'] : 'primatesshopp-20';
     $cache_duration = isset($settings['cache_duration']) ? $settings['cache_duration'] : 86400;
     $bandwidth_optimization = isset($settings['bandwidth_optimization']) ? $settings['bandwidth_optimization'] : 1; // Default enabled
+    $use_network_detection = isset($settings['use_network_detection']) ? $settings['use_network_detection'] : 0; // Default disabled
+    $current_network_range = isset($settings['current_network_range']) ? $settings['current_network_range'] : '';
+    $current_network_hostnames = isset($settings['current_network_hostnames']) ? $settings['current_network_hostnames'] : '';
     
     // Display the settings form
     ?>
@@ -96,6 +102,42 @@ function ps_settings_page() {
                             <input type="checkbox" id="ps_settings_bandwidth_optimization" name="ps_settings[bandwidth_optimization]" value="1" <?php checked($bandwidth_optimization, 1); ?>>
                             <label for="ps_settings_bandwidth_optimization">Enable bandwidth optimization</label>
                             <p class="description">Extract only product-related HTML content to reduce data usage when using proxy services. <strong>Recommended for paid proxy services.</strong> This can reduce bandwidth usage by 60-80%.</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <h2>Network Detection Settings</h2>
+                <p>Configure network detection to minimize proxy costs by only using proxy when developing/testing from your current network.</p>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="ps_settings_use_network_detection">Enable Network Detection</label></th>
+                        <td>
+                            <input type="checkbox" id="ps_settings_use_network_detection" name="ps_settings[use_network_detection]" value="1" <?php checked($use_network_detection, 1); ?>>
+                            <label for="ps_settings_use_network_detection">Enable network detection</label>
+                            <p class="description">When enabled, proxy will only be used when ON the current network (for development/testing). When disabled, no proxy is used (existing behavior). This minimizes proxy costs by using proxy only during development.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ps_settings_current_network_range">Current Network IP Range</label></th>
+                        <td>
+                            <input type="text" id="ps_settings_current_network_range" name="ps_settings[current_network_range]" value="<?php echo esc_attr($current_network_range); ?>" class="regular-text" placeholder="192.168.1.0/24 or 192.168.1.1-192.168.1.255">
+                            <p class="description">IP range of your development network. When server IP matches this range, proxy will be used. Supports CIDR notation (192.168.1.0/24) or range notation (192.168.1.1-192.168.1.255). Leave empty to disable IP-based detection.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ps_settings_current_network_hostnames">Current Network Hostnames</label></th>
+                        <td>
+                            <input type="text" id="ps_settings_current_network_hostnames" name="ps_settings[current_network_hostnames]" value="<?php echo esc_attr($current_network_hostnames); ?>" class="regular-text" placeholder="localhost, *.local, example.com">
+                            <p class="description">Comma-separated list of hostname patterns that identify your development network. When server hostname matches these patterns, proxy will be used. Supports wildcards (*). Leave empty to disable hostname-based detection.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Network Detection Test</th>
+                        <td>
+                            <button type="button" id="ps-test-network-detection" class="button">Test Network Detection</button>
+                            <div id="ps-network-detection-result" style="margin-top: 10px;"></div>
+                            <p class="description">Test the current network detection settings to see if this server would be detected as being on the current network.</p>
                         </td>
                     </tr>
                 </table>
@@ -161,6 +203,62 @@ function ps_settings_page() {
                     console.log('PS Admin JavaScript loaded');
                     console.log('jQuery version:', $.fn.jquery);
                     console.log('ajaxurl:', ajaxurl);
+                    
+        // Network Detection Test Button Handler
+        $('#ps-test-network-detection').on('click', function() {
+            var $button = $(this);
+            var $result = $('#ps-network-detection-result');
+            
+            $button.prop('disabled', true);
+            $button.text('Testing...');
+            $result.html('<div style="color: blue;">Testing network detection...</div>');
+            
+            // Get current form values
+            var useNetworkDetection = $('#ps_settings_use_network_detection').is(':checked');
+            var networkRange = $('#ps_settings_current_network_range').val();
+            var networkHostnames = $('#ps_settings_current_network_hostnames').val();
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'ps_test_network_detection',
+                    nonce: '<?php echo wp_create_nonce('ps_network_test'); ?>',
+                    use_network_detection: useNetworkDetection ? 1 : 0,
+                    current_network_range: networkRange,
+                    current_network_hostnames: networkHostnames
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var result = response.data;
+                        var html = '<div style="color: green;"><strong>Test Results:</strong></div>';
+                        html += '<ul>';
+                        html += '<li><strong>Network Detection Enabled:</strong> ' + (result.network_detection_enabled ? 'Yes' : 'No') + '</li>';
+                        html += '<li><strong>On Current Network:</strong> ' + (result.on_current_network ? 'Yes' : 'No') + '</li>';
+                        html += '<li><strong>Will Use Proxy:</strong> ' + (result.will_use_proxy ? 'Yes' : 'No') + '</li>';
+                        html += '<li><strong>Server IP:</strong> ' + result.server_ip + '</li>';
+                        if (result.detection_details && result.detection_details.length > 0) {
+                            html += '<li><strong>Detection Details:</strong><ul>';
+                            for (var i = 0; i < result.detection_details.length; i++) {
+                                html += '<li>' + result.detection_details[i] + '</li>';
+                            }
+                            html += '</ul></li>';
+                        }
+                        html += '</ul>';
+                        $result.html(html);
+                    } else {
+                        $result.html('<div style="color: red;">❌ Test failed: ' + (response.data.message || 'Unknown error') + '</div>');
+                    }
+                },
+                error: function() {
+                    $result.html('<div style="color: red;">❌ Server error. The test request failed.</div>');
+                },
+                complete: function() {
+                    $button.prop('disabled', false);
+                    $button.text('Test Network Detection');
+                }
+            });
+        });
                     
         // Pagination Test Button Handler
         $('#ps-test-pagination').on('click', function() {

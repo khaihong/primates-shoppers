@@ -39,28 +39,48 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
         $http_code = $html_content['http_code'];
         ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - HTTP {$http_code}");
         
+        // Get the associate tag for the correct affiliate link
+        $associate_tag = ps_get_associate_tag($country);
+        
         // Check if it's a blocking error (503, 429, etc.)
         if (in_array($http_code, [503, 429, 403, 502, 504])) {
             // Create Amazon search URL for the user to continue searching manually
             $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
             $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
             
+            // Add affiliate tag to the continue URL
+            if (!empty($associate_tag)) {
+                $amazon_search_url .= '&tag=' . $associate_tag;
+            }
+            
             return array(
                 'success' => false,
                 'items' => array(),
                 'count' => 0,
-                'message' => 'Amazon is blocking requests. Please try again later.',
+                'message' => 'Amazon is blocking requests. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
                 'amazon_search_url' => $amazon_search_url,
                 'search_query' => $query,
                 'country' => $country,
                 'http_code' => $http_code
             );
         } else {
+            // Create Amazon search URL for the user to continue searching manually
+            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+            
+            // Add affiliate tag to the continue URL
+            if (!empty($associate_tag)) {
+                $amazon_search_url .= '&tag=' . $associate_tag;
+            }
+            
             return array(
                 'success' => false,
                 'items' => array(),
                 'count' => 0,
-                'message' => 'Failed to connect to Amazon. Please try again later.',
+                'message' => 'Failed to connect to Amazon. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
+                'amazon_search_url' => $amazon_search_url,
+                'search_query' => $query,
+                'country' => $country,
                 'http_code' => $http_code
             );
         }
@@ -68,11 +88,27 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     
     if (empty($html_content)) {
         ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - No response received");
+        
+        // Get the associate tag for the correct affiliate link
+        $associate_tag = ps_get_associate_tag($country);
+        
+        // Create Amazon search URL for the user to continue searching manually
+        $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+        $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+        
+        // Add affiliate tag to the continue URL
+        if (!empty($associate_tag)) {
+            $amazon_search_url .= '&tag=' . $associate_tag;
+        }
+        
         return array(
             'success' => false,
             'items' => array(),
             'count' => 0,
-            'message' => 'No response received from Amazon. Please try again later.'
+            'message' => 'No response received from Amazon. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
+            'amazon_search_url' => $amazon_search_url,
+            'search_query' => $query,
+            'country' => $country
         );
     }
     
@@ -80,15 +116,23 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     if (ps_is_amazon_blocking($html_content)) {
         ps_log_error("Amazon is blocking search for query: '{$query}' page {$page} - Blocking page detected");
         
+        // Get the associate tag for the correct affiliate link
+        $associate_tag = ps_get_associate_tag($country);
+        
         // Create Amazon search URL for the user to continue searching manually
         $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
         $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+        
+        // Add affiliate tag to the continue URL
+        if (!empty($associate_tag)) {
+            $amazon_search_url .= '&tag=' . $associate_tag;
+        }
         
         return array(
             'success' => false,
             'items' => array(),
             'count' => 0,
-            'message' => 'Amazon is blocking requests. Please try again later.',
+            'message' => 'Amazon is blocking requests. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
             'amazon_search_url' => $amazon_search_url,
             'search_query' => $query,
             'country' => $country
@@ -98,12 +142,32 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     // Check if it's a valid search page
     if (!ps_is_valid_search_page($html_content)) {
         ps_log_error("Invalid Amazon search results format: " . substr($html_content, 0, 100));
-        return array(
+        
+        // Get the associate tag for the correct affiliate link
+        $associate_tag = ps_get_associate_tag($country);
+        
+        // Create Amazon search URL for the user to continue searching manually
+        $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+        $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+        
+        // Add affiliate tag to the continue URL
+        if (!empty($associate_tag)) {
+            $amazon_search_url .= '&tag=' . $associate_tag;
+        }
+        
+        $invalid_response = array(
             'success' => false,
             'items' => array(),
             'count' => 0,
-            'message' => 'Invalid response from Amazon. Please try again later.'
+            'message' => 'Invalid response from Amazon. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
+            'amazon_search_url' => $amazon_search_url,
+            'search_query' => $query,
+            'country' => $country
         );
+        
+        ps_log_error("INVALID_RESPONSE_RETURN: " . json_encode($invalid_response));
+        
+        return $invalid_response;
     }
     
     // Get the associate tag
@@ -140,6 +204,14 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                 'link' => './/a[contains(@class, "a-link-normal")]/@href',
                 'price' => './/span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]',
                 'image' => './/img[contains(@class, "s-image")]/@src'
+            ),
+            // Sponsored products selector
+            array(
+                'product' => '//div[@data-asin and contains(@class, "s-result-item") and not(@role="listitem")]',
+                'title' => './/span[contains(@class, "a-text-normal")]',
+                'link' => './/a[contains(@class, "a-link-normal")]/@href',
+                'price' => './/span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]',
+                'image' => './/img[contains(@class, "s-image")]/@src'
             )
         );
         
@@ -162,10 +234,13 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                         $title = trim($title_nodes->item(0)->textContent);
                         $link = trim($link_nodes->item(0)->nodeValue);
                         
-                        // Skip sponsored products or other non-product items
-                        if (empty($title) || stripos($title, "sponsored") !== false) {
+                        // Skip if title or link is empty
+                        if (empty($title)) {
                             continue;
                         }
+                        
+                        // Clean title - remove "Sponsored Ad –" prefix if present
+                        $title = preg_replace('/^Sponsored Ad\s*[–-]\s*/i', '', $title);
                         
                         // Process link - ensure it's absolute & add affiliate tag
                         if (strpos($link, 'http') !== 0) {
@@ -447,6 +522,13 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                             }
                         }
                         
+                        // Clear unit price data if no actual unit of measure exists
+                        if (!empty($unit_price) && (empty($unit) || !preg_match('/(?:ml|g|gram|grams|oz|ounce|ounces|lb|pound|pounds|kg|kilogram|kilograms|unit|count|piece|pieces|pack|packs|each|item|items|fl\s*oz)\b/i', $unit))) {
+                            $unit_price = '';
+                            $unit = '';
+                            $current_product_debug['unit_cleared_no_valid_measure'] = true;
+                        }
+                        
                         // Calculate unit price value for sorting
                         $unit_price_value = $price_value; // Default to regular price
                         if (!empty($unit_price)) {
@@ -557,6 +639,10 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
     $products = array();
     $raw_items_for_cache = array(); // For storing all successfully parsed items before display filtering
     $raw_items_count_for_cache = 0;
+    
+    // Track seen products to prevent duplicates between parsing methods
+    $seen_links = array();
+    $seen_asins = array();
 
     ps_log_error("Starting to parse Amazon results.");
 
@@ -594,11 +680,29 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
         // Use the div[@role="listitem"] selector
         $productElements = $xpath->query('//div[@role="listitem"]');
         
+        // Also capture sponsored products which may appear in different structures
+        $sponsoredElements = $xpath->query('//div[@data-asin and contains(@class, "s-result-item") and not(@role="listitem")]');
+        
+        // Merge regular and sponsored product elements
+        $allProductElements = array();
         if ($productElements && $productElements->length > 0) {
-            ps_log_error("XPath: Found " . $productElements->length . " product elements using div[@role=\"listitem\"] selector");
+            foreach ($productElements as $element) {
+                $allProductElements[] = $element;
+            }
+        }
+        if ($sponsoredElements && $sponsoredElements->length > 0) {
+            foreach ($sponsoredElements as $element) {
+                $allProductElements[] = $element;
+            }
+        }
+        
+        $totalProductCount = count($allProductElements);
+        ps_log_error("XPath: Found " . $productElements->length . " regular products and " . $sponsoredElements->length . " sponsored products (total: " . $totalProductCount . ")");
+        
+        if ($totalProductCount > 0) {
             $debug_extraction_data = []; // For detailed logging of extraction attempts
 
-            foreach ($productElements as $idx => $element) {
+            foreach ($allProductElements as $idx => $element) {
                 $current_product_debug = []; // Debug info for the current product
             
                 // Initialize product data
@@ -620,41 +724,32 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                 // Method 1: h2 with aria-label
                 $h2WithAriaLabel = $xpath->query('.//h2[@aria-label]', $element)->item(0);
                 if ($h2WithAriaLabel) {
-                    $aria_label = $h2WithAriaLabel->getAttribute('aria-label');
-                    $current_product_debug['title_h2_aria_label'] = $aria_label;
-                    $spanInsideH2 = $xpath->query('.//span', $h2WithAriaLabel)->item(0);
-                    if ($spanInsideH2) {
-                        $title = trim(preg_replace('/\s+/', ' ', $spanInsideH2->textContent));
-                        $title_extraction_method = 'h2_aria_label_span';
-                        $current_product_debug['title_h2_span_content'] = $title;
-                    } else {
-                        $title = trim(preg_replace('/\s+/', ' ', $h2WithAriaLabel->textContent));
-                        $title_extraction_method = 'h2_aria_label_text';
-                        $current_product_debug['title_h2_text_content'] = $title;
-                    }
+                    $title = trim(preg_replace('/\s+/', ' ', $h2WithAriaLabel->getAttribute('aria-label')));
+                    $title_extraction_method = 'h2_aria_label';
+                    $current_product_debug['title_h2_aria_label'] = $title;
                 }
                 
-                // Method 2: Standard a-text-normal selector
+                // Method 2: span inside h2
                 if (empty($title)) {
-                    $titleNode = $xpath->query('.//span[contains(@class, "a-text-normal")]', $element)->item(0);
-                    if ($titleNode) {
-                        $title = trim(preg_replace('/\s+/', ' ', $titleNode->textContent));
-                        $title_extraction_method = 'a_text_normal';
-                        $current_product_debug['title_a_text_normal'] = $title;
-                    }
-                }
-                
-                // Method 3: h2 span fallback
-                if (empty($title)) {
-                    $titleNode = $xpath->query('.//h2//span', $element)->item(0);
-                    if ($titleNode) {
-                        $title = trim(preg_replace('/\s+/', ' ', $titleNode->textContent));
+                    $spanInH2 = $xpath->query('.//h2//span', $element)->item(0);
+                    if ($spanInH2) {
+                        $title = trim(preg_replace('/\s+/', ' ', $spanInH2->textContent));
                         $title_extraction_method = 'h2_span';
                         $current_product_debug['title_h2_span'] = $title;
                     }
                 }
                 
-                // Method 4: h2 fallback
+                // Method 3: span with a-text-normal inside any anchor
+                if (empty($title)) {
+                    $spanNode = $xpath->query('.//span[contains(@class, "a-text-normal")]', $element)->item(0);
+                    if ($spanNode) {
+                        $title = trim(preg_replace('/\s+/', ' ', $spanNode->textContent));
+                        $title_extraction_method = 'span_a_text_normal';
+                        $current_product_debug['title_span_a_text_normal'] = $title;
+                    }
+                }
+                
+                // Method 4: Generic h2 text content
                 if (empty($title)) {
                     $titleNode = $xpath->query('.//h2', $element)->item(0);
                     if ($titleNode) {
@@ -693,8 +788,10 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                         $bestTitle = '';
                         foreach ($titleNodes as $node) {
                             $nodeTitle = trim(preg_replace('/\s+/', ' ', $node->textContent));
-                            if (empty($bestTitle) || strlen($nodeTitle) > strlen($bestTitle)) {
-                                $bestTitle = $nodeTitle;
+                            if (strlen($nodeTitle) > 5 && !preg_match('/^\$?\d+/', $nodeTitle)) { // Skip short/price-like
+                                if (empty($bestTitle) || strlen($nodeTitle) > strlen($bestTitle)) {
+                                    $bestTitle = $nodeTitle;
+                                }
                             }
                         }
                         if (!empty($bestTitle)) {
@@ -705,7 +802,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                     }
                 }
                 
-                // Method 7: a-color-base
+                // Method 7: Any a-color-base span (fallback)
                 if (empty($title)) {
                     $titleNodes = $xpath->query('.//span[contains(@class, "a-color-base")]', $element);
                     if ($titleNodes && $titleNodes->length > 0) {
@@ -747,12 +844,16 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                 }
                 $current_product_debug['link'] = $link;
                 
-                // Skip if title or link is empty or title contains sponsored text
-                if (empty($title) || empty($link) || stripos($title, 'sponsored') !== false || stripos($title, 'learn more') !== false || stripos($title, 'let us know') !== false ) {
-                    ps_log_error("Skipping product " . ($idx + 1) . ": Empty title/link or sponsored. Title: '{$title}', Link: '{$link}'");
+                // Skip if title or link is empty or title contains learn more/let us know
+                if (empty($title) || empty($link) || stripos($title, 'learn more') !== false || stripos($title, 'let us know') !== false ) {
+                    ps_log_error("Skipping product " . ($idx + 1) . ": Empty title/link or unwanted content. Title: '{$title}', Link: '{$link}'");
                     $debug_extraction_data[$idx] = $current_product_debug; // Log debug even for skipped
                     continue;
                 }
+
+                // Clean title - remove "Sponsored Ad –" prefix if present
+                $title = preg_replace('/^Sponsored Ad\s*[–-]\s*/i', '', $title);
+                $current_product_debug['title_cleaned'] = $title;
 
                 // --- Extract Price ---
                     $priceNode = $xpath->query('.//span[@class="a-price"]/span[@class="a-offscreen"]', $element)->item(0) ??
@@ -961,6 +1062,13 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                     }
                 }
                 $current_product_debug['unit_price'] = $unit_price;
+                
+                // Clear unit price data if no actual unit of measure exists
+                if (!empty($unit_price) && (empty($unit) || !preg_match('/(?:ml|g|gram|grams|oz|ounce|ounces|lb|pound|pounds|kg|kilogram|kilograms|unit|count|piece|pieces|pack|packs|each|item|items|fl\s*oz)\b/i', $unit))) {
+                    $unit_price = '';
+                    $unit = '';
+                    $current_product_debug['unit_cleared_no_valid_measure'] = true;
+                }
 
                 // --- Extract delivery time (enhanced to capture multiple delivery options) ---
                 $delivery_time = '';
@@ -1099,53 +1207,72 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
 
                 // Only add product if essential data (title, link, price, image) is present
                 if (!empty($title) && !empty($link) && $price_value > 0 && !empty($image)) {
-                    $product_data = array(
-                        'title' => $title,
-                        'link' => $link,
-                        'price' => $price_str,
-                        'price_value' => $price_value,
-                        'image' => $image,
-                        'price_per_unit' => $unit_price, // Now populated from extraction
-                        'price_per_unit_value' => $price_value, // Will be updated if unit price is available
-                        'unit' => $unit, // Now populated from extraction
-                        'description' => substr($title, 0, 150) . '...',
-                        'parsing_method' => 'xpath_role_listitem',
-                        'asin' => $asin,
-                        'brand' => $brand,
-                        'title_extraction_method' => $title_extraction_method // For debugging
-                    );
+                    // Create normalized link for duplicate detection (remove query parameters except essential ones)
+                    $normalized_link = preg_replace('/[?&](?!tag=)[^=]*=[^&]*/', '', $link);
                     
-                    if ($rating_number > 0) {
-                        $product_data['rating_number'] = number_format($rating_number, 1);
-                        $product_data['rating'] = str_repeat('★', round($rating_number)) . str_repeat('☆', 5 - round($rating_number));
-                        if (!empty($rating_count_str)) {
-                            $product_data['rating_count'] = $rating_count_str;
+                    // Check for duplicates using both link and ASIN
+                    $is_duplicate = false;
+                    if (!empty($asin) && in_array($asin, $seen_asins)) {
+                        $is_duplicate = true;
+                    } elseif (in_array($normalized_link, $seen_links)) {
+                        $is_duplicate = true;
+                    }
+                    
+                    if (!$is_duplicate) {
+                        // Track this product to prevent future duplicates
+                        $seen_links[] = $normalized_link;
+                        if (!empty($asin)) {
+                            $seen_asins[] = $asin;
                         }
-                        if (!empty($rating_link)) {
-                            $product_data['rating_link'] = $rating_link;
+                        
+                        $product_data = array(
+                            'title' => $title,
+                            'link' => $link,
+                            'price' => $price_str,
+                            'price_value' => $price_value,
+                            'image' => $image,
+                            'price_per_unit' => $unit_price, // Now populated from extraction
+                            'price_per_unit_value' => $price_value, // Will be updated if unit price is available
+                            'unit' => $unit, // Now populated from extraction
+                            'description' => substr($title, 0, 150) . '...',
+                            'parsing_method' => 'xpath_role_listitem',
+                            'asin' => $asin,
+                            'brand' => $brand,
+                            'title_extraction_method' => $title_extraction_method // For debugging
+                        );
+                        
+                        if ($rating_number > 0) {
+                            $product_data['rating_number'] = number_format($rating_number, 1);
+                            $product_data['rating'] = str_repeat('★', round($rating_number)) . str_repeat('☆', 5 - round($rating_number));
+                            if (!empty($rating_count_str)) {
+                                $product_data['rating_count'] = $rating_count_str;
+                            }
+                            if (!empty($rating_link)) {
+                                $product_data['rating_link'] = $rating_link;
+                            }
                         }
-                    }
-                    if (!empty($delivery_time)) {
-                        $product_data['delivery_time'] = $delivery_time;
-                    }
-                    
-                    // Update price_per_unit_value if we have a unit price
-                    if (!empty($unit_price)) {
-                        // Extract numeric value from unit price (e.g., "$3.99/100ml" -> 3.99)
-                        $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price);
-                        if ($unit_price_numeric > 0) {
-                            $product_data['price_per_unit_value'] = $unit_price_numeric;
+                        if (!empty($delivery_time)) {
+                            $product_data['delivery_time'] = $delivery_time;
                         }
+                        
+                        // Update price_per_unit_value if we have a unit price
+                        if (!empty($unit_price)) {
+                            // Extract numeric value from unit price (e.g., "$3.99/100ml" -> 3.99)
+                            $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price);
+                            if ($unit_price_numeric > 0) {
+                                $product_data['price_per_unit_value'] = $unit_price_numeric;
+                            }
+                        }
+                        
+                        // Apply minimum rating filter for display products
+                        if ($rating_number >= $min_rating || $rating_number == 0) {
+                            // Include products with no rating (rating_number == 0) or those meeting minimum rating
+                            $products[] = $product_data;
+                        }
+                        
+                        // Always add to raw cache regardless of rating filter
+                        $raw_items_for_cache[] = $product_data;
                     }
-                    
-                    // Apply minimum rating filter for display products
-                    if ($rating_number >= $min_rating || $rating_number == 0) {
-                        // Include products with no rating (rating_number == 0) or those meeting minimum rating
-                        $products[] = $product_data;
-                    }
-                    
-                    // Always add to raw cache regardless of rating filter
-                    $raw_items_for_cache[] = $product_data;
                 } else {
                     ps_log_error("Product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
                 }
@@ -1167,6 +1294,187 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
             ps_log_error("XPath: No product elements found with div[@role=\"listitem\"] selector.");
         }
         
+        // --- Add Carousel Parsing for Sponsored Products ---
+        // Look for carousel items that might be sponsored products
+        $carouselElements = $xpath->query('//div[contains(@class, "puis-card-container")]');
+        
+        if ($carouselElements && $carouselElements->length > 0) {
+            ps_log_error("XPath: Found " . $carouselElements->length . " puis-card-container product elements");
+            
+            foreach ($carouselElements as $idx => $element) {
+                $current_product_debug = []; // Debug info for the current product
+                
+                // Initialize product data
+                $title = '';
+                $link = '';
+                $price_str = '';
+                $price_value = 0;
+                $image = '';
+                $asin = '';
+                $brand = '';
+                $rating_text = '';
+                $rating_number = 0;
+                $rating_count_str = '';
+                $rating_link = '';
+                $delivery_time = '';
+                $title_extraction_method = 'none';
+
+                // --- Extract Title (using same methods as main parsing) ---
+                // Method 1: h2 with aria-label
+                $h2WithAriaLabel = $xpath->query('.//h2[@aria-label]', $element)->item(0);
+                if ($h2WithAriaLabel) {
+                    $title = trim(preg_replace('/\s+/', ' ', $h2WithAriaLabel->getAttribute('aria-label')));
+                    $title_extraction_method = 'h2_aria_label';
+                    $current_product_debug['title_h2_aria_label'] = $title;
+                }
+                
+                // Method 2: span inside h2
+                if (empty($title)) {
+                    $spanInH2 = $xpath->query('.//h2//span', $element)->item(0);
+                    if ($spanInH2) {
+                        $title = trim(preg_replace('/\s+/', ' ', $spanInH2->textContent));
+                        $title_extraction_method = 'h2_span';
+                        $current_product_debug['title_h2_span'] = $title;
+                    }
+                }
+                
+                // Method 3: span with a-text-normal
+                if (empty($title)) {
+                    $spanNode = $xpath->query('.//span[contains(@class, "a-text-normal")]', $element)->item(0);
+                    if ($spanNode) {
+                        $title = trim(preg_replace('/\s+/', ' ', $spanNode->textContent));
+                        $title_extraction_method = 'span_a_text_normal';
+                        $current_product_debug['title_span_a_text_normal'] = $title;
+                    }
+                }
+                
+                // Method 4: Generic h2 text content
+                if (empty($title)) {
+                    $titleNode = $xpath->query('.//h2', $element)->item(0);
+                    if ($titleNode) {
+                        $title = trim(preg_replace('/\s+/', ' ', $titleNode->textContent));
+                        $title_extraction_method = 'h2_text';
+                        $current_product_debug['title_h2_text'] = $title;
+                    }
+                }
+                
+                $current_product_debug['title_final'] = $title;
+                $current_product_debug['title_method'] = $title_extraction_method;
+
+                // --- Extract Link ---
+                $linkNode = $xpath->query('.//a[contains(@class, "a-link-normal") and .//img[contains(@class, "s-image")]]', $element)->item(0) ?? 
+                            $xpath->query('.//h2//a[contains(@class, "a-link-normal")]', $element)->item(0) ?? 
+                            $xpath->query('.//a[contains(@class, "a-link-normal")]', $element)->item(0);
+
+                if ($linkNode) {
+                    $link = $linkNode->getAttribute('href');
+                    if (strpos($link, 'http') !== 0) {
+                        $base_amazon_url = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+                        $link = rtrim($base_amazon_url, '/') . $link;
+                    }
+                    if (!preg_match('/[?&]tag=/', $link) && !empty($affiliate_id)) {
+                        $link .= (strpos($link, '?') === false ? '?' : '&') . 'tag=' . $affiliate_id;
+                    }
+                }
+                $current_product_debug['link'] = $link;
+                
+                // Skip if title or link is empty
+                if (empty($title) || empty($link)) {
+                    continue;
+                }
+
+                // Clean title - remove "Sponsored Ad –" prefix if present
+                $title = preg_replace('/^Sponsored Ad\s*[–-]\s*/i', '', $title);
+                $current_product_debug['title_cleaned'] = $title;
+
+                // --- Extract Price ---
+                $priceNode = $xpath->query('.//span[@class="a-price"]/span[@class="a-offscreen"]', $element)->item(0) ??
+                             $xpath->query('.//span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]', $element)->item(0);
+                if ($priceNode) {
+                    $price_str = trim($priceNode->textContent);
+                    $price_value = (float) preg_replace('/[^0-9.,]/', '', str_replace(',', '.', $price_str));
+                }
+                $current_product_debug['price_str'] = $price_str;
+                $current_product_debug['price_value'] = $price_value;
+
+                // --- Extract Image ---
+                $imageNode = $xpath->query('.//img[contains(@class, "s-image")]', $element)->item(0);
+                if ($imageNode) {
+                    $image = $imageNode->getAttribute('src');
+                    if (empty($image) || !preg_match('/\.(jpeg|jpg|gif|png)(?:\?.*)?$/i', $image)) {
+                        $image = $imageNode->getAttribute('data-src');
+                    }
+                    if (empty($image) || !preg_match('/\.(jpeg|jpg|gif|png)(?:\?.*)?$/i', $image)) {
+                        $image = '';
+                    }
+                }
+                $current_product_debug['image'] = $image;
+
+                // --- Extract ASIN ---
+                if (!empty($link) && preg_match('/\/dp\/([A-Z0-9]{10})/', $link, $matches)) {
+                    $asin = $matches[1];
+                } else {
+                    $asin_data_attribute = $element->getAttribute('data-asin');
+                    if(!empty($asin_data_attribute)) {
+                        $asin = $asin_data_attribute;
+                    }
+                }
+                $current_product_debug['asin'] = $asin;
+
+                // Create product if we have essential data
+                if (!empty($title) && !empty($link) && $price_value > 0 && !empty($image)) {
+                    // Create normalized link for duplicate detection (remove query parameters except essential ones)
+                    $normalized_link = preg_replace('/[?&](?!tag=)[^=]*=[^&]*/', '', $link);
+                    
+                    // Check for duplicates using both link and ASIN
+                    $is_duplicate = false;
+                    if (!empty($asin) && in_array($asin, $seen_asins)) {
+                        $is_duplicate = true;
+                    } elseif (in_array($normalized_link, $seen_links)) {
+                        $is_duplicate = true;
+                    }
+                    
+                    if (!$is_duplicate) {
+                        // Track this product to prevent future duplicates
+                        $seen_links[] = $normalized_link;
+                        if (!empty($asin)) {
+                            $seen_asins[] = $asin;
+                        }
+                        
+                        $product_data = array(
+                            'title' => $title,
+                            'link' => $link,
+                            'price' => $price_str,
+                            'price_value' => $price_value,
+                            'image' => $image,
+                            'price_per_unit' => '',
+                            'price_per_unit_value' => $price_value,
+                            'unit' => '',
+                            'description' => substr($title, 0, 150) . '...',
+                            'parsing_method' => 'xpath_puis_card',
+                            'asin' => $asin,
+                            'brand' => $brand,
+                            'title_extraction_method' => $title_extraction_method
+                        );
+                        
+                        // Add to both display products and raw cache
+                        $products[] = $product_data;
+                        $raw_items_for_cache[] = $product_data;
+                        
+                        ps_log_error("Puis-card product added: " . substr($title, 0, 50) . "... (Price: $price_str)");
+                    }
+                } else {
+                    ps_log_error("Puis-card product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
+                }
+            }
+            
+            if (count($carouselElements) > 0) {
+                ps_log_error("Successfully processed " . count($carouselElements) . " puis-card elements.");
+            }
+        } else {
+            ps_log_error("XPath: No puis-card-container product elements found.");
+        }
+        
     } catch (Exception $e) {
         ps_log_error("XPath parsing failed with error: " . $e->getMessage());
     }
@@ -1175,6 +1483,12 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
 
     // Extract pagination URLs for pages 2 and 3
     $pagination_urls = ps_extract_pagination_urls($html, $country);
+    
+    // Log duplicate prevention statistics
+    $total_unique_products = count($raw_items_for_cache);
+    $total_seen_links = count($seen_links);
+    $total_seen_asins = count($seen_asins);
+    ps_log_error("Duplicate prevention summary: {$total_unique_products} unique products added, {$total_seen_links} unique links tracked, {$total_seen_asins} unique ASINs tracked");
 
     // Return a structured array containing both display products and raw products for caching
     return array(
@@ -1414,6 +1728,13 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     ps_log_error("Fetching search results from URL: {$url}");
     ps_log_error("DEBUG: Checking proxy constants - HOST defined: " . (defined('PS_DECODO_PROXY_HOST') ? 'YES' : 'NO') . ", PORT defined: " . (defined('PS_DECODO_PROXY_PORT') ? 'YES' : 'NO'));
     
+    // Check if we're on the current network to determine proxy usage
+    $on_current_network = ps_is_on_current_network();
+    $should_use_proxy = $on_current_network;
+    
+    ps_log_error("Network detection result: On current network = " . ($on_current_network ? 'YES' : 'NO') . ", Will use proxy = " . ($should_use_proxy ? 'YES' : 'NO'));
+    ps_log_error("PROXY DECISION: " . ($should_use_proxy ? 'USING PROXY' : 'DIRECT REQUEST') . " for URL: {$url}");
+    
     // Initialize cURL
     $ch = curl_init();
     
@@ -1425,12 +1746,12 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     
-    // Configure proxy settings (Decodo proxy service)
-    if (defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
+    // Configure proxy settings (Decodo proxy service) - only if needed
+    if ($should_use_proxy && defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
         $proxy_host = PS_DECODO_PROXY_HOST;
         $proxy_port = PS_DECODO_PROXY_PORT;
         
-        ps_log_error("Using Decodo proxy: {$proxy_host}:{$proxy_port}");
+        ps_log_error("PROXY EXECUTION: Using Decodo proxy: {$proxy_host}:{$proxy_port}");
         
         curl_setopt($ch, CURLOPT_PROXY, $proxy_host);
         curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
@@ -1459,8 +1780,10 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
             ps_log_error("DEBUG: PS_DECODO_USER_BASE defined: " . (defined('PS_DECODO_USER_BASE') ? 'YES' : 'NO'));
             ps_log_error("DEBUG: PS_DECODO_PASSWORD defined: " . (defined('PS_DECODO_PASSWORD') ? 'YES' : 'NO'));
         }
+    } elseif ($should_use_proxy) {
+        ps_log_error("PROXY EXECUTION: Warning - Proxy constants not defined but proxy is needed - making direct request to Amazon");
     } else {
-        ps_log_error("Warning: Proxy constants not defined - making direct request to Amazon");
+        ps_log_error("PROXY EXECUTION: Making direct request to Amazon (no proxy)");
     }
     
     // Set user agent to mimic a browser
@@ -1642,4 +1965,231 @@ function ps_extract_product_html($html) {
         ps_log_error("Error during HTML optimization: " . $e->getMessage() . " - returning original HTML");
         return $html; // Return original HTML if optimization fails
     }
+}
+
+/**
+ * Check if the current request is from the configured "current network"
+ * This can be used to determine whether to use proxy or direct connection
+ *
+ * @return bool True if on current network, false otherwise
+ */
+function ps_is_on_current_network() {
+    // Get current network settings
+    $settings = get_option('ps_settings');
+    $use_network_detection = isset($settings['use_network_detection']) ? $settings['use_network_detection'] : 0;
+    
+    // If network detection is disabled, always use proxy (existing behavior)
+    if (!$use_network_detection) {
+        ps_log_error("Network detection disabled - will use proxy");
+        return false;
+    }
+    
+    // Get the current server's IP address
+    $current_ip = ps_get_server_ip();
+    ps_log_error("Network detection: Current server IP: {$current_ip}");
+    
+    // Check various network indicators
+    $network_indicators = array();
+    
+    // 1. Check if we have a configured network IP range
+    $current_network_range = isset($settings['current_network_range']) ? trim($settings['current_network_range']) : '';
+    if (!empty($current_network_range)) {
+        $is_in_range = ps_ip_in_range($current_ip, $current_network_range);
+        $network_indicators['ip_range'] = $is_in_range;
+        ps_log_error("Network detection: IP range check ({$current_network_range}): " . ($is_in_range ? 'YES' : 'NO'));
+    }
+    
+    // 2. Check if the main server IP is private/local (only as fallback indicator)
+    $is_main_ip_private = ps_is_local_or_private_ip($current_ip);
+    if ($is_main_ip_private) {
+        $network_indicators['private_ip'] = true;
+        ps_log_error("Network detection: Main IP ({$current_ip}): PRIVATE/LOCAL");
+    } else {
+        ps_log_error("Network detection: Main IP ({$current_ip}): PUBLIC");
+    }
+    
+    // 3. Check for specific hostname patterns
+    $current_network_hostnames = isset($settings['current_network_hostnames']) ? trim($settings['current_network_hostnames']) : '';
+    if (!empty($current_network_hostnames)) {
+        $hostnames = array_map('trim', explode(',', $current_network_hostnames));
+        $current_hostname = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        
+        $hostname_match = false;
+        foreach ($hostnames as $pattern) {
+            if (!empty($pattern) && (strpos($current_hostname, $pattern) !== false || fnmatch($pattern, $current_hostname))) {
+                $hostname_match = true;
+                break;
+            }
+        }
+        $network_indicators['hostname'] = $hostname_match;
+        ps_log_error("Network detection: Hostname check ({$current_hostname} in [{$current_network_hostnames}]): " . ($hostname_match ? 'MATCH' : 'NO MATCH'));
+    }
+    
+    // Determine if we're on current network based on indicators
+    $on_current_network = false;
+    
+    // If any indicator suggests we're on the current network, consider it true
+    foreach ($network_indicators as $indicator => $result) {
+        if ($result === true) {
+            $on_current_network = true;
+            ps_log_error("Network detection: Identified as current network based on: {$indicator}");
+            break;
+        }
+    }
+    
+    ps_log_error("Network detection: Final result - On current network: " . ($on_current_network ? 'YES' : 'NO') . " (will " . ($on_current_network ? 'NOT use proxy' : 'use proxy') . ")");
+    
+    return $on_current_network;
+}
+
+/**
+ * Get the server's IP address
+ *
+ * @return string The server's IP address
+ */
+function ps_get_server_ip() {
+    // Try various methods to get the server's actual IP
+    $ip_sources = array(
+        'SERVER_ADDR',
+        'LOCAL_ADDR', 
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_REAL_IP',
+        'HTTP_CF_CONNECTING_IP',
+        'REMOTE_ADDR'
+    );
+    
+    foreach ($ip_sources as $source) {
+        if (isset($_SERVER[$source]) && !empty($_SERVER[$source])) {
+            $ip = trim($_SERVER[$source]);
+            // Handle comma-separated IPs (from proxies)
+            if (strpos($ip, ',') !== false) {
+                $ip = trim(explode(',', $ip)[0]);
+            }
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return $ip;
+            }
+        }
+    }
+    
+    // Fallback: try to get external IP via API call
+    $external_ip = ps_get_external_ip();
+    if ($external_ip) {
+        return $external_ip;
+    }
+    
+    // Last resort
+    return isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '127.0.0.1';
+}
+
+/**
+ * Get external IP address via API call
+ *
+ * @return string|false External IP address or false on failure
+ */
+function ps_get_external_ip() {
+    $services = array(
+        'https://api.ipify.org',
+        'https://ipecho.net/plain',
+        'https://api.my-ip.io/ip'
+    );
+    
+    foreach ($services as $service) {
+        $response = wp_remote_get($service, array('timeout' => 5));
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            $ip = trim(wp_remote_retrieve_body($response));
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Check if an IP address is in a given range
+ *
+ * @param string $ip The IP address to check
+ * @param string $range The IP range (e.g., "192.168.1.0/24" or "192.168.1.1-192.168.1.255")
+ * @return bool True if IP is in range, false otherwise
+ */
+function ps_ip_in_range($ip, $range) {
+    if (empty($ip) || empty($range)) {
+        return false;
+    }
+    
+    // Handle CIDR notation (e.g., 192.168.1.0/24)
+    if (strpos($range, '/') !== false) {
+        return ps_ip_in_cidr($ip, $range);
+    }
+    
+    // Handle range notation (e.g., 192.168.1.1-192.168.1.255)
+    if (strpos($range, '-') !== false) {
+        list($start, $end) = explode('-', $range, 2);
+        return ps_ip_in_range_start_end($ip, trim($start), trim($end));
+    }
+    
+    // Handle single IP
+    return $ip === trim($range);
+}
+
+/**
+ * Check if an IP address is in a CIDR range
+ *
+ * @param string $ip The IP address to check
+ * @param string $cidr The CIDR range (e.g., "192.168.1.0/24")
+ * @return bool True if IP is in range, false otherwise
+ */
+function ps_ip_in_cidr($ip, $cidr) {
+    list($network, $mask) = explode('/', $cidr, 2);
+    
+    if (!filter_var($ip, FILTER_VALIDATE_IP) || !filter_var($network, FILTER_VALIDATE_IP)) {
+        return false;
+    }
+    
+    $ip_long = ip2long($ip);
+    $network_long = ip2long($network);
+    $mask = (0xffffffff << (32 - (int)$mask)) & 0xffffffff;
+    
+    return ($ip_long & $mask) === ($network_long & $mask);
+}
+
+/**
+ * Check if an IP address is between two IP addresses
+ *
+ * @param string $ip The IP address to check
+ * @param string $start The start IP address
+ * @param string $end The end IP address
+ * @return bool True if IP is in range, false otherwise
+ */
+function ps_ip_in_range_start_end($ip, $start, $end) {
+    if (!filter_var($ip, FILTER_VALIDATE_IP) || !filter_var($start, FILTER_VALIDATE_IP) || !filter_var($end, FILTER_VALIDATE_IP)) {
+        return false;
+    }
+    
+    $ip_long = ip2long($ip);
+    $start_long = ip2long($start);
+    $end_long = ip2long($end);
+    
+    return $ip_long >= $start_long && $ip_long <= $end_long;
+}
+
+/**
+ * Check if an IP address is localhost or in private IP ranges
+ *
+ * @param string $ip The IP address to check
+ * @return bool True if IP is local/private, false otherwise
+ */
+function ps_is_local_or_private_ip($ip) {
+    if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP)) {
+        return false;
+    }
+    
+    // Check if it's localhost
+    if ($ip === '127.0.0.1' || $ip === '::1') {
+        return true;
+    }
+    
+    // Check if it's in private IP ranges
+    return !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
 }

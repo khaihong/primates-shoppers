@@ -521,22 +521,34 @@ function ps_ajax_search() {
                 $display_results['debug_info'] = $amazon_search_response['debug_info'];
             }
 
-
             // Return the DISPLAY results (success or error)
             if ($display_results['success']) {
-        wp_send_json_success($display_results);
-    } else {
-        wp_send_json_error($display_results);
+                wp_send_json_success($display_results);
+            } else {
+                if (isset($display_results['amazon_search_url'])) {
+                    ps_log_error("FRONTEND_ERROR_WITH_URL: " . json_encode($display_results));
+                }
+                wp_send_json_error($display_results);
             }
-    } else {
+        } else {
             // ps_log_error("Invalid Amazon search results format: " . print_r($amazon_search_response, true));
-            wp_send_json_error(array(
+            
+            // Create Amazon search URL for the user to continue searching manually
+            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($search_query);
+            
+            $error_response = array(
                 'success' => false,
                 'message' => 'Invalid response format from search function.',
                 'items' => array(),
                 'count' => 0,
-                'error_type' => 'invalid_response_format'
-            ));
+                'error_type' => 'invalid_response_format',
+                'amazon_search_url' => $amazon_search_url,
+                'search_query' => $search_query,
+                'country' => $country
+            );
+            
+            wp_send_json_error($error_response);
         }
     } catch (Exception $e) {
         // ps_log_error("Exception during search: " . $e->getMessage());
@@ -667,29 +679,21 @@ function ps_get_user_identifier() {
     // For logged-in users, use their WordPress user ID if it is not 0
     if (is_user_logged_in()) {
         $wp_user_id = get_current_user_id();
-        ps_log_error("ps_get_user_identifier: User is logged in, wp_user_id = '{$wp_user_id}'");
         if ($wp_user_id && $wp_user_id !== 0) {
             $user_id = 'user_' . $wp_user_id;
-            ps_log_error("ps_get_user_identifier: Returning logged-in user ID: '{$user_id}'");
             return $user_id;
         }
     }
     // For visitors, use/create a cookie-based identifier
     $cookie_name = 'ps_visitor_id';
-    ps_log_error("ps_get_user_identifier: User not logged in or wp_user_id is 0, checking for visitor cookie");
     // Check if the visitor already has an ID cookie
     if (isset($_COOKIE[$cookie_name])) {
         $visitor_id = sanitize_text_field($_COOKIE[$cookie_name]);
-        ps_log_error("ps_get_user_identifier: Found existing cookie: '{$visitor_id}'");
         // Validate that it matches our expected format
         if (preg_match('/^visitor_[a-f0-9]{10}$/', $visitor_id)) {
-            ps_log_error("ps_get_user_identifier: Cookie is valid, returning: '{$visitor_id}'");
             return $visitor_id;
-        } else {
-            ps_log_error("ps_get_user_identifier: Cookie format is invalid: '{$visitor_id}'");
-        }
+        } 
     } else {
-        ps_log_error("ps_get_user_identifier: No existing cookie found");
         
         // Check session as fallback
         if (session_status() === PHP_SESSION_NONE) {
@@ -697,26 +701,19 @@ function ps_get_user_identifier() {
         }
         if (isset($_SESSION['ps_visitor_id'])) {
             $visitor_id = sanitize_text_field($_SESSION['ps_visitor_id']);
-            ps_log_error("ps_get_user_identifier: Found existing session ID: '{$visitor_id}'");
             // Validate that it matches our expected format
             if (preg_match('/^visitor_[a-f0-9]{10}$/', $visitor_id)) {
-                ps_log_error("ps_get_user_identifier: Session ID is valid, returning: '{$visitor_id}'");
                 return $visitor_id;
-            } else {
-                ps_log_error("ps_get_user_identifier: Session ID format is invalid: '{$visitor_id}'");
-            }
+            } 
         }
     }
     // If no valid cookie exists, create a new visitor ID
     $visitor_id = 'visitor_' . substr(md5(uniqid(mt_rand(), true)), 0, 10);
-    ps_log_error("ps_get_user_identifier: Creating new visitor ID: '{$visitor_id}'");
     
     // Set a cookie that lasts for 30 days, but only if headers haven't been sent yet
     if (!headers_sent()) {
         setcookie($cookie_name, $visitor_id, time() + (30 * DAY_IN_SECONDS), '/');
-        ps_log_error("ps_get_user_identifier: Cookie set successfully, returning: '{$visitor_id}'");
     } else {
-        ps_log_error("ps_get_user_identifier: Headers already sent, cannot set cookie. Using session fallback for visitor ID: '{$visitor_id}'");
         // Use session as fallback when cookies can't be set
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -874,32 +871,70 @@ function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
     $size_kb = strlen($json_results) / 1024;
     // Log the size for monitoring
     ps_log_error("Caching results for user {$user_id} (query: '{$query}', country: {$country_code}): {$size_kb} KB. Items: " . (isset($clean_results['count']) ? $clean_results['count'] : 'N/A'));
-    // Store the results with the expires_at column and user_id
-    ps_log_error("ps_cache_results: About to insert with user_id = '{$user_id}', query_hash = '{$query_hash}'");
-    $insert_result = $wpdb->insert(
-        $table_name,
-        array(
-            'query_hash' => $query_hash,
-            'query_data' => $query_data,
-            'results' => $json_results,
-            'created_at' => current_time('mysql'),
-            'expires_at' => $cache_expiry,
-            'user_id' => $user_id // Store user_id directly in the table
-        ),
-        array(
-            '%s', // query_hash
-            '%s', // query_data
-            '%s', // results
-            '%s', // created_at
-            '%s', // expires_at
-            '%s'  // user_id - explicitly specify as string
-        )
-    );
-    ps_log_error("ps_cache_results: Insert result = " . ($insert_result ? 'SUCCESS' : 'FAILED') . ", wpdb->insert_id = " . $wpdb->insert_id);
-    if ($wpdb->last_error) {
-        ps_log_error("Database error when caching results for hash {$query_hash}: " . $wpdb->last_error);
+    
+    // Check if record already exists for this query hash
+    $existing_record = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$table_name} WHERE query_hash = %s AND user_id = %s", $query_hash, $user_id));
+    
+    if ($existing_record) {
+        // Update existing record
+        ps_log_error("ps_cache_results: Updating existing cache record ID {$existing_record->id} with user_id = '{$user_id}', query_hash = '{$query_hash}'");
+        $update_result = $wpdb->update(
+            $table_name,
+            array(
+                'query_data' => $query_data,
+                'results' => $json_results,
+                'created_at' => current_time('mysql'), // Update the creation time to reflect latest update
+                'expires_at' => $cache_expiry
+            ),
+            array(
+                'query_hash' => $query_hash,
+                'user_id' => $user_id
+            ),
+            array(
+                '%s', // query_data
+                '%s', // results
+                '%s', // created_at
+                '%s'  // expires_at
+            ),
+            array(
+                '%s', // query_hash
+                '%s'  // user_id
+            )
+        );
+        ps_log_error("ps_cache_results: Update result = " . ($update_result !== false ? 'SUCCESS' : 'FAILED') . " for record ID {$existing_record->id}");
+        if ($wpdb->last_error) {
+            ps_log_error("Database error when updating cache results for hash {$query_hash}: " . $wpdb->last_error);
+        } else {
+            ps_log_error("Successfully updated cache results with hash: " . $query_hash . ", User: " . $user_id);
+        }
     } else {
-        ps_log_error("Successfully cached results with hash: " . $query_hash . ", User: " . $user_id);
+        // Insert new record
+        ps_log_error("ps_cache_results: Creating new cache record with user_id = '{$user_id}', query_hash = '{$query_hash}'");
+        $insert_result = $wpdb->insert(
+            $table_name,
+            array(
+                'query_hash' => $query_hash,
+                'query_data' => $query_data,
+                'results' => $json_results,
+                'created_at' => current_time('mysql'),
+                'expires_at' => $cache_expiry,
+                'user_id' => $user_id // Store user_id directly in the table
+            ),
+            array(
+                '%s', // query_hash
+                '%s', // query_data
+                '%s', // results
+                '%s', // created_at
+                '%s', // expires_at
+                '%s'  // user_id - explicitly specify as string
+            )
+        );
+        ps_log_error("ps_cache_results: Insert result = " . ($insert_result ? 'SUCCESS' : 'FAILED') . ", wpdb->insert_id = " . $wpdb->insert_id);
+        if ($wpdb->last_error) {
+            ps_log_error("Database error when caching results for hash {$query_hash}: " . $wpdb->last_error);
+        } else {
+            ps_log_error("Successfully cached results with hash: " . $query_hash . ", User: " . $user_id);
+        }
     }
 }
 
@@ -1350,31 +1385,6 @@ function ps_filter_amazon_products($items, $includeText = '', $excludeText = '',
 }
 
 /**
- * Handle debug logging from JavaScript
-// Test debug logging system on plugin load
-add_action('init', function() {
-    // Debug logging system is working - removing test messages
-    // if (function_exists('ps_log_error')) {
-    //     ps_log_error("[UNIT PRICE DEBUG] Plugin loaded - debug logging system initialized");
-    // }
-    // error_log("[UNIT PRICE DEBUG] Plugin loaded - debug logging system initialized via error_log");
-});
-
-// Also test when admin area is accessed
-add_action('admin_init', function() {
-    // Debug logging system is working - removing test messages
-    // if (function_exists('ps_log_error')) {
-    //     ps_log_error("[UNIT PRICE DEBUG] Admin area accessed - debug logging system working");
-    // }
-    // error_log("[UNIT PRICE DEBUG] Admin area accessed - debug logging system working via error_log");
-});
-
-// Test when any AJAX request is made
-add_action('wp_ajax_ps_search', function() {
-    error_log("[UNIT PRICE DEBUG] AJAX search request detected - about to process");
-}, 1); // Priority 1 to run before the main handler
-
-/**
  * AJAX handler for loading more results (pagination)
  */
 function ps_ajax_load_more() {
@@ -1575,6 +1585,9 @@ function ps_ajax_load_more() {
             // Determine if there are more pages available
             $has_more_pages = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
             
+            // Debug logging for has_more_pages calculation
+            ps_log_error("Load More: has_more_pages calculation - Page: {$page}, Page < 3: " . ($page < 3 ? 'true' : 'false') . ", Next page key exists: " . (isset($pagination_urls['page_' . ($page + 1)]) ? 'true' : 'false') . ", Result: " . ($has_more_pages ? 'true' : 'false'));
+            
             // Return the complete filtered and sorted dataset
             ps_send_ajax_response(array(
                 'success' => true,
@@ -1608,4 +1621,111 @@ function ps_ajax_load_more() {
 }
 add_action('wp_ajax_ps_load_more', 'ps_ajax_load_more');
 add_action('wp_ajax_nopriv_ps_load_more', 'ps_ajax_load_more');
+
+/**
+ * AJAX handler for testing network detection settings
+ */
+function ps_ajax_test_network_detection() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'ps_network_test')) {
+        wp_die('Security check failed');
+    }
+    
+    // Check user capabilities
+    if (!current_user_can('manage_options')) {
+        wp_die('Insufficient permissions');
+    }
+    
+    try {
+        // Get test parameters from POST data
+        $use_network_detection = isset($_POST['use_network_detection']) && $_POST['use_network_detection'] == '1';
+        $current_network_range = sanitize_text_field($_POST['current_network_range']);
+        $current_network_hostnames = sanitize_text_field($_POST['current_network_hostnames']);
+        
+        // Create temporary settings for testing
+        $temp_settings = array(
+            'use_network_detection' => $use_network_detection ? 1 : 0,
+            'current_network_range' => $current_network_range,
+            'current_network_hostnames' => $current_network_hostnames
+        );
+        
+        // Store current settings and temporarily replace them
+        $original_settings = get_option('ps_settings', array());
+        $test_settings = array_merge($original_settings, $temp_settings);
+        
+        // Temporarily update the settings for testing
+        update_option('ps_settings', $test_settings);
+        
+        // Run the network detection test
+        $detection_details = array();
+        $on_current_network = false;
+        
+        if ($use_network_detection) {
+            $on_current_network = ps_is_on_current_network();
+            
+            // Get detailed information for the test result
+            $server_ip = ps_get_server_ip();
+            
+            // Check IP range detection
+            if (!empty($current_network_range)) {
+                $in_range = ps_ip_in_range($server_ip, $current_network_range);
+                $detection_details[] = "IP range check ({$current_network_range}): " . ($in_range ? "✓ Match" : "✗ No match") . " for IP {$server_ip}";
+            } else {
+                $detection_details[] = "IP range check: Disabled (no range specified)";
+            }
+            
+            // Check hostname detection
+            if (!empty($current_network_hostnames)) {
+                $hostname = gethostname() ?: $_SERVER['SERVER_NAME'] ?? 'unknown';
+                $hostnames = array_map('trim', explode(',', $current_network_hostnames));
+                $hostname_match = false;
+                
+                foreach ($hostnames as $pattern) {
+                    if (fnmatch($pattern, $hostname)) {
+                        $hostname_match = true;
+                        break;
+                    }
+                }
+                
+                $detection_details[] = "Hostname check: " . ($hostname_match ? "✓ Match" : "✗ No match") . " for hostname '{$hostname}' against patterns: " . $current_network_hostnames;
+            } else {
+                $detection_details[] = "Hostname check: Disabled (no patterns specified)";
+            }
+            
+            // Check for private/local IP
+            $is_private = ps_is_local_or_private_ip($server_ip);
+            $detection_details[] = "Private/Local IP detection: " . ($is_private ? "✓ Private/Local IP detected" : "✗ Public IP detected") . " ({$server_ip})";
+            
+        } else {
+            $detection_details[] = "Network detection is disabled";
+            $server_ip = ps_get_server_ip();
+        }
+        
+        // Determine if proxy would be used
+        $will_use_proxy = $use_network_detection && $on_current_network;
+        
+        // Restore original settings
+        update_option('ps_settings', $original_settings);
+        
+        // Return test results
+        wp_send_json_success(array(
+            'network_detection_enabled' => $use_network_detection,
+            'on_current_network' => $on_current_network,
+            'will_use_proxy' => $will_use_proxy,
+            'server_ip' => $server_ip,
+            'detection_details' => $detection_details
+        ));
+        
+    } catch (Exception $e) {
+        // Restore original settings in case of error
+        if (isset($original_settings)) {
+            update_option('ps_settings', $original_settings);
+        }
+        
+        wp_send_json_error(array(
+            'message' => 'Network detection test failed: ' . $e->getMessage()
+        ));
+    }
+}
+add_action('wp_ajax_ps_test_network_detection', 'ps_ajax_test_network_detection');
 

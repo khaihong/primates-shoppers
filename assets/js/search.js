@@ -923,8 +923,8 @@ console.log('search.js loaded');
                         // Reset flag since this is loading cached results, not a live search
                         isAfterLiveSearch = false;
                         
-                        // Apply sorting based on current products (always analyze fresh data)
-                        const sortingChanged = calculateAndSaveDefaultSorting(products);
+                        // Apply saved default sorting preference (don't recalculate from cached data)
+                        const sortingChanged = applySavedDefaultSorting();
                         
                         // Auto-apply search/exclude terms when loading cached results
                         const queryElem = document.getElementById('ps-search-query');
@@ -1317,7 +1317,18 @@ console.log('search.js loaded');
                         
                         // Add Amazon search link if available (for blocking errors)
                         if (response.data && response.data.amazon_search_url) {
-                            errorHtml += '<br><br>Or continue search on <a href="' + response.data.amazon_search_url + '" target="_blank" rel="noopener">Amazon.' + (response.data.country === 'ca' ? 'ca' : 'com') + '</a>';
+                            console.log('DEBUG: Found amazon_search_url in error response:', response.data.amazon_search_url);
+                            errorHtml += '<br><br>Or continue search on <a href="' + response.data.amazon_search_url + '" target="_blank" rel="noopener">' + response.data.amazon_search_url + '</a>';
+                        } else {
+                            console.log('DEBUG: No amazon_search_url found in error response. response.data:', response.data);
+                            console.log('DEBUG: Full response structure:', response);
+                            console.log('DEBUG: response.amazon_search_url:', response.amazon_search_url);
+                            console.log('DEBUG: response.data && response.data.amazon_search_url:', response.data && response.data.amazon_search_url);
+                            console.log('DEBUG: typeof response.data:', typeof response.data);
+                            console.log('DEBUG: Object.keys(response):', Object.keys(response));
+                            if (response.data) {
+                                console.log('DEBUG: Object.keys(response.data):', Object.keys(response.data));
+                            }
                         }
                         
                         errorHtml += '</div>';
@@ -1843,6 +1854,13 @@ console.log('search.js loaded');
                         $resultsCount.html('<p><strong>' + displayCount + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
                         // Check if more pages are available
+                        console.log('Load More: Checking has_more_pages...', {
+                            has_more_pages: response.has_more_pages,
+                            page_loaded: response.page_loaded,
+                            currentPage: currentPage,
+                            responseHasMorePages: !!response.has_more_pages
+                        });
+                        
                         if (!response.has_more_pages) {
                             // Hide load more buttons when no more pages
                             console.log('Load More: No more pages available, hiding buttons');
@@ -1875,10 +1893,20 @@ console.log('search.js loaded');
                         let errorHtml = '<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">' + errorMessage;
                         
                         // Add Amazon search link if available (for blocking errors)
-                        if ((response.amazon_search_url) || (response.data && response.data.amazon_search_url)) {
-                            const amazonUrl = response.amazon_search_url || response.data.amazon_search_url;
-                            const country = response.country || (response.data && response.data.country) || 'us';
-                            errorHtml += '<br><br>Or continue search on <a href="' + amazonUrl + '" target="_blank" rel="noopener">Amazon.' + (country === 'ca' ? 'ca' : 'com') + '</a>';
+                        if ((response.data && response.data.amazon_search_url) || response.amazon_search_url) {
+                            const amazonUrl = (response.data && response.data.amazon_search_url) || response.amazon_search_url;
+                            console.log('DEBUG: Found amazon_search_url in main search error response:', amazonUrl);
+                            errorHtml += '<br><br>Or continue search on <a href="' + amazonUrl + '" target="_blank" rel="noopener">' + amazonUrl + '</a>';
+                        } else {
+                            console.log('DEBUG: No amazon_search_url found in main search error response. response.data:', response.data);
+                            console.log('DEBUG: Full main search response structure:', response);
+                            console.log('DEBUG: response.amazon_search_url:', response.amazon_search_url);
+                            console.log('DEBUG: response.data && response.data.amazon_search_url:', response.data && response.data.amazon_search_url);
+                            console.log('DEBUG: typeof response.data:', typeof response.data);
+                            console.log('DEBUG: Object.keys(response):', Object.keys(response));
+                            if (response.data) {
+                                console.log('DEBUG: Object.keys(response.data):', Object.keys(response.data));
+                            }
                         }
                         
                         errorHtml += '</div>';
