@@ -69,6 +69,9 @@ console.log('search.js loaded');
         // Detect user's country and set the appropriate radio button
         detectUserCountry();
         
+        // Restore platform selections from cache
+        restorePlatformSelections();
+        
         // Global variables
         let currentSearchResults = [];
         let originalCachedResults = [];
@@ -271,7 +274,7 @@ console.log('search.js loaded');
                         
                         pricePerUnitValue = normalizedPrice;
                         hasPricePerUnit = true;
-                        console.log(`Calculated price per unit from title: $${processedItem.price_value} for ${sizeInfo.value}${sizeInfo.unit} = $${normalizedPrice.toFixed(2)}/${processedItem.unit}`);
+
                     }
                 }
 
@@ -279,10 +282,7 @@ console.log('search.js loaded');
                 if (hasPricePerUnit) {
                     const unitLower = processedItem.unit.toLowerCase();
                     
-                    // Debug: Log the original values to understand what we're working with
-                    console.log(`Processing unit price for: ${processedItem.title.substring(0, 50)}...`);
-                    console.log(`Original unit: "${processedItem.unit}", price_per_unit: "${processedItem.price_per_unit}", price_per_unit_value: ${pricePerUnitValue}`);
-                    console.log(`Total price: $${processedItem.price_value}`);
+
                     
                     // Check if the price_per_unit_value seems unreasonable (likely the total price instead of per-unit)
                     // If price_per_unit_value is close to the total price, it's probably wrong
@@ -290,15 +290,12 @@ console.log('search.js loaded');
                     const isUnreasonableUnitPrice = Math.abs(pricePerUnitValue - totalPrice) < (totalPrice * 0.1); // Within 10% of total price
                     
                     if (isUnreasonableUnitPrice && totalPrice > 0) {
-                        console.log(`Unit price ${pricePerUnitValue} seems unreasonable (too close to total price ${totalPrice}). Attempting to recalculate.`);
-                        
                         // Try to extract size from title to recalculate
                         const sizeInfo = extractSizeFromTitle(processedItem.title);
                         if (sizeInfo) {
                             // Recalculate the correct unit price
                             const correctPricePerUnit = totalPrice / sizeInfo.value;
                             pricePerUnitValue = correctPricePerUnit;
-                            console.log(`Recalculated: $${totalPrice} ÷ ${sizeInfo.value}${sizeInfo.unit} = $${correctPricePerUnit.toFixed(4)} per ${sizeInfo.unit}`);
                         }
                     }
                     
@@ -326,7 +323,7 @@ console.log('search.js loaded');
                         processedItem.unit = '100 oz';
                     }
                     
-                    console.log(`Final unit: "${processedItem.unit}", price_per_unit: "${processedItem.price_per_unit}", price_per_unit_value: ${processedItem.price_per_unit_value}`);
+
                 }
 
                 return processedItem;
@@ -343,11 +340,13 @@ console.log('search.js loaded');
             const sortedItems = [...items]; // Create a copy to avoid mutating the original
             
             if (sortBy === 'price') {
+
                 sortedItems.sort(function(a, b) {
                     const priceA = parseFloat(a.price_value) || 0;
                     const priceB = parseFloat(b.price_value) || 0;
                     return priceA - priceB;
                 });
+
             } else if (sortBy === 'price_per_unit') {
                 // Separate products with and without unit prices
                 const itemsWithUnitPrice = [];
@@ -374,13 +373,7 @@ console.log('search.js loaded');
                     return priceA - priceB;
                 });
                 
-                // Debug logging for unit price sorting
-                if (itemsWithUnitPrice.length > 0) {
-                    console.log('Unit price sorting results:');
-                    itemsWithUnitPrice.slice(0, 5).forEach(function(item, index) {
-                        console.log(`${index + 1}. ${item.title.substring(0, 50)}... - $${item.price_per_unit_value}/unit (${item.unit})`);
-                    });
-                }
+
                 
                 // Sort products without unit prices by regular price
                 itemsWithoutUnitPrice.sort(function(a, b) {
@@ -522,6 +515,15 @@ console.log('search.js loaded');
             items.forEach(function(item) {
                 let productHtml = productTemplate;
                 
+                // eBay debug logging removed
+                
+                // Handle platform conditional
+                if (item.platform) {
+                    productHtml = productHtml.replace(/{{#if platform}}([\s\S]*?){{\/if}}/g, '$1');
+                } else {
+                    productHtml = productHtml.replace(/{{#if platform}}[\s\S]*?{{\/if}}/g, '');
+                }
+
                 // Handle brand conditional
                 if (item.brand) {
                     productHtml = productHtml.replace(/{{#if brand}}([\s\S]*?){{\/if}}/g, '$1');
@@ -529,15 +531,39 @@ console.log('search.js loaded');
                     productHtml = productHtml.replace(/{{#if brand}}[\s\S]*?{{\/if}}/g, '');
                 }
 
-                // Handle ratings conditional with else clause
+                // Handle the entire rating section as one atomic operation
                 if (item.rating) {
-                    productHtml = productHtml.replace(/{{#if rating}}([\s\S]*?){{else}}[\s\S]*?{{\/if}}/g, '$1');
+                    if (item.is_ebay_seller_rating) {
+                        // eBay debug removed
+                        
+                        // For eBay seller ratings, replace the entire rating conditional block with just the eBay rating
+                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}[\s\S]*?{{\/if}}\s*<\/a>\s*<\/div>\s*{{else}}\s*<div class="ps-rating-spacer"><\/div>\s*{{\/if}}/g;
+                        
+                        productHtml = productHtml.replace(
+                            ratingPattern,
+                            '<div class="ps-product-rating"><a href="{{rating_link}}" target="_blank"><span class="ps-stars">{{rating}}</span></a></div>'
+                        );
+                        
+                        // eBay debug removed
+                    } else {
+                        // For regular Amazon ratings, replace with the Amazon section content
+                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}([\s\S]*?){{\/if}}\s*<\/a>\s*<\/div>\s*{{else}}\s*<div class="ps-rating-spacer"><\/div>\s*{{\/if}}/g;
+                        
+                        productHtml = productHtml.replace(
+                            ratingPattern,
+                            '<div class="ps-product-rating"><a href="{{rating_link}}" target="_blank">$1</a></div>'
+                        );
+                    }
                 } else {
-                    productHtml = productHtml.replace(/{{#if rating}}[\s\S]*?{{else}}([\s\S]*?){{\/if}}/g, '$1');
+                    // For items without ratings, replace the entire rating section with just the spacer
+                    productHtml = productHtml.replace(
+                        /{{#if rating}}[\s\S]*?{{else}}\s*(<div class="ps-rating-spacer"><\/div>)\s*{{\/if}}/g,
+                        '$1'
+                    );
                 }
                 
                 // Handle rating_number conditional (inside rating conditional)
-                if (item.rating && item.rating_number) {
+                if (item.rating && item.rating_number && !item.is_ebay_seller_rating) {
                     productHtml = productHtml.replace(/{{#if rating_number}}([\s\S]*?){{\/if}}/g, '$1');
                 } else {
                     productHtml = productHtml.replace(/{{#if rating_number}}[\s\S]*?{{\/if}}/g, '');
@@ -566,19 +592,21 @@ console.log('search.js loaded');
                 }
                 
                 // Replace standard placeholders
+                // eBay debug removed
+                
                 productHtml = productHtml
+                    .replace(/{{platform}}/g, item.platform || '')
                     .replace(/{{brand}}/g, item.brand || '')
                     .replace(/{{title}}/g, item.title || '')
                     .replace(/{{link}}/g, item.link || '')
                     .replace(/{{image}}/g, item.image || '')
                     .replace(/{{price}}/g, item.price || '')
                     .replace(/{{price_per_unit}}/g, item.price_per_unit || '')
-                    .replace(/{{unit}}/g, item.unit || '');
+                    .replace(/{{unit}}/g, item.unit || '')
+                    .replace(/{{rating}}/g, item.rating || '');
                 
-                // Replace rating placeholders only if they exist
-                if (item.rating) {
-                    productHtml = productHtml.replace(/{{rating}}/g, item.rating);
-                }
+                // eBay debug removed
+                    
                 if (item.rating_number) {
                     productHtml = productHtml.replace(/{{rating_number}}/g, item.rating_number);
                 }
@@ -587,6 +615,9 @@ console.log('search.js loaded');
                 }
                 if (item.rating_link) {
                     productHtml = productHtml.replace(/{{rating_link}}/g, item.rating_link);
+                } else {
+                    // Fallback: use product link or # for rating link
+                    productHtml = productHtml.replace(/{{rating_link}}/g, item.link || '#');
                 }
                 
                 // Replace delivery time if it exists
@@ -594,8 +625,10 @@ console.log('search.js loaded');
                     productHtml = productHtml.replace(/{{delivery_time}}/g, item.delivery_time);
                 }
                 
-                // Remove any stray {{/if}} left in the template
+                // Remove any remaining template syntax that might have been left behind
                 productHtml = productHtml.replace(/{{\/if}}/g, '');
+                productHtml = productHtml.replace(/{{else}}/g, '');
+                productHtml = productHtml.replace(/{{#if[^}]*}}/g, '');
                 
                 $results.append(productHtml);
             });
@@ -759,30 +792,62 @@ console.log('search.js loaded');
             console.log('Rating dropdown changed to:', $(this).val());
             if (originalCachedResults.length > 0) {
                 console.log('Processing rating change with', originalCachedResults.length, 'cached results');
-                // Re-apply all filters when minimum rating changes
-                const excludeText = $('#ps-exclude-keywords').val();
-                const includeText = $('#ps-search-query').val();
-                const minRating = parseFloat($(this).val()) || null;
-                const sortCriteria = $sortBy.val();
-                
-                console.log('Filter criteria:', { excludeText, includeText, minRating, sortCriteria });
-                
-                let filteredResults = [...originalCachedResults];
-                filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
-                filteredResults = sortProducts(filteredResults, sortCriteria);
-                
-                currentSearchResults = filteredResults;
-                renderProducts(filteredResults);
-                
-                // Update results count
-                const totalCount = originalCachedResults.length;
-                if (!isAfterLiveSearch) {
-                    $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
-                }
+                applyAllFilters();
             } else {
                 console.log('No cached results available for rating filter');
             }
         });
+        
+        // Handle platform checkbox changes (auto-trigger filter)
+        $('input[name="platforms"]').on('change', function() {
+            console.log('Platform checkbox changed:', $(this).val(), 'checked:', $(this).is(':checked'));
+            
+            // Save platform selections to cache
+            savePlatformSelections();
+            
+            if (originalCachedResults.length > 0) {
+                console.log('Processing platform change with', originalCachedResults.length, 'cached results');
+                applyAllFilters();
+            }
+        });
+        
+        // Function to apply all filters (rating, text, platform)
+        function applyAllFilters() {
+            const excludeText = $('#ps-exclude-keywords').val();
+            const includeText = $('#ps-search-query').val();
+            const minRating = parseFloat($('#ps-min-rating').val()) || null;
+            const sortCriteria = $sortBy.val();
+            
+            // Get selected platforms
+            const selectedPlatforms = [];
+            $('input[name="platforms"]:checked').each(function() {
+                selectedPlatforms.push($(this).val());
+            });
+            
+            console.log('Filter criteria:', { excludeText, includeText, minRating, sortCriteria, selectedPlatforms });
+            
+            let filteredResults = [...originalCachedResults];
+            
+            // Apply platform filter first
+            if (selectedPlatforms.length > 0) {
+                filteredResults = filteredResults.filter(function(item) {
+                    return selectedPlatforms.includes(item.platform);
+                });
+            }
+            
+            // Apply other filters
+            filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
+            filteredResults = sortProducts(filteredResults, sortCriteria);
+            
+            currentSearchResults = filteredResults;
+            renderProducts(filteredResults);
+            
+            // Update results count
+            const totalCount = originalCachedResults.length;
+            if (!isAfterLiveSearch) {
+                $resultsCount.html('<p><strong>' + filteredResults.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
+            }
+        }
         
         // Handle Filter Cached Results button click
         $filterButton.on('click', function(e) {
@@ -795,29 +860,10 @@ console.log('search.js loaded');
             $loadingText.text('Filtering cached results...');
             $loading.show();
             
-            // Get current filter values
-            const excludeText = $('#ps-exclude-keywords').val();
-            const includeText = $('#ps-search-query').val();
-            const minRating = parseFloat($('#ps-min-rating').val()) || null;
-            const sortCriteria = $sortBy.val();
-            
             // Always filter from the original cached results
             if (originalCachedResults.length > 0) {
-                let filteredResults = [...originalCachedResults];
-                // Apply include, exclude, and rating filtering
-                filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
-                // Sort the filtered results
-                const sortByElem = document.getElementById('ps-sort-by');
-                const currentSortBy = sortByElem ? sortByElem.value : 'price';
-                const sortedProducts = sortProducts(filteredResults, currentSortBy);
-                // Update UI
+                applyAllFilters();
                 $loading.hide();
-                const totalCount = originalCachedResults.length;
-                if (!isAfterLiveSearch) {
-                    $resultsCount.html('<p><strong>' + sortedProducts.length + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
-                }
-                currentSearchResults = sortedProducts;
-                renderProducts(sortedProducts);
             } else {
                 $loading.hide();
                 $results.html('<div class="ps-no-results">No results to filter. Please perform a search first.</div>');
@@ -987,14 +1033,29 @@ console.log('search.js loaded');
                             }
                         }
                         
-                        // Auto-apply current filter values
+                        // Auto-apply current filter values including platform selections
                         const currentIncludeText = queryElem ? queryElem.value : '';
                         const currentExcludeText = excludeElem ? excludeElem.value : '';
                         const currentMinRating = parseFloat($('#ps-min-rating').val()) || null;
                         
+                        // Get currently selected platforms (restored from cache)
+                        const selectedPlatforms = [];
+                        $('input[name="platforms"]:checked').each(function() {
+                            selectedPlatforms.push($(this).val());
+                        });
+                        
                         let filteredProducts = [...products];
+                        
+                        // Apply platform filter first
+                        if (selectedPlatforms.length > 0) {
+                            filteredProducts = filteredProducts.filter(function(item) {
+                                return selectedPlatforms.includes(item.platform);
+                            });
+                        }
+                        
+                        // Apply other filters
                         if (currentIncludeText || currentExcludeText || currentMinRating) {
-                            filteredProducts = filterProducts(products, currentExcludeText, currentIncludeText, currentMinRating);
+                            filteredProducts = filterProducts(filteredProducts, currentExcludeText, currentIncludeText, currentMinRating);
                         }
                         
                         // Get the current sort value (might have been changed by calculateAndSaveDefaultSorting)
@@ -1012,24 +1073,30 @@ console.log('search.js loaded');
                         if ($filterButton) $filterButton.prop('disabled', false);
                         if ($showAllButton) $showAllButton.show();
                         
-                        // Check if pagination URLs are available for load more functionality
+                        // Check if load more is available for any platform
                         const paginationUrls = response.data && response.data.pagination_urls ? response.data.pagination_urls : {};
-                        const hasPaginationUrls = paginationUrls && typeof paginationUrls === 'object' && 
-                                                 (paginationUrls.page_2 || paginationUrls.page_3);
+                        const platforms = response.data && response.data.platforms ? response.data.platforms : ['amazon'];
                         
-                        logToServer('Load Cached Results: Pagination URLs check', {
-                            hasPaginationUrls: hasPaginationUrls,
+                        // Amazon requires pagination URLs, eBay can paginate with page numbers
+                        // Currently only Amazon and eBay support load more functionality
+                        const hasAmazonPagination = paginationUrls && typeof paginationUrls === 'object' && 
+                                                   (paginationUrls.page_2 || paginationUrls.page_3);
+                        const hasEbay = platforms.includes('ebay');
+                        const loadMoreSupportedPlatforms = ['amazon', 'ebay'];
+                        const hasLoadMoreCapablePlatforms = platforms.some(platform => loadMoreSupportedPlatforms.includes(platform));
+                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay);
+                        
+                        logToServer('Load Cached Results: Load more capability check', {
+                            hasAmazonPagination: hasAmazonPagination,
+                            hasEbay: hasEbay,
+                            hasLoadMoreCapability: hasLoadMoreCapability,
+                            platforms: platforms,
                             paginationUrls: paginationUrls,
-                            paginationUrlsType: typeof paginationUrls,
-                            paginationUrlsKeys: Object.keys(paginationUrls),
-                            hasPage2: !!paginationUrls.page_2,
-                            hasPage3: !!paginationUrls.page_3,
-                            responsePaginationUrls: response.data ? response.data.pagination_urls : 'not found',
-                            responseDataKeys: response.data ? Object.keys(response.data) : 'no response.data'
+                            paginationUrlsKeys: Object.keys(paginationUrls)
                         });
                         
-                        // Show or hide load more button based on pagination availability
-                        if (hasPaginationUrls) {
+                        // Show or hide load more button based on platform capabilities
+                        if (hasLoadMoreCapability) {
                             toggleLoadMoreButton(true);
                         } else {
                             toggleLoadMoreButton(false);
@@ -1040,7 +1107,9 @@ console.log('search.js loaded');
                             filteredCount: filteredProducts.length,
                             finalCount: sortedProducts.length,
                             sortingChanged: sortingChanged,
-                            currentSortBy: currentSortBy
+                            currentSortBy: currentSortBy,
+                            selectedPlatforms: selectedPlatforms,
+                            platformFilterApplied: selectedPlatforms.length > 0
                         });
                     } else {
                         currentSearchResults = [];
@@ -1152,7 +1221,7 @@ console.log('search.js loaded');
             const searchButton = document.querySelector('.ps-search-button');
             
             // Store original text
-            const originalSearchText = searchButton ? searchButton.textContent : 'Search Amazon';
+            const originalSearchText = searchButton ? searchButton.textContent : 'Search';
             const originalLoadText = $loadMoreButton.find('.ps-load-more-text').text() || 'Load More';
             
             // Disable all buttons and add cooldown classes
@@ -1162,6 +1231,11 @@ console.log('search.js loaded');
             }
             $loadMoreButton.prop('disabled', true);
             $topLoadMoreButton.prop('disabled', true);
+            
+            // Ensure spinner is hidden and text is shown during cooldown
+            console.log('Cooldown: Hiding spinner and showing text');
+            $loadMoreButton.find('.ps-load-more-spinner').hide();
+            $loadMoreButton.find('.ps-load-more-text').show();
             
             // Update button texts with countdown
             function updateCountdown() {
@@ -1189,7 +1263,8 @@ console.log('search.js loaded');
                     }
                     
                     $loadMoreButton.prop('disabled', false);
-                    $loadMoreButton.find('.ps-load-more-text').text(originalLoadText);
+                    $loadMoreButton.find('.ps-load-more-text').text(originalLoadText).show();
+                    $loadMoreButton.find('.ps-load-more-spinner').hide();
                     
                     $topLoadMoreButton.prop('disabled', false);
                     $topLoadMoreButton.text(originalLoadText);
@@ -1245,13 +1320,30 @@ console.log('search.js loaded');
             const minRating = minRatingElem ? minRatingElem.value : '4.0';
             const countryElem = document.querySelector('input[name="country"]:checked');
             const country = countryElem ? countryElem.value : 'us';
+            
+            // Get selected platforms
+            const platformElems = document.querySelectorAll('input[name="platforms"]:checked');
+            const platforms = Array.from(platformElems).map(elem => elem.value);
 
             if (!query) {
                 resultsContainer.innerHTML = '<div class="ps-error">Please enter search keywords.</div>';
                 // Keep results count hidden since this is after a live search attempt
                 $resultsCount.hide();
+                // Hide load more buttons on validation error
+                toggleLoadMoreButton(false);
                 return;
             }
+            
+            if (platforms.length === 0) {
+                resultsContainer.innerHTML = '<div class="ps-error">Please select at least one platform to search.</div>';
+                $resultsCount.hide();
+                // Hide load more buttons on validation error
+                toggleLoadMoreButton(false);
+                return;
+            }
+            
+            // Save platform selections to cache for next page load
+            savePlatformSelections();
             
             // Reset pagination state for new search
             currentPage = 1;
@@ -1264,9 +1356,19 @@ console.log('search.js loaded');
                 resultsContainer.innerHTML = '<div class="ps-error">Configuration error. Please refresh the page or contact support.</div>';
                 // Keep results count hidden since this is after a live search attempt
                 $resultsCount.hide();
+                // Hide load more buttons on configuration error
+                toggleLoadMoreButton(false);
                 return;
             }
 
+            // Hide load more buttons during search
+            console.log('New Search: Hiding load more buttons during search');
+            logToServer('New Search: Hiding load more buttons', { 
+                query: query, 
+                platforms: platforms 
+            });
+            toggleLoadMoreButton(false);
+            
             // Show loading message
             resultsContainer.innerHTML = '<div class="ps-loading">Searching...</div>';
 
@@ -1284,6 +1386,7 @@ console.log('search.js loaded');
                     sort_by: sortBy,
                     min_rating: minRating,
                     country: country,
+                    platforms: platforms,
                     filter_cached: 'false'
                 },
                 success: function(response) {
@@ -1347,20 +1450,26 @@ console.log('search.js loaded');
                         // Store the original results for filtering
                         originalCachedResults = [...products];
                         
-                        // Check if pagination URLs are available for load more functionality
+                        // Check if load more is available for any platform
                         const paginationUrls = response.data && response.data.pagination_urls ? response.data.pagination_urls : {};
-                        const hasPaginationUrls = paginationUrls && typeof paginationUrls === 'object' && 
-                                                 (paginationUrls.page_2 || paginationUrls.page_3);
+                        const platforms = response.data && response.data.platforms ? response.data.platforms : ['amazon'];
                         
-                        logToServer('Live Search: Pagination URLs check', {
-                            hasPaginationUrls: hasPaginationUrls,
+                        // Amazon requires pagination URLs, eBay can paginate with page numbers
+                        // Currently only Amazon and eBay support load more functionality
+                        const hasAmazonPagination = paginationUrls && typeof paginationUrls === 'object' && 
+                                                   (paginationUrls.page_2 || paginationUrls.page_3);
+                        const hasEbay = platforms.includes('ebay');
+                        const loadMoreSupportedPlatforms = ['amazon', 'ebay'];
+                        const hasLoadMoreCapablePlatforms = platforms.some(platform => loadMoreSupportedPlatforms.includes(platform));
+                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay);
+                        
+                        logToServer('Live Search: Load more capability check', {
+                            hasAmazonPagination: hasAmazonPagination,
+                            hasEbay: hasEbay,
+                            hasLoadMoreCapability: hasLoadMoreCapability,
+                            platforms: platforms,
                             paginationUrls: paginationUrls,
-                            paginationUrlsType: typeof paginationUrls,
-                            paginationUrlsKeys: Object.keys(paginationUrls),
-                            hasPage2: !!paginationUrls.page_2,
-                            hasPage3: !!paginationUrls.page_3,
-                            responsePaginationUrls: response.data ? response.data.pagination_urls : 'not found',
-                            responseDataKeys: response.data ? Object.keys(response.data) : 'no response.data'
+                            paginationUrlsKeys: Object.keys(paginationUrls)
                         });
                         
                         // For live searches, always start with default "price" sorting and analyze fresh data
@@ -1398,9 +1507,23 @@ console.log('search.js loaded');
                         $('#ps-show-all-button').show();
                         
                         // Show or hide load more button based on pagination availability
-                        if (hasPaginationUrls) {
+                        if (hasLoadMoreCapability) {
+                            console.log('New Search: Showing load more buttons - pagination available');
+                            logToServer('New Search: Showing load more buttons', { 
+                                hasLoadMoreCapability: true,
+                                platforms: platforms,
+                                hasAmazonPagination: hasAmazonPagination,
+                                hasEbay: hasEbay
+                            });
                             toggleLoadMoreButton(true);
                         } else {
+                            console.log('New Search: Load more buttons remain hidden - no pagination capability');
+                            logToServer('New Search: Load more buttons remain hidden', { 
+                                hasLoadMoreCapability: false,
+                                platforms: platforms,
+                                hasAmazonPagination: hasAmazonPagination,
+                                hasEbay: hasEbay
+                            });
                             toggleLoadMoreButton(false);
                         }
                         
@@ -1451,6 +1574,8 @@ console.log('search.js loaded');
                         resultsContainer.innerHTML = '<div class="ps-error">Error performing search. Please try again.</div>';
                     }
                     
+                    // Hide load more buttons on AJAX error
+                    toggleLoadMoreButton(false);
                     // Start cooldown timer even on error to prevent spam
                     startSearchCooldown(searchButton);
                     // Keep results count hidden since this is after a live search attempt
@@ -1569,7 +1694,7 @@ console.log('search.js loaded');
                 sampleItems: debugItems
             });
             
-            console.log(`Unit price analysis: ${itemsWithUnitPrice}/${items.length} products (${Math.round(percentage * 100)}%) have unit price data`);
+
             
             return shouldDefault;
         }
@@ -1607,7 +1732,7 @@ console.log('search.js loaded');
             
             // Only change default if currently set to 'price' (the default)
             if (currentSortValue === 'price' && shouldDefault) {
-                console.log('Automatically switching to unit price sorting');
+
                 sortByElem.value = 'price_per_unit';
                 
                 logToServer('Unit Price Sorting: Automatically switched to unit price sorting', {
@@ -1685,7 +1810,7 @@ console.log('search.js loaded');
             
             // Only change default if currently set to 'price' and we have a saved preference for unit price
             if (currentSortValue === 'price' && savedDefaultSort === 'price_per_unit') {
-                console.log('Applying saved unit price sorting preference');
+
                 sortByElem.value = 'price_per_unit';
                 
                 logToServer('Unit Price Sorting: Applied saved unit price sorting preference', {
@@ -1725,6 +1850,88 @@ console.log('search.js loaded');
             return calculateAndSaveDefaultSorting(items);
         }
 
+        /**
+         * Save the current platform selections to localStorage
+         */
+        function savePlatformSelections() {
+            try {
+                const selectedPlatforms = [];
+                $('input[name="platforms"]:checked').each(function() {
+                    selectedPlatforms.push($(this).val());
+                });
+                
+                localStorage.setItem('ps_selected_platforms', JSON.stringify(selectedPlatforms));
+                
+                logToServer('Platform Selection: Saved to cache', {
+                    selectedPlatforms: selectedPlatforms,
+                    platformCount: selectedPlatforms.length
+                });
+                
+                console.log('Platform selections saved to cache:', selectedPlatforms);
+            } catch (e) {
+                console.warn('Could not save platform selections to localStorage:', e);
+                logToServer('Platform Selection: Failed to save to cache', {
+                    error: e.message
+                });
+            }
+        }
+
+        /**
+         * Restore platform selections from localStorage
+         */
+        function restorePlatformSelections() {
+            try {
+                const savedPlatforms = localStorage.getItem('ps_selected_platforms');
+                if (savedPlatforms) {
+                    const platformsArray = JSON.parse(savedPlatforms);
+                    
+                    if (Array.isArray(platformsArray) && platformsArray.length > 0) {
+                        // First, uncheck all platforms
+                        $('input[name="platforms"]').prop('checked', false);
+                        
+                        // Then check the saved platforms
+                        platformsArray.forEach(function(platform) {
+                            $('input[name="platforms"][value="' + platform + '"]').prop('checked', true);
+                        });
+                        
+                        logToServer('Platform Selection: Restored from cache', {
+                            restoredPlatforms: platformsArray,
+                            platformCount: platformsArray.length
+                        });
+                        
+                        console.log('Platform selections restored from cache:', platformsArray);
+                        return true;
+                    }
+                }
+                
+                logToServer('Platform Selection: No cached selections found');
+                console.log('No cached platform selections found');
+                return false;
+            } catch (e) {
+                console.warn('Could not restore platform selections from localStorage:', e);
+                logToServer('Platform Selection: Failed to restore from cache', {
+                    error: e.message
+                });
+                return false;
+            }
+        }
+
+        /**
+         * Clear saved platform selections from localStorage
+         */
+        function clearPlatformSelections() {
+            try {
+                localStorage.removeItem('ps_selected_platforms');
+                logToServer('Platform Selection: Cleared cached selections');
+                console.log('Platform selections cleared from cache');
+            } catch (e) {
+                console.warn('Could not clear platform selections from localStorage:', e);
+                logToServer('Platform Selection: Failed to clear cache', {
+                    error: e.message
+                });
+            }
+        }
+
         // Handle Load More button click
         $('#ps-load-more-button').on('click', function(e) {
             e.preventDefault();
@@ -1741,18 +1948,19 @@ console.log('search.js loaded');
             const $loadMoreSpinner = $('.ps-load-more-spinner');
             const $topButton = $('#ps-load-more-top-button');
             
-            // Show loading state
-            $button.prop('disabled', true);
-            $topButton.prop('disabled', true);
-            $loadMoreText.hide();
-            $loadMoreSpinner.show();
-            
-            // Get current search parameters
+            // Get current search parameters first
             const queryElem = document.getElementById('ps-search-query');
             const excludeElem = document.getElementById('ps-exclude-keywords');
             const sortByElem = document.getElementById('ps-sort-by');
             const minRatingElem = document.getElementById('ps-min-rating');
             const countryElem = document.querySelector('input[name="country"]:checked');
+            
+            // Get currently selected platforms
+            const selectedPlatforms = [];
+            const platformCheckboxes = document.querySelectorAll('input[name="platforms"]:checked');
+            platformCheckboxes.forEach(checkbox => {
+                selectedPlatforms.push(checkbox.value);
+            });
             
             const query = lastSearchQuery; // Use the actual search query that was performed, not current input value
             const exclude = excludeElem ? excludeElem.value.trim() : '';
@@ -1762,6 +1970,14 @@ console.log('search.js loaded');
             
             // Increment page for next page
             const nextPage = currentPage + 1;
+            
+            // Show loading state (after variables are declared)
+            console.log('Load More: Spinner started - showing loading state');
+            logToServer('Load More: Spinner started', { currentPage, nextPage });
+            $button.prop('disabled', true);
+            $topButton.prop('disabled', true);
+            $loadMoreText.hide();
+            $loadMoreSpinner.show();
             
             // Debug logging for troubleshooting
             console.log('Load More: Button clicked with parameters:', {
@@ -1774,6 +1990,7 @@ console.log('search.js loaded');
                 lastSearchCountry: lastSearchCountry,
                 currentPage: currentPage,
                 nextPage: nextPage,
+                selectedPlatforms: selectedPlatforms,
                 hasAjaxUrl: !!(window.psData && window.psData.ajaxurl),
                 hasNonce: !!(window.psData && window.psData.nonce)
             });
@@ -1784,11 +2001,39 @@ console.log('search.js loaded');
                 logToServer('Load More: Missing search query', { query, lastSearchQuery });
                 
                 // Reset button state and hide buttons
+                console.log('Load More: Spinner stopped - missing search query error');
+                logToServer('Load More: Spinner stopped', { reason: 'missing_search_query' });
                 $button.prop('disabled', false);
                 $topButton.prop('disabled', false);
                 $loadMoreText.show();
                 $loadMoreSpinner.hide();
                 toggleLoadMoreButton(false);
+                return;
+            }
+            
+            // Check if we have at least one platform selected
+            if (selectedPlatforms.length === 0) {
+                console.error('Load More: No platforms selected');
+                logToServer('Load More: No platforms selected', { selectedPlatforms });
+                
+                // Reset button state and show error
+                console.log('Load More: Spinner stopped - no platforms selected error');
+                logToServer('Load More: Spinner stopped', { reason: 'no_platforms_selected' });
+                $button.prop('disabled', false);
+                $topButton.prop('disabled', false);
+                $loadMoreText.show();
+                $loadMoreSpinner.hide();
+                
+                // Show error message
+                $container.after('<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">Please select at least one platform to load more results.</div>');
+                
+                // Remove error message after 5 seconds
+                setTimeout(function() {
+                    $('.ps-load-more-error').fadeOut(function() {
+                        $(this).remove();
+                    });
+                }, 5000);
+                
                 return;
             }
             
@@ -1798,6 +2043,7 @@ console.log('search.js loaded');
                 currentPage: currentPage,
                 nextPage: nextPage,
                 lastSearchQuery: lastSearchQuery,
+                selectedPlatforms: selectedPlatforms,
                 queryFromInput: queryElem ? queryElem.value : null
             });
             
@@ -1815,6 +2061,7 @@ console.log('search.js loaded');
                     sort_by: sortBy,
                     min_rating: minRating,
                     country: country,
+                    platforms: selectedPlatforms, // Send selected platforms
                     page: nextPage
                 },
                 success: function(response) {
@@ -1830,12 +2077,20 @@ console.log('search.js loaded');
                         // Update current page
                         currentPage = response.page_loaded || (currentPage + 1);
                         
-                        // Replace current results with the complete sorted dataset from server
-                        currentSearchResults = completeItems;
-                        originalCachedResults = completeItems;  // Update cache reference too
+                        // Update the original cached results with the complete merged dataset from server
+                        // Note: The server has already merged new items with existing ones
+                        originalCachedResults = completeItems;
                         
-                        // Re-render all products with the complete dataset
-                        renderProducts(currentSearchResults);
+                        // Apply all current filters to the complete dataset
+                        // This ensures any client-side filtering (platform selection, include/exclude text, etc.) is applied
+                        console.log('Load More: Applying all filters to complete dataset with', completeItems.length, 'total items');
+                        
+                        logToServer('Load More: Auto-applying filters after load more', {
+                            totalItemsBeforeFilter: completeItems.length,
+                            newItemsAdded: newItemsCount
+                        });
+                        
+                        applyAllFilters();
                         
                         // Add animation class to highlight that new content was loaded
                         setTimeout(() => {
@@ -1846,12 +2101,8 @@ console.log('search.js loaded');
                             }, 500);
                         }, 100);
                         
-                        // Update results count
-                        const totalCount = response.base_items_count || completeItems.length;
-                        const displayCount = completeItems.length;
-                        // Always show the results count after load more
+                        // Reset the flag so results count shows properly
                         isAfterLiveSearch = false;
-                        $resultsCount.html('<p><strong>' + displayCount + '</strong> products of <strong>' + totalCount + '</strong> match your criteria.</p>').show();
                         
                         // Check if more pages are available
                         console.log('Load More: Checking has_more_pages...', {
@@ -1871,12 +2122,25 @@ console.log('search.js loaded');
                         
                         logToServer('Load More: Successfully loaded page ' + (response.page_loaded || currentPage), {
                             newItemsCount: newItemsCount,
-                            totalItemsCount: totalCount,
-                            displayItemsCount: displayCount,
+                            totalItemsCount: completeItems.length,
+                            displayItemsCount: currentSearchResults.length,
                             hasMorePages: response.has_more_pages || false
                         });
                         
+                        // Reset loading state immediately before starting cooldown
+                        console.log('Load More: Spinner stopped - successful load completed');
+                        logToServer('Load More: Spinner stopped', { 
+                            reason: 'successful_load', 
+                            newItemsCount: newItemsCount,
+                            totalItems: completeItems.length 
+                        });
+                        $button.prop('disabled', false);
+                        $topButton.prop('disabled', false);
+                        $loadMoreText.show();
+                        $loadMoreSpinner.hide();
+                        
                         // Start shared cooldown after successful load more
+                        console.log('Load More: Starting cooldown timer');
                         startLoadButtonCooldown();
                     } else {
                         // Handle error response from backend
@@ -1915,6 +2179,13 @@ console.log('search.js loaded');
                         $container.after(errorHtml);
                         
                         // Hide load more buttons when no more results
+                        console.log('Load More: Spinner stopped - no more results available');
+                        logToServer('Load More: Spinner stopped', { 
+                            reason: 'no_more_results',
+                            success: response.success,
+                            hasItems: !!(response.items),
+                            itemsLength: response.items ? response.items.length : 0
+                        });
                         console.log('Load More: No items received, hiding buttons', {
                             success: response.success,
                             hasItems: !!(response.items),
@@ -1929,6 +2200,14 @@ console.log('search.js loaded');
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.log('Load More: Spinner stopped - AJAX error occurred');
+                    logToServer('Load More: Spinner stopped', { 
+                        reason: 'ajax_error',
+                        status: status,
+                        error: error,
+                        page: nextPage
+                    });
+                    
                     console.error('Load More: AJAX error occurred', {
                         status: status,
                         error: error,
@@ -1950,7 +2229,9 @@ console.log('search.js loaded');
                     toggleLoadMoreButton(false);
                 },
                 complete: function() {
-                    // Reset button state
+                    // Reset button state (final cleanup)
+                    console.log('Load More: AJAX complete - final spinner cleanup');
+                    logToServer('Load More: AJAX complete', { reason: 'final_cleanup' });
                     $button.prop('disabled', false);
                     $topButton.prop('disabled', false);
                     $loadMoreText.show();

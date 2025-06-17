@@ -259,7 +259,9 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                         
                         if ($price_nodes->length > 0) {
                             $price = trim($price_nodes->item(0)->nodeValue);
-                            $price_value = (float) preg_replace('/[^0-9.]/', '', $price);
+                            
+                            // Use common utility for price parsing
+                            $price_value = ps_parse_price($price);
                         }
                         
                         $image = '';
@@ -267,101 +269,11 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                             $image = trim($image_nodes->item(0)->nodeValue);
                         }
                         
-                        // Extract unit price (e.g., $379.02/100 ml)
-                        $unit_price = '';
-                        $unit = '';
-                        
-                        // Look for the unit price container that contains parentheses - be more specific
-                        $unitPriceContainers = $xpath->query('.//span[contains(@class, "a-size-base") and contains(@class, "a-color-secondary")]', $node);
-                        $unitPriceContainer = null;
-                        
-                        // Find the container that actually contains parentheses with unit price
-                        foreach ($unitPriceContainers as $container) {
-                            $container_text = trim($container->textContent);
-                            if (strpos($container_text, '(') !== false && strpos($container_text, ')') !== false && strpos($container_text, '/') !== false) {
-                                $unitPriceContainer = $container;
-                                break;
-                            }
-                        }
-                        
-                        if ($unitPriceContainer) {
-                            $container_text = trim($unitPriceContainer->textContent);
-                            
-                            // Check if it contains parentheses (indicating unit price)
-                            if (strpos($container_text, '(') !== false && strpos($container_text, ')') !== false) {
-                                // Extract the price from the offscreen span for accuracy
-                                $unitPriceNode = $xpath->query('.//span[contains(@class, "a-price a-text-price")]/span[@class="a-offscreen"]', $node)->item(0);
-                                if ($unitPriceNode) {
-                                    $unit_price_val = trim($unitPriceNode->textContent);
-                                    
-                                    // Extract the unit from the container text (e.g., "/100 ml" from "($3.49$3.49/100 ml)")
-                                    if (preg_match('/\/([^)]+)\)/', $container_text, $unitMatch)) {
-                                        $unit = trim($unitMatch[1]);
-                                        $unit_price = $unit_price_val . '/' . $unit;
-                                        
-                                        // Reasonableness check: detect obviously wrong unit prices
-                                        $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price_val);
-                                        if ($unit_price_numeric > 0 && $price_value > 0) {
-                                            $ratio = $unit_price_numeric / $price_value;
-                                            
-                                            // If unit price is more than 50x the product price, it's likely wrong
-                                            if ($ratio > 50) {
-                                                ps_log_error("Unit price reasonableness check failed (alt): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 2) . "). Marking as invalid.");
-                                                $unit_price = ''; // Mark as invalid
-                                                $unit = '';
-                                            }
-                                            // If unit price is less than 1/1000th of product price, also suspicious
-                                            elseif ($ratio < 0.001) {
-                                                ps_log_error("Unit price reasonableness check failed (alt): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 6) . "). Marking as invalid.");
-                                                $unit_price = ''; // Mark as invalid
-                                                $unit = '';
-                                            }
-                                        }
-                                    } else {
-                                        $unit_price = $unit_price_val;
-                                    }
-                                } else {
-                                    // Fallback: try to extract from the container text directly
-                                    if (preg_match('/\(([^)]+)\)/', $container_text, $match)) {
-                                        $extracted_content = trim($match[1]);
-                                        // Try to clean up duplicate price values (e.g., "$3.49$3.49/100 ml" -> "$3.49/100 ml")
-                                        if (preg_match('/(\$[\d.]+).*?\/(.+)$/', $extracted_content, $cleanMatch)) {
-                                            $unit_price = $cleanMatch[1] . '/' . $cleanMatch[2];
-                                            $unit = $cleanMatch[2];
-                                            
-                                            // Apply the same reasonableness check
-                                            $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $cleanMatch[1]);
-                                            if ($unit_price_numeric > 0 && $price_value > 0) {
-                                                $ratio = $unit_price_numeric / $price_value;
-                                                if ($ratio > 50 || $ratio < 0.001) {
-                                                    ps_log_error("Unit price reasonableness check failed (alt fallback): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 6) . "). Marking as invalid.");
-                                                    $unit_price = '';
-                                                    $unit = '';
-                                                }
-                                            }
-                                        } else {
-                                            $unit_price = $extracted_content;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Fallback to the old method if the new method doesn't work
-                        if (empty($unit_price)) {
-                            $unitPriceNode = $xpath->query('.//span[contains(@class, "a-price a-text-price")]/span[@class="a-offscreen"]', $node)->item(0);
-                            $unitTextNode = $xpath->query('.//span[contains(@class, "a-size-base a-color-secondary")]', $node)->item(0);
-                            if ($unitPriceNode && $unitTextNode) {
-                                $unit_price_val = trim($unitPriceNode->textContent);
-                                // Try to extract unit (e.g., /100 ml) from the text node
-                                if (preg_match('/\/([\d\w\s.]+)/', $unitTextNode->textContent, $unitMatch)) {
-                                    $unit = trim($unitMatch[1]);
-                                    $unit_price = $unit_price_val . '/' . $unit;
-                                } else {
-                                    $unit_price = $unit_price_val;
-                                }
-                            }
-                        }
+                        // Extract unit price using common utility
+                        $unit_price_data = ps_extract_amazon_unit_price($xpath, $node, $price_value, 'alt');
+                        $unit_price = $unit_price_data['unit_price'];
+                        $unit = $unit_price_data['unit'];
+                        $unit_price_numeric = $unit_price_data['unit_price_numeric'];
 
                         // Extract delivery time (enhanced to capture multiple delivery options)
                         $delivery_time = '';
@@ -529,10 +441,10 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                             $current_product_debug['unit_cleared_no_valid_measure'] = true;
                         }
                         
-                        // Calculate unit price value for sorting
+                        // Calculate unit price value for sorting using common utility
                         $unit_price_value = $price_value; // Default to regular price
                         if (!empty($unit_price)) {
-                            $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price);
+                            $unit_price_numeric = ps_extract_numeric_price($unit_price);
                             if ($unit_price_numeric > 0) {
                                 $unit_price_value = $unit_price_numeric;
                             }
@@ -860,7 +772,8 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                              $xpath->query('.//span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]', $element)->item(0);
                     if ($priceNode) {
                     $price_str = trim($priceNode->textContent);
-                    $price_value = (float) preg_replace('/[^0-9.,]/', '', str_replace(',', '.', $price_str)); // Handle comma as decimal
+                    // Use common utility for price parsing
+                    $price_value = ps_parse_price($price_str);
                 }
                  $current_product_debug['price_str'] = $price_str;
                  $current_product_debug['price_value'] = $price_value;
@@ -966,85 +879,11 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                 $current_product_debug['brand'] = $brand;
                 $current_product_debug['brand_method'] = $brand_extraction_method;
 
-                // --- Extract unit price (e.g., $379.02/100 ml) ---
-                $unit_price = '';
-                $unit = '';
-                
-                // Look for the unit price container that contains parentheses - be more specific
-                $unitPriceContainers = $xpath->query('.//span[contains(@class, "a-size-base") and contains(@class, "a-color-secondary")]', $element);
-                $unitPriceContainer = null;
-                
-                // Find the container that actually contains parentheses with unit price
-                foreach ($unitPriceContainers as $container) {
-                    $container_text = trim($container->textContent);
-                    if (strpos($container_text, '(') !== false && strpos($container_text, ')') !== false && strpos($container_text, '/') !== false) {
-                        $unitPriceContainer = $container;
-                        break;
-                    }
-                }
-                
-                if ($unitPriceContainer) {
-                    $container_text = trim($unitPriceContainer->textContent);
-                    
-                    // Check if it contains parentheses (indicating unit price)
-                    if (strpos($container_text, '(') !== false && strpos($container_text, ')') !== false) {
-                        // Extract the price from the offscreen span for accuracy
-                        $unitPriceNode = $xpath->query('.//span[contains(@class, "a-price a-text-price")]/span[@class="a-offscreen"]', $element)->item(0);
-                        if ($unitPriceNode) {
-                            $unit_price_val = trim($unitPriceNode->textContent);
-                            
-                            // Extract the unit from the container text (e.g., "/100 ml" from "($3.49$3.49/100 ml)")
-                            if (preg_match('/\/([^)]+)\)/', $container_text, $unitMatch)) {
-                                $unit = trim($unitMatch[1]);
-                                $unit_price = $unit_price_val . '/' . $unit;
-                                
-                                // Reasonableness check: detect obviously wrong unit prices
-                                $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price_val);
-                                if ($unit_price_numeric > 0 && $price_value > 0) {
-                                    $ratio = $unit_price_numeric / $price_value;
-                                    
-                                    // If unit price is more than 50x the product price, it's likely wrong
-                                    if ($ratio > 50) {
-                                        ps_log_error("Unit price reasonableness check failed (alt): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 2) . "). Marking as invalid.");
-                                        $unit_price = ''; // Mark as invalid
-                                        $unit = '';
-                                    }
-                                    // If unit price is less than 1/1000th of product price, also suspicious
-                                    elseif ($ratio < 0.001) {
-                                        ps_log_error("Unit price reasonableness check failed (alt): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 6) . "). Marking as invalid.");
-                                        $unit_price = ''; // Mark as invalid
-                                        $unit = '';
-                                    }
-                                }
-                            } else {
-                                $unit_price = $unit_price_val;
-                            }
-                        } else {
-                            // Fallback: try to extract from the container text directly
-                            if (preg_match('/\(([^)]+)\)/', $container_text, $match)) {
-                                $extracted_content = trim($match[1]);
-                                // Try to clean up duplicate price values (e.g., "$3.49$3.49/100 ml" -> "$3.49/100 ml")
-                                if (preg_match('/(\$[\d.]+).*?\/(.+)$/', $extracted_content, $cleanMatch)) {
-                                    $unit_price = $cleanMatch[1] . '/' . $cleanMatch[2];
-                                    $unit = $cleanMatch[2];
-                                    
-                                    // Apply the same reasonableness check
-                                    $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $cleanMatch[1]);
-                                    if ($unit_price_numeric > 0 && $price_value > 0) {
-                                        $ratio = $unit_price_numeric / $price_value;
-                                        if ($ratio > 50 || $ratio < 0.001) {
-                                            ps_log_error("Unit price reasonableness check failed (alt fallback): Product price $price, Unit price $unit_price (ratio: " . number_format($ratio, 6) . "). Marking as invalid.");
-                                            $unit_price = '';
-                                            $unit = '';
-                                        }
-                                    }
-                                } else {
-                                    $unit_price = $extracted_content;
-                                }
-                            }
-                        }
-                    }
-                }
+                // --- Extract unit price using common utility ---
+                $unit_price_data = ps_extract_amazon_unit_price($xpath, $element, $price_value, 'main');
+                $unit_price = $unit_price_data['unit_price'];
+                $unit = $unit_price_data['unit'];
+                $unit_price_numeric = $unit_price_data['unit_price_numeric'];
                 
                 // Fallback to the old method if the new method doesn't work
                 if (empty($unit_price)) {
@@ -1189,7 +1028,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                     if ($ratingLinkNode) {
                         $rating_link = $ratingLinkNode->getAttribute('href');
                             if (strpos($rating_link, 'http') !== 0) {
-                             $base_amazon_url = (strpos($affiliate_id, '-20') !== false) ? 'https://www.amazon.com' : 'https://www.amazon.ca';
+                             $base_amazon_url = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
                             $rating_link = rtrim($base_amazon_url, '/') . $rating_link;
                         }
                          if (strpos($rating_link, 'tag=') === false && !empty($affiliate_id)) {
@@ -1255,10 +1094,10 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                             $product_data['delivery_time'] = $delivery_time;
                         }
                         
-                        // Update price_per_unit_value if we have a unit price
+                        // Update price_per_unit_value if we have a unit price using common utility
                         if (!empty($unit_price)) {
                             // Extract numeric value from unit price (e.g., "$3.99/100ml" -> 3.99)
-                            $unit_price_numeric = (float) preg_replace('/[^0-9.]/', '', $unit_price);
+                            $unit_price_numeric = ps_extract_numeric_price($unit_price);
                             if ($unit_price_numeric > 0) {
                                 $product_data['price_per_unit_value'] = $unit_price_numeric;
                             }
@@ -1392,7 +1231,8 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                              $xpath->query('.//span[contains(@class, "a-price")]//span[contains(@class, "a-offscreen")]', $element)->item(0);
                 if ($priceNode) {
                     $price_str = trim($priceNode->textContent);
-                    $price_value = (float) preg_replace('/[^0-9.,]/', '', str_replace(',', '.', $price_str));
+                    // Use common utility for price parsing
+                    $price_value = ps_parse_price($price_str);
                 }
                 $current_product_debug['price_str'] = $price_str;
                 $current_product_debug['price_value'] = $price_value;
@@ -1566,6 +1406,16 @@ function ps_extract_pagination_urls($html, $country = 'us') {
                     $clean_url = html_entity_decode($url, ENT_QUOTES | ENT_HTML401, 'UTF-8');
                     if (strpos($clean_url, 'http') !== 0) {
                         $clean_url = $base_url . $clean_url;
+                    }
+                    
+                    // FIX: Ensure the URL uses the correct country domain
+                    // Amazon sometimes returns .com URLs even when on .ca site
+                    if ($country === 'ca' && strpos($clean_url, 'amazon.com') !== false) {
+                        $clean_url = str_replace('amazon.com', 'amazon.ca', $clean_url);
+                        ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .com to .ca domain");
+                    } elseif ($country === 'us' && strpos($clean_url, 'amazon.ca') !== false) {
+                        $clean_url = str_replace('amazon.ca', 'amazon.com', $clean_url);
+                        ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .ca to .com domain");
                     }
                     
                     // Remove everything after the page parameter to clean up the URL

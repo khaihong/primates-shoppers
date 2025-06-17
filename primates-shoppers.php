@@ -32,7 +32,11 @@ if (!defined('PS_DECODO_PROXY_PORT')) {
 }
 
 // Include required files
+require_once PS_PLUGIN_DIR . 'includes/common-utils.php'; // Common utilities first
 require_once PS_PLUGIN_DIR . 'includes/amazon-api.php';
+require_once PS_PLUGIN_DIR . 'includes/ebay-api.php'; // Include eBay API functionality
+require_once PS_PLUGIN_DIR . 'includes/bestbuy-api.php'; // Include Best Buy API functionality
+require_once PS_PLUGIN_DIR . 'includes/walmart-api.php'; // Include Walmart API functionality
 require_once PS_PLUGIN_DIR . 'includes/settings.php';
 require_once PS_PLUGIN_DIR . 'includes/parsing-test.php'; // Include parsing test functionality
 require_once PS_PLUGIN_DIR . 'includes/amazon-proxy-test.php'; // Include Amazon proxy test functionality
@@ -422,10 +426,27 @@ function ps_ajax_search() {
     $min_rating = isset($_POST['min_rating']) ? floatval($_POST['min_rating']) : 4.0;
     $country = isset($_POST['country']) ? sanitize_text_field($_POST['country']) : 'us';
     $filter_cached = isset($_POST['filter_cached']) && $_POST['filter_cached'] === 'true';
+    $platforms = isset($_POST['platforms']) ? $_POST['platforms'] : array('amazon'); // Handle multiple platforms
     $user_id = ps_get_user_identifier();
     
+    // Ensure platforms is an array
+    if (!is_array($platforms)) {
+        $platforms = array($platforms);
+    }
+    
+    // Sanitize and filter platforms to only supported ones
+    $platforms = array_map('sanitize_text_field', $platforms);
+    $supported_platforms = array('amazon', 'ebay', 'bestbuy', 'walmart');
+    $platforms = array_intersect($platforms, $supported_platforms);
+    
+    // Ensure at least one platform is selected
+    if (empty($platforms)) {
+        $platforms = array('amazon');
+    }
+    
     // Log the request
-    ps_log_error("AJAX Search Request - User: {$user_id}, Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}', Min Rating: '{$min_rating}', Country: '{$country}', Filter Cached: " . ($filter_cached ? 'true' : 'false'));
+    $platforms_str = implode(', ', $platforms);
+    ps_log_error("AJAX Search Request - User: {$user_id}, Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}', Min Rating: '{$min_rating}', Country: '{$country}', Platforms: '{$platforms_str}', Filter Cached: " . ($filter_cached ? 'true' : 'false'));
     
     // If this is a page refresh (filter_cached true and query is empty), fetch the most recent cache entry for the user, regardless of query/country
     if ($filter_cached && $search_query === '') {
@@ -459,38 +480,38 @@ function ps_ajax_search() {
             return;
         }
         
-    // No cache hit, perform Amazon search (should not happen on page refresh)
+    // No cache hit, perform multi-platform search (should not happen on page refresh)
     try {
-    $amazon_search_response = ps_search_amazon_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating);
+    $search_response = ps_search_multi_platform_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating, $platforms);
     
     // Measure elapsed time
     $elapsed_time = microtime(true) - $start_time;
     // ps_log_error("Search completed in " . number_format($elapsed_time, 2) . " seconds");
     
-        if (is_array($amazon_search_response)) {
+        if (is_array($search_response)) {
             // Cache the RAW results if this is a successful full search and has items
-            if (isset($amazon_search_response['success']) && $amazon_search_response['success'] && 
-                isset($amazon_search_response['raw_items_for_cache']) && !empty($amazon_search_response['raw_items_for_cache'])) {
+            if (isset($search_response['success']) && $search_response['success'] && 
+                isset($search_response['raw_items_for_cache']) && !empty($search_response['raw_items_for_cache'])) {
                 
                 // Prepare data for caching: use the raw items, but associate with the original search query, country, and user.
                 // For the base cache of raw results, exclude and sort_by should be empty.
                 $data_to_cache = array(
                     'success' => true, // Indicates the overall search was successful at fetching raw data
-                    'items' => $amazon_search_response['raw_items_for_cache'],
-                    'count' => $amazon_search_response['raw_items_count_for_cache'],
-                    'base_items_count' => $amazon_search_response['raw_items_count_for_cache'], // For raw cache, count and base_items_count are the same
+                    'items' => $search_response['raw_items_for_cache'],
+                    'count' => $search_response['raw_items_count_for_cache'],
+                    'base_items_count' => $search_response['raw_items_count_for_cache'], // For raw cache, count and base_items_count are the same
                     'query' => $search_query,
                     'country_code' => $country,
                     'exclude' => '', // Store raw results with no exclusion
                     'sort_by' => '', // Store raw results with no specific sort
-                    'pagination_urls' => isset($amazon_search_response['pagination_urls']) ? $amazon_search_response['pagination_urls'] : array(), // Store pagination URLs
+                    'pagination_urls' => isset($search_response['pagination_urls']) ? $search_response['pagination_urls'] : array(), // Store pagination URLs
                     'data_source' => 'live_request_raw_cache' 
                 );
                 
                 try {
                     // Cache these raw results using an empty exclude and sort_by for the hash
                     ps_cache_results($search_query, $country, '', '', $data_to_cache);
-                    // ps_log_error("Successfully cached " . $amazon_search_response['raw_items_count_for_cache'] . " raw items for query '{$search_query}' and country '{$country}'.");
+                    // ps_log_error("Successfully cached " . $search_response['raw_items_count_for_cache'] . " raw items for query '{$search_query}' and country '{$country}'.");
                 } catch (Exception $cache_e) {
                     // ps_log_error("Error caching raw results: " . $cache_e->getMessage());
                     // Continue even if caching fails - we can still return the display results
@@ -499,26 +520,27 @@ function ps_ajax_search() {
         
             // Prepare the data for display (filtered items)
             $display_results = array(
-                'success' => isset($amazon_search_response['success']) ? $amazon_search_response['success'] : false,
-                'items' => isset($amazon_search_response['items']) ? $amazon_search_response['items'] : array(),
-                'count' => isset($amazon_search_response['count']) ? $amazon_search_response['count'] : 0,
-                'base_items_count' => isset($amazon_search_response['raw_items_count_for_cache']) ? $amazon_search_response['raw_items_count_for_cache'] : 0, // total before display filtering
+                'success' => isset($search_response['success']) ? $search_response['success'] : false,
+                'items' => isset($search_response['items']) ? $search_response['items'] : array(),
+                'count' => isset($search_response['count']) ? $search_response['count'] : 0,
+                'base_items_count' => isset($search_response['raw_items_count_for_cache']) ? $search_response['raw_items_count_for_cache'] : 0, // total before display filtering
                 'query' => $search_query,
                 'exclude' => $exclude_keywords,
                 'sort_by' => $sort_by,
                 'country_code' => $country,
-                'pagination_urls' => isset($amazon_search_response['pagination_urls']) ? $amazon_search_response['pagination_urls'] : array(), // Include pagination URLs
+                'platforms' => $platforms, // Include platforms in response
+                'pagination_urls' => isset($search_response['pagination_urls']) ? $search_response['pagination_urls'] : array(), // Include pagination URLs
                 'data_source' => 'live_request_filtered_display'
             );
 
-            if (isset($amazon_search_response['message'])) {
-                $display_results['message'] = $amazon_search_response['message'];
+            if (isset($search_response['message'])) {
+                $display_results['message'] = $search_response['message'];
             }
-            if (isset($amazon_search_response['error_type'])) {
-                $display_results['error_type'] = $amazon_search_response['error_type'];
+            if (isset($search_response['error_type'])) {
+                $display_results['error_type'] = $search_response['error_type'];
             }
-             if (isset($amazon_search_response['debug_info'])) {
-                $display_results['debug_info'] = $amazon_search_response['debug_info'];
+             if (isset($search_response['debug_info'])) {
+                $display_results['debug_info'] = $search_response['debug_info'];
             }
 
             // Return the DISPLAY results (success or error)
@@ -531,11 +553,14 @@ function ps_ajax_search() {
                 wp_send_json_error($display_results);
             }
         } else {
-            // ps_log_error("Invalid Amazon search results format: " . print_r($amazon_search_response, true));
+            // ps_log_error("Invalid search results format: " . print_r($search_response, true));
             
-            // Create Amazon search URL for the user to continue searching manually
+            // Create search URLs for the user to continue searching manually
             $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
             $amazon_search_url = $amazon_base . '/s?k=' . urlencode($search_query);
+            
+            $ebay_base = ($country === 'ca') ? 'https://www.ebay.ca' : 'https://www.ebay.com';
+            $ebay_search_url = $ebay_base . '/sch/i.html?_nkw=' . urlencode($search_query);
             
             $error_response = array(
                 'success' => false,
@@ -544,6 +569,7 @@ function ps_ajax_search() {
                 'count' => 0,
                 'error_type' => 'invalid_response_format',
                 'amazon_search_url' => $amazon_search_url,
+                'ebay_search_url' => $ebay_search_url,
                 'search_query' => $search_query,
                 'country' => $country
             );
@@ -1113,6 +1139,25 @@ function ps_cleanup_cache() {
     }
 }
 add_action('ps_cache_cleanup', 'ps_cleanup_cache');
+
+/**
+ * Clear all cache entries (for debugging price parsing issues)
+ */
+function ps_clear_all_cache() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ps_cache';
+    
+    $result = $wpdb->query("DELETE FROM $table_name");
+    
+    if ($result !== false) {
+        ps_log_error("Cache cleared successfully. Deleted $result entries.");
+        return $result;
+    } else {
+        ps_log_error("Error clearing cache: " . $wpdb->last_error);
+        return false;
+    }
+}
+
 // Register AJAX filter handler
 add_action('wp_ajax_ps_filter', 'ps_ajax_filter');
 add_action('wp_ajax_nopriv_ps_filter', 'ps_ajax_filter');
@@ -1406,10 +1451,17 @@ function ps_ajax_load_more() {
     $min_rating = isset($_POST['min_rating']) ? floatval($_POST['min_rating']) : 4.0;
     $country = isset($_POST['country']) ? sanitize_text_field($_POST['country']) : 'us';
     $page = isset($_POST['page']) ? intval($_POST['page']) : 2; // Default to page 2 for "load more"
+    
+    // Get platforms from the request (prioritize this over cached platforms)
+    $requested_platforms = isset($_POST['platforms']) ? $_POST['platforms'] : array();
+    if (!is_array($requested_platforms)) {
+        $requested_platforms = array($requested_platforms);
+    }
+    
     $user_id = ps_get_user_identifier();
     
     // Log the request
-    ps_log_error("AJAX Load More Request - User: {$user_id}, Query: '{$search_query}', Page: {$page}, Country: '{$country}'");
+    ps_log_error("AJAX Load More Request - User: {$user_id}, Query: '{$search_query}', Page: {$page}, Country: '{$country}', Requested Platforms: " . implode(', ', $requested_platforms));
     
     if (empty($search_query)) {
         ps_send_ajax_response(array(
@@ -1438,186 +1490,231 @@ function ps_ajax_load_more() {
         return;
     }
     
-    // Check if we have pagination URLs in the cache
-    $pagination_urls = isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array();
-    $page_key = 'page_' . $page;
+    // Determine which platforms to use for load more
+    // Priority: 1. Requested platforms 2. Cached platforms 3. Default to amazon
+    $platforms = array();
     
-    if (empty($pagination_urls) || !isset($pagination_urls[$page_key])) {
-        ps_log_error("Load More: No pagination URL found for page {$page}");
+    if (!empty($requested_platforms)) {
+        // Use platforms requested by the client
+        $platforms = $requested_platforms;
+        ps_log_error("Load More: Using requested platforms: " . implode(', ', $platforms));
+    } elseif (isset($existing_cache['platforms']) && !empty($existing_cache['platforms'])) {
+        // Fall back to platforms from cache
+        $platforms = is_array($existing_cache['platforms']) ? $existing_cache['platforms'] : array($existing_cache['platforms']);
+        ps_log_error("Load More: Using cached platforms: " . implode(', ', $platforms));
+    } else {
+        // Default fallback
+        $platforms = array('amazon');
+        ps_log_error("Load More: Using default platforms: " . implode(', ', $platforms));
+    }
+    
+    // Filter platforms to only supported ones (for load more, only Amazon and eBay currently support pagination)
+    $load_more_supported_platforms = array('amazon', 'ebay');
+    $platforms = array_intersect($platforms, $load_more_supported_platforms);
+    
+    if (empty($platforms)) {
         ps_send_ajax_response(array(
             'success' => false,
-            'message' => 'No more pages available.',
-            'page_loaded' => $page
+            'message' => 'No supported platforms selected for load more. Currently supported: ' . implode(', ', $load_more_supported_platforms)
         ));
         return;
     }
     
-    $page_url = $pagination_urls[$page_key];
-    ps_log_error("Load More: Using parsed URL for page {$page}: {$page_url}");
+    ps_log_error("Load More: Loading page {$page} for supported platforms: " . implode(', ', $platforms));
     
-    try {
-        // Fetch the page using the parsed URL
-        $html_content = ps_fetch_amazon_search_results($page_url, $country);
+    // Collect new items from all platforms
+    $all_new_items = array();
+    $platform_errors = array();
+    $has_more_pages = false;
+    
+    // Load next page from each platform
+    foreach ($platforms as $platform) {
+        $platform = sanitize_text_field($platform);
         
-        // Check if we got an error response
-        if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
-            $http_code = $html_content['http_code'];
-            ps_log_error("Load More: Failed to fetch page {$page} - HTTP {$http_code}");
+        try {
+            $platform_new_items = array();
+            $platform_has_more = false;
             
-            // Check if it's a blocking error (503, 429, etc.)
-            if (in_array($http_code, [503, 429, 403, 502, 504])) {
-                // Create Amazon search URL for the user to continue searching manually
-                $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
-                $amazon_search_url = $amazon_base . '/s?k=' . urlencode($search_query);
+            if ($platform === 'amazon') {
+                // Amazon pagination uses stored URLs
+                $pagination_urls = isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array();
+                $page_key = 'page_' . $page;
                 
-                ps_send_ajax_response(array(
-                    'success' => false,
-                    'message' => 'Amazon is blocking requests. Please try again later.',
-                    'amazon_search_url' => $amazon_search_url,
-                    'search_query' => $search_query,
-                    'country' => $country,
-                    'page_loaded' => $page,
-                    'http_code' => $http_code
-                ));
-            } else {
-                ps_send_ajax_response(array(
-                    'success' => false,
-                    'message' => 'Failed to connect to Amazon. Please try again later.',
-                    'page_loaded' => $page,
-                    'http_code' => $http_code
-                ));
-            }
-            return;
-        }
-        
-        if (empty($html_content)) {
-            ps_log_error("Load More: Failed to fetch page {$page} - No response received");
-            ps_send_ajax_response(array(
-                'success' => false,
-                'message' => 'Failed to load more results from Amazon.',
-                'page_loaded' => $page
-            ));
-            return;
-        }
-        
-        // Check if Amazon is blocking the request
-        if (ps_is_amazon_blocking($html_content)) {
-            ps_log_error("Load More: Amazon is blocking page {$page} request");
-            
-            // Create Amazon search URL for the user to continue searching manually
-            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
-            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($search_query);
-            
-            ps_send_ajax_response(array(
-                'success' => false,
-                'message' => 'Amazon is blocking requests. Please try again later.',
-                'amazon_search_url' => $amazon_search_url,
-                'search_query' => $search_query,
-                'country' => $country,
-                'page_loaded' => $page
-            ));
-            return;
-        }
-        
-        // Check if it's a valid search page
-        if (!ps_is_valid_search_page($html_content)) {
-            ps_log_error("Load More: Invalid search page format for page {$page}");
-            ps_send_ajax_response(array(
-                'success' => false,
-                'message' => 'Invalid page format received.',
-                'page_loaded' => $page
-            ));
-            return;
-        }
-        
-        // Parse the search results HTML
-        $associate_tag = ps_get_associate_tag($country);
-        $parse_results = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
-        
-        // Measure elapsed time
-        $elapsed_time = microtime(true) - $start_time;
-        ps_log_error("Load more page {$page} completed in " . number_format($elapsed_time, 2) . " seconds");
-        
-        if (isset($parse_results['success']) && $parse_results['success'] && !empty($parse_results['items'])) {
-            $new_items = $parse_results['items'];
-            
-            // Merge new items with existing cached items
-            $existing_items = $existing_cache['items'];
-            $merged_items = array_merge($existing_items, $new_items);
-            
-            // Remove duplicates based on product link
-            $unique_items = array();
-            $seen_links = array();
-            
-            foreach ($merged_items as $item) {
-                $link = isset($item['link']) ? $item['link'] : '';
-                if (!empty($link) && !in_array($link, $seen_links)) {
-                    $unique_items[] = $item;
-                    $seen_links[] = $link;
+                if (!empty($pagination_urls) && isset($pagination_urls[$page_key])) {
+                    $page_url = $pagination_urls[$page_key];
+                    ps_log_error("Load More Amazon: Using pagination URL for page {$page}: {$page_url}");
+                    
+                    // Fetch the page using the parsed URL
+                    $html_content = ps_fetch_amazon_search_results($page_url, $country);
+                    
+                    // Check for errors
+                    if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
+                        $platform_errors[] = "Amazon: HTTP " . $html_content['http_code'];
+                        continue;
+                    }
+                    
+                    if (empty($html_content)) {
+                        $platform_errors[] = "Amazon: No response received";
+                        continue;
+                    }
+                    
+                    if (ps_is_amazon_blocking($html_content)) {
+                        $platform_errors[] = "Amazon: Blocking detected";
+                        continue;
+                    }
+                    
+                    if (!ps_is_valid_search_page($html_content)) {
+                        $platform_errors[] = "Amazon: Invalid page format";
+                        continue;
+                    }
+                    
+                    // Parse results
+                    $associate_tag = ps_get_associate_tag($country);
+                    $parse_results = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
+                    
+                    if (isset($parse_results['success']) && $parse_results['success'] && !empty($parse_results['items'])) {
+                        $platform_new_items = $parse_results['items'];
+                        // Add platform identifier
+                        foreach ($platform_new_items as &$item) {
+                            $item['platform'] = 'amazon';
+                        }
+                        
+                        // Check if Amazon has more pages available
+                        $platform_has_more = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
+                        
+                        ps_log_error("Load More Amazon: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                    }
+                } else {
+                    ps_log_error("Load More Amazon: No pagination URL for page {$page}");
+                    $platform_errors[] = "Amazon: No pagination URL available for page {$page}";
                 }
+                
+            } elseif ($platform === 'ebay') {
+                // eBay pagination uses page numbers
+                ps_log_error("Load More eBay: Searching page {$page}");
+                
+                $ebay_results = ps_search_ebay_products($search_query, '', $sort_by, $country, $min_rating, $page);
+                
+                if (isset($ebay_results['success']) && $ebay_results['success'] && !empty($ebay_results['items'])) {
+                    $platform_new_items = $ebay_results['items'];
+                    // Add platform identifier
+                    foreach ($platform_new_items as &$item) {
+                        $item['platform'] = 'ebay';
+                    }
+                    
+                    // eBay has more pages if we got results (assume 3 page limit for consistency)
+                    $platform_has_more = ($page < 3) && count($platform_new_items) > 0;
+                    
+                    ps_log_error("Load More eBay: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                } else {
+                    if (isset($ebay_results['message'])) {
+                        $platform_errors[] = "eBay: " . $ebay_results['message'];
+                    } else {
+                        $platform_errors[] = "eBay: No results found";
+                    }
+                }
+                
+            } else {
+                // Future platform support (Best Buy, Walmart, etc.)
+                ps_log_error("Load More: Platform '{$platform}' not yet implemented for pagination");
+                $platform_errors[] = ucfirst($platform) . ": Not yet supported for load more";
             }
             
-            // Update the cache with merged results and extended expiry
-            $updated_cache_data = array(
-                'success' => true,
-                'items' => $unique_items,
-                'count' => count($unique_items),
-                'base_items_count' => count($unique_items),
-                'query' => $search_query,
-                'country_code' => $country,
-                'exclude' => '',
-                'sort_by' => '',
-                'pagination_urls' => $pagination_urls, // Keep the original pagination URLs
-                'data_source' => 'load_more_merged',
-                'last_page_loaded' => $page
-            );
+            // Add platform results to the total
+            if (!empty($platform_new_items)) {
+                $all_new_items = array_merge($all_new_items, $platform_new_items);
+            }
             
-            // Cache the updated results with extended expiry (24 hours from now)
-            ps_cache_results($search_query, $country, '', '', $updated_cache_data);
+            // Update has_more_pages if any platform has more
+            if ($platform_has_more) {
+                $has_more_pages = true;
+            }
             
-            ps_log_error("Load More: Successfully merged " . count($new_items) . " new items with existing cache. Total items: " . count($unique_items));
-            
-            // Apply the current filters and sorting to the complete merged dataset
-            $filtered_results = ps_filter_amazon_products($unique_items, $search_query, $exclude_keywords, $sort_by, $min_rating);
-            $final_items = array_values($filtered_results['items']);
-            $final_count = $filtered_results['count'];
-            
-            // Determine if there are more pages available
-            $has_more_pages = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
-            
-            // Debug logging for has_more_pages calculation
-            ps_log_error("Load More: has_more_pages calculation - Page: {$page}, Page < 3: " . ($page < 3 ? 'true' : 'false') . ", Next page key exists: " . (isset($pagination_urls['page_' . ($page + 1)]) ? 'true' : 'false') . ", Result: " . ($has_more_pages ? 'true' : 'false'));
-            
-            // Return the complete filtered and sorted dataset
-            ps_send_ajax_response(array(
-                'success' => true,
-                'items' => $final_items,  // Return all items (existing + new), filtered and sorted
-                'count' => $final_count,
-                'base_items_count' => count($unique_items),
-                'new_items_count' => count($new_items),
-                'page_loaded' => $page,
-                'has_more_pages' => $has_more_pages,
-                'query' => $search_query,
-                'exclude' => $exclude_keywords,
-                'sort_by' => $sort_by,
-                'country_code' => $country,
-                'data_source' => 'load_more_complete_dataset'
-            ));
-        } else {
-            ps_log_error("Load More: No new items found on page {$page}");
-            ps_send_ajax_response(array(
-                'success' => false,
-                'message' => 'No more results found.',
-                'page_loaded' => $page
-            ));
+        } catch (Exception $e) {
+            ps_log_error("Error loading more from {$platform}: " . $e->getMessage());
+            $platform_errors[] = ucfirst($platform) . ": Error - " . $e->getMessage();
         }
-    } catch (Exception $e) {
-        ps_log_error("Load More: Exception occurred: " . $e->getMessage());
+    }
+    
+    // Check if we got any new items
+    if (empty($all_new_items)) {
+        $error_message = 'No more results available.';
+        if (!empty($platform_errors)) {
+            $error_message .= '<br><br>Platform issues: ' . implode(', ', $platform_errors);
+        }
+        
         ps_send_ajax_response(array(
             'success' => false,
-            'message' => 'An error occurred while loading more results: ' . $e->getMessage()
+            'message' => $error_message,
+            'page_loaded' => $page,
+            'platforms_attempted' => $platforms,
+            'platform_errors' => $platform_errors
         ));
+        return;
     }
+    
+    // Merge new items with existing cached items
+    $existing_items = $existing_cache['items'];
+    $merged_items = array_merge($existing_items, $all_new_items);
+    
+    // Remove duplicates based on product link
+    $unique_items = array();
+    $seen_links = array();
+    
+    foreach ($merged_items as $item) {
+        $link = isset($item['link']) ? $item['link'] : '';
+        if (!empty($link) && !in_array($link, $seen_links)) {
+            $unique_items[] = $item;
+            $seen_links[] = $link;
+        } elseif (empty($link)) {
+            // Keep items without links (shouldn't happen, but be safe)
+            $unique_items[] = $item;
+        }
+    }
+    
+    // Update the cache with merged results and extended expiry
+    $updated_cache_data = array(
+        'success' => true,
+        'items' => $unique_items,
+        'count' => count($unique_items),
+        'base_items_count' => count($unique_items),
+        'query' => $search_query,
+        'country_code' => $country,
+        'exclude' => '',
+        'sort_by' => '',
+        'platforms' => $platforms, // Keep original platforms
+        'pagination_urls' => isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array(), // Keep Amazon pagination URLs
+        'data_source' => 'load_more_merged',
+        'last_page_loaded' => $page
+    );
+    
+    // Cache the updated results with extended expiry (24 hours from now)
+    ps_cache_results($search_query, $country, '', '', $updated_cache_data);
+    
+    ps_log_error("Load More: Successfully merged " . count($all_new_items) . " new items with existing cache. Total items: " . count($unique_items));
+    
+    // Measure elapsed time
+    $elapsed_time = microtime(true) - $start_time;
+    ps_log_error("Load more page {$page} completed in " . number_format($elapsed_time, 2) . " seconds");
+    
+    // Return the complete merged dataset (unfiltered) for frontend filtering
+    // The frontend will apply all current filters via applyAllFilters()
+    ps_send_ajax_response(array(
+        'success' => true,
+        'items' => $unique_items,  // Return all items (existing + new), unfiltered for frontend processing
+        'count' => count($unique_items),
+        'base_items_count' => count($unique_items),
+        'new_items_count' => count($all_new_items),
+        'query' => $search_query,
+        'exclude' => $exclude_keywords,
+        'sort_by' => $sort_by,
+        'country_code' => $country,
+        'platforms' => $platforms,
+        'has_more_pages' => $has_more_pages,
+        'page_loaded' => $page,
+        'data_source' => 'load_more_merged',
+        'platform_errors' => $platform_errors
+    ));
 }
 add_action('wp_ajax_ps_load_more', 'ps_ajax_load_more');
 add_action('wp_ajax_nopriv_ps_load_more', 'ps_ajax_load_more');
@@ -1728,4 +1825,185 @@ function ps_ajax_test_network_detection() {
     }
 }
 add_action('wp_ajax_ps_test_network_detection', 'ps_ajax_test_network_detection');
+
+/**
+ * Search multiple platforms and combine results
+ */
+function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort_by = 'price', $country = 'us', $min_rating = 4.0, $platforms = array('amazon')) {
+    $combined_results = array();
+    $all_items = array();
+    $total_count = 0;
+    $success = false;
+    $messages = array();
+    
+    ps_log_error("Multi-platform search for platforms: " . implode(', ', $platforms));
+    
+    // Search each platform
+    $pagination_urls = array(); // Collect pagination URLs from platforms
+    
+    foreach ($platforms as $platform) {
+        $platform = sanitize_text_field($platform);
+        
+        try {
+            $platform_results = array();
+            
+            if ($platform === 'amazon') {
+                ps_log_error("Searching Amazon...");
+                $platform_results = ps_search_amazon_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
+            } elseif ($platform === 'ebay') {
+                ps_log_error("Searching eBay...");
+                $platform_results = ps_search_ebay_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
+            } elseif ($platform === 'bestbuy') {
+                ps_log_error("Searching Best Buy...");
+                $platform_results = ps_search_bestbuy_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
+            } elseif ($platform === 'walmart') {
+                ps_log_error("Searching Walmart...");
+                $platform_results = ps_search_walmart_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
+            }
+            
+            if (!empty($platform_results) && is_array($platform_results)) {
+                if (isset($platform_results['success']) && $platform_results['success']) {
+                    $success = true;
+                    
+                    // Capture pagination URLs from Amazon
+                    if ($platform === 'amazon' && isset($platform_results['pagination_urls'])) {
+                        $pagination_urls = $platform_results['pagination_urls'];
+                        ps_log_error("Multi-platform: Captured Amazon pagination URLs: " . json_encode(array_keys($pagination_urls)));
+                    }
+                    
+                    if (isset($platform_results['items']) && is_array($platform_results['items'])) {
+                        // Add platform identifier to each item
+                        foreach ($platform_results['items'] as $item) {
+                            $item['platform'] = $platform;
+                            $all_items[] = $item;
+                        }
+                        $total_count += count($platform_results['items']);
+                    }
+                } else {
+                    // Platform failed, collect error message
+                    if (isset($platform_results['message'])) {
+                        $messages[] = ucfirst($platform) . ': ' . $platform_results['message'];
+                    }
+                }
+            }
+            
+        } catch (Exception $e) {
+            ps_log_error("Error searching {$platform}: " . $e->getMessage());
+            $messages[] = ucfirst($platform) . ': Error - ' . $e->getMessage();
+        }
+    }
+    
+    // Apply filtering and sorting to combined results
+    if (!empty($all_items)) {
+        $filtered_items = ps_filter_multi_platform_products($all_items, '', $exclude_keywords, $sort_by, $min_rating);
+        
+        $combined_results = array(
+            'success' => true,
+            'items' => $filtered_items,
+            'count' => count($filtered_items),
+            'raw_items_for_cache' => $all_items, // Store all items for cache
+            'raw_items_count_for_cache' => count($all_items),
+            'platforms' => $platforms,
+            'pagination_urls' => $pagination_urls // Include pagination URLs for load more
+        );
+        
+        if (!empty($messages)) {
+            $combined_results['platform_messages'] = $messages;
+        }
+        
+    } else {
+        // No results from any platform
+        $combined_results = array(
+            'success' => false,
+            'items' => array(),
+            'count' => 0,
+            'message' => !empty($messages) ? implode('<br>', $messages) : 'No results found from any platform.',
+            'platforms' => $platforms
+        );
+    }
+    
+    ps_log_error("Multi-platform search completed. Total items: " . count($all_items) . ", Filtered items: " . (isset($filtered_items) ? count($filtered_items) : 0));
+    
+    return $combined_results;
+}
+
+/**
+ * Filter products from multiple platforms
+ */
+function ps_filter_multi_platform_products($items, $includeText = '', $excludeText = '', $sortBy = 'price', $minRating = null) {
+    if (empty($items) || !is_array($items)) {
+        return array();
+    }
+    
+    $filtered_items = array();
+    
+    foreach ($items as $item) {
+        // Apply text filtering
+        if (!empty($excludeText)) {
+            $exclude_terms = array_map('trim', explode(',', strtolower($excludeText)));
+            $item_text = strtolower($item['title'] . ' ' . (isset($item['brand']) ? $item['brand'] : ''));
+            
+            $skip_item = false;
+            foreach ($exclude_terms as $exclude_term) {
+                if (!empty($exclude_term) && strpos($item_text, $exclude_term) !== false) {
+                    $skip_item = true;
+                    break;
+                }
+            }
+            
+            if ($skip_item) {
+                continue;
+            }
+        }
+        
+        // Apply rating filtering (for platforms that support it)
+        if ($minRating !== null && isset($item['rating_numeric']) && is_numeric($item['rating_numeric'])) {
+            if (floatval($item['rating_numeric']) < floatval($minRating)) {
+                continue;
+            }
+        }
+        
+        $filtered_items[] = $item;
+    }
+    
+    // Sort items
+    if ($sortBy === 'price' && !empty($filtered_items)) {
+        usort($filtered_items, function($a, $b) {
+            $price_a = isset($a['price_numeric']) ? floatval($a['price_numeric']) : PHP_FLOAT_MAX;
+            $price_b = isset($b['price_numeric']) ? floatval($b['price_numeric']) : PHP_FLOAT_MAX;
+            return $price_a - $price_b;
+        });
+    } elseif ($sortBy === 'price_per_unit' && !empty($filtered_items)) {
+        usort($filtered_items, function($a, $b) {
+            $ppu_a = isset($a['price_per_unit_numeric']) ? floatval($a['price_per_unit_numeric']) : PHP_FLOAT_MAX;
+            $ppu_b = isset($b['price_per_unit_numeric']) ? floatval($b['price_per_unit_numeric']) : PHP_FLOAT_MAX;
+            return $ppu_a - $ppu_b;
+        });
+    }
+    
+    return $filtered_items;
+}
+
+/**
+ * Handle debug log AJAX requests
+ */
+function ps_ajax_debug_log() {
+    // Verify nonce
+    check_ajax_referer('ps-search-nonce', 'nonce');
+    
+    $message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : '';
+    $data = isset($_POST['data']) ? $_POST['data'] : '';
+    
+    if (!empty($message)) {
+        $log_entry = "DEBUG: " . $message;
+        if (!empty($data)) {
+            $log_entry .= " | Data: " . $data;
+        }
+        ps_log_error($log_entry);
+    }
+    
+    wp_send_json_success(array('logged' => true));
+}
+add_action('wp_ajax_ps_debug_log', 'ps_ajax_debug_log');
+add_action('wp_ajax_nopriv_ps_debug_log', 'ps_ajax_debug_log');
 

@@ -20,8 +20,9 @@
 
 .ps-search-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 12px;
     padding: 0 2px;
 }
@@ -74,7 +75,7 @@
 /* Country Selector Styles */
 .ps-search-form .ps-country-selector {
     margin-bottom: 6px !important;
-    width: 100%;
+    flex-shrink: 0;
     padding: 0 2px;
 }
 
@@ -109,6 +110,45 @@
 .ps-country-name {
     font-weight: 500;
     font-size: 0.9em;
+}
+
+/* Platform Selector Styles */
+.ps-platform-selector {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.ps-platform-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ps-platform-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 3px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.2s ease;
+    font-size: 0.85em;
+}
+
+.ps-platform-option:hover {
+    background-color: #f5f5f5;
+}
+
+.ps-platform-option input[type="checkbox"] {
+    margin-right: 4px;
+    width: 14px;
+    height: 14px;
+}
+
+.ps-platform-name {
+    font-weight: normal;
+    white-space: nowrap;
 }
 
 /* Search Table Styles */
@@ -338,6 +378,35 @@
     flex-direction: column;
 }
 
+.ps-product-platform {
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    background-color: #4CAF50;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+    align-self: flex-start;
+    order: 0;
+}
+
+.ps-product-platform[data-platform="amazon"] {
+    background-color: #ff9900;
+}
+
+.ps-product-platform[data-platform="ebay"] {
+    background-color: #0064d2;
+}
+
+.ps-product-platform[data-platform="bestbuy"] {
+    background-color: #003da6;
+}
+
+.ps-product-platform[data-platform="walmart"] {
+    background-color: #004c91;
+}
+
 .ps-product-brand {
     font-size: 0.85em;
     color: #555;
@@ -369,10 +438,16 @@
 }
 
 .ps-product-price {
-    font-weight: bold;
+    font-weight: normal;
     font-size: 14px;
     color: #e63946;
     order: 4;
+}
+
+/* eBay pricing breakdown styling */
+.ps-ebay-price-breakdown {
+    font-size: 75%; /* 25% smaller than main price */
+    opacity: 0.9;
 }
 
 .ps-product-price-unit {
@@ -416,7 +491,29 @@
 /* Responsive Adjustments */
 @media (max-width: 600px) {
     .ps-search-row {
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .ps-platform-selector {
+        margin-left: 0;
+        order: 2;
+        width: 100%;
+    }
+    
+    .ps-country-selector {
+        order: 1;
+        width: 100%;
+    }
+    
+    .ps-platform-options {
+        justify-content: flex-end;
+        gap: 6px;
+    }
+    
+    .ps-platform-option {
+        padding: 2px 4px;
+        font-size: 0.8em;
     }
     
     .ps-search-field {

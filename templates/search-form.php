@@ -68,6 +68,26 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                     </label>
                 </div>
             </div>
+            <div class="ps-platform-selector">
+                <div class="ps-platform-options">
+                    <label class="ps-platform-option">
+                        <input type="checkbox" name="platforms" value="amazon" checked>
+                        <span class="ps-platform-name">Amazon</span>
+                    </label>
+                    <label class="ps-platform-option">
+                        <input type="checkbox" name="platforms" value="ebay">
+                        <span class="ps-platform-name">eBay</span>
+                    </label>
+                    <label class="ps-platform-option">
+                        <input type="checkbox" name="platforms" value="bestbuy">
+                        <span class="ps-platform-name">Best Buy</span>
+                    </label>
+                    <label class="ps-platform-option">
+                        <input type="checkbox" name="platforms" value="walmart">
+                        <span class="ps-platform-name">Walmart</span>
+                    </label>
+                </div>
+            </div>
         </div>
         <table class="ps-search-table">
             <tr>
@@ -99,18 +119,18 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                 </td>
                 <td class="ps-search-input">
                     <select id="ps-min-rating" name="min_rating">
-                        <option value="4.5">4.5+ stars</option>
-                        <option value="4.0" selected>4.0+ stars</option>
-                        <option value="3.5">3.5+ stars</option>
+                        <option value="4.5">4.5+ stars, 95%+</option>
+                        <option value="4.0" selected>4.0+ stars, 90%+</option>
+                        <option value="3.5">3.5+ stars, 85%+</option>
                     </select>
                 </td>
             </tr>
         </table>
         <div class="ps-search-row">
             <div class="ps-search-actions">
-                <button type="button" id="ps-filter-button" class="ps-filter-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Apply</button>
+                <button type="button" id="ps-filter-button" class="ps-filter-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Filter</button>
                 <button type="button" id="ps-show-all-button" class="ps-show-all-button" <?php echo !$user_has_cached_data ? 'style="display:none;"' : ''; ?>>Show All</button>
-                <button type="submit" class="ps-search-button">Search Amazon</button>
+                <button type="submit" class="ps-search-button">New Search</button>
                 <button type="button" id="ps-load-more-top-button" class="ps-load-more-button ps-load-more-top" style="display: none;">
                     <span class="ps-load-more-text">Load More</span>
                     <span class="ps-load-more-spinner" style="display: none;">
@@ -148,6 +168,9 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
             </a>
         </div>
         <div class="ps-product-info">
+            {{#if platform}}
+            <div class="ps-product-platform" data-platform="{{platform}}">{{platform}}</div>
+            {{/if}}
             {{#if brand}}
             <div class="ps-product-brand">{{brand}}</div>
             {{/if}}
@@ -157,12 +180,16 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
             {{#if rating}}
             <div class="ps-product-rating">
                 <a href="{{rating_link}}" target="_blank">
+                    {{#if is_ebay_seller_rating}}
+                    <span class="ps-stars">{{rating}}</span>
+                    {{else}}
                     {{#if rating_number}}
                     <span class="ps-rating-number">{{rating_number}}</span>
                     {{/if}}
                     <span class="ps-stars">{{rating}}</span>
                     {{#if rating_count}}
                     <span class="ps-rating-count">({{rating_count}})</span>
+                    {{/if}}
                     {{/if}}
                 </a>
             </div>
