@@ -910,4 +910,4 @@ function ps_parsing_test_shortcode() {
     <?php
     return ob_get_clean();
 }
-add_shortcode('primates_parsing_test', 'ps_parsing_test_shortcode'); 
+add_shortcode('primates_parsing_test', 'ps_parsing_test_shortcode');

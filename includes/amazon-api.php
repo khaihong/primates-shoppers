@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
 /**
  * Search Amazon products using web scraping
  *
+ * PROXY COST OPTIMIZATION STRATEGY:
+ * - Primary use: Proxy is used for development/testing when on configured network
+ * - Fallback protection: If external IPs get blocked (503, 429, 403), automatically retry once with proxy
+ * - This minimizes proxy costs while ensuring reliability for production users
+ *
  * @param string $query The main search query
  * @param string $exclude_keywords Keywords to exclude from results
  * @param string $sort_by Sorting method (price, price_per_unit)
@@ -25,11 +30,11 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
         return array();
     }
     
-    ps_log_error("Initiating live search for: '{$query}' in country: {$country}, page: {$page}");
+    // ps_log_error("Initiating live search for: '{$query}' in country: {$country}, page: {$page}");
     
     // Construct the Amazon search URL with pagination
     $search_url = ps_construct_amazon_search_url($query, $country, $page);
-    ps_log_error("Constructed search URL: {$search_url}");
+    // ps_log_error("Constructed search URL: {$search_url}");
     
     // Get the search results HTML
     $html_content = ps_fetch_amazon_search_results($search_url, $country);
@@ -39,11 +44,35 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
         $http_code = $html_content['http_code'];
         ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - HTTP {$http_code}");
         
-        // Get the associate tag for the correct affiliate link
-        $associate_tag = ps_get_associate_tag($country);
-        
-        // Check if it's a blocking error (503, 429, etc.)
+        // Check if it's a blocking error and we weren't using proxy - retry with proxy as fallback
         if (in_array($http_code, [503, 429, 403, 502, 504])) {
+            // Check if we can use proxy fallback (not already using proxy)
+            $on_current_network = ps_is_on_current_network();
+            if (!$on_current_network && defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
+                ps_log_error("FALLBACK: External IP got blocked (HTTP {$http_code}), retrying with proxy for cost-effective unblocking");
+                
+                // Retry with forced proxy
+                $html_content = ps_fetch_amazon_search_results($search_url, $country, true);
+                
+                // If the retry succeeded, continue with normal processing
+                if (!is_array($html_content) || !isset($html_content['error'])) {
+                    ps_log_error("FALLBACK SUCCESS: Proxy retry worked, continuing with results");
+                    // Don't return here - let it continue to normal processing
+                } else {
+                    ps_log_error("FALLBACK FAILED: Proxy retry also failed - HTTP " . ($html_content['http_code'] ?? 'unknown'));
+                }
+            }
+        }
+        
+        // If we're still in error state after potential retry, handle the error
+        if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
+            $http_code = $html_content['http_code'];
+            
+            // Get the associate tag for the correct affiliate link
+            $associate_tag = ps_get_associate_tag($country);
+            
+            // Check if it's a blocking error (503, 429, etc.)
+            if (in_array($http_code, [503, 429, 403, 502, 504])) {
             // Create Amazon search URL for the user to continue searching manually
             $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
             $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
@@ -63,31 +92,32 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
                 'country' => $country,
                 'http_code' => $http_code
             );
-        } else {
-            // Create Amazon search URL for the user to continue searching manually
-            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
-            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
-            
-            // Add affiliate tag to the continue URL
-            if (!empty($associate_tag)) {
-                $amazon_search_url .= '&tag=' . $associate_tag;
+            } else {
+                // Create Amazon search URL for the user to continue searching manually
+                $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+                $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+                
+                // Add affiliate tag to the continue URL
+                if (!empty($associate_tag)) {
+                    $amazon_search_url .= '&tag=' . $associate_tag;
+                }
+                
+                return array(
+                    'success' => false,
+                    'items' => array(),
+                    'count' => 0,
+                    'message' => 'Failed to connect to Amazon. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
+                    'amazon_search_url' => $amazon_search_url,
+                    'search_query' => $query,
+                    'country' => $country,
+                    'http_code' => $http_code
+                );
             }
-            
-            return array(
-                'success' => false,
-                'items' => array(),
-                'count' => 0,
-                'message' => 'Failed to connect to Amazon. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
-                'amazon_search_url' => $amazon_search_url,
-                'search_query' => $query,
-                'country' => $country,
-                'http_code' => $http_code
-            );
         }
     }
     
     if (empty($html_content)) {
-        ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - No response received");
+        // ps_log_error("Failed to fetch Amazon search results for query: '{$query}' page {$page} - No response received");
         
         // Get the associate tag for the correct affiliate link
         $associate_tag = ps_get_associate_tag($country);
@@ -116,32 +146,52 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
     if (ps_is_amazon_blocking($html_content)) {
         ps_log_error("Amazon is blocking search for query: '{$query}' page {$page} - Blocking page detected");
         
-        // Get the associate tag for the correct affiliate link
-        $associate_tag = ps_get_associate_tag($country);
-        
-        // Create Amazon search URL for the user to continue searching manually
-        $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
-        $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
-        
-        // Add affiliate tag to the continue URL
-        if (!empty($associate_tag)) {
-            $amazon_search_url .= '&tag=' . $associate_tag;
+        // Check if we can use proxy fallback (not already using proxy)
+        $on_current_network = ps_is_on_current_network();
+        if (!$on_current_network && defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
+            ps_log_error("FALLBACK: External IP got blocking page, retrying with proxy for cost-effective unblocking");
+            
+            // Retry with forced proxy
+            $html_content = ps_fetch_amazon_search_results($search_url, $country, true);
+            
+            // If the retry succeeded and is not blocking, continue with normal processing
+            if (!empty($html_content) && !ps_is_amazon_blocking($html_content)) {
+                ps_log_error("FALLBACK SUCCESS: Proxy retry bypassed blocking page, continuing with results");
+                // Don't return here - let it continue to normal processing
+            } else {
+                ps_log_error("FALLBACK FAILED: Proxy retry still returned blocking page or error");
+            }
         }
         
-        return array(
-            'success' => false,
-            'items' => array(),
-            'count' => 0,
-            'message' => 'Amazon is blocking requests. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
-            'amazon_search_url' => $amazon_search_url,
-            'search_query' => $query,
-            'country' => $country
-        );
+        // If we're still being blocked after potential retry, return error
+        if (ps_is_amazon_blocking($html_content)) {
+            // Get the associate tag for the correct affiliate link
+            $associate_tag = ps_get_associate_tag($country);
+            
+            // Create Amazon search URL for the user to continue searching manually
+            $amazon_base = ($country === 'ca') ? 'https://www.amazon.ca' : 'https://www.amazon.com';
+            $amazon_search_url = $amazon_base . '/s?k=' . urlencode($query);
+            
+            // Add affiliate tag to the continue URL
+            if (!empty($associate_tag)) {
+                $amazon_search_url .= '&tag=' . $associate_tag;
+            }
+            
+            return array(
+                'success' => false,
+                'items' => array(),
+                'count' => 0,
+                'message' => 'Amazon is blocking requests. Please try again later.<br><br>Or continue search on <a href="' . $amazon_search_url . '" target="_blank" rel="noopener">' . $amazon_search_url . '</a>',
+                'amazon_search_url' => $amazon_search_url,
+                'search_query' => $query,
+                'country' => $country
+            );
+        }
     }
     
     // Check if it's a valid search page
     if (!ps_is_valid_search_page($html_content)) {
-        ps_log_error("Invalid Amazon search results format: " . substr($html_content, 0, 100));
+        // ps_log_error("Invalid Amazon search results format: " . substr($html_content, 0, 100));
         
         // Get the associate tag for the correct affiliate link
         $associate_tag = ps_get_associate_tag($country);
@@ -165,14 +215,14 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
             'country' => $country
         );
         
-        ps_log_error("INVALID_RESPONSE_RETURN: " . json_encode($invalid_response));
+        // ps_log_error("INVALID_RESPONSE_RETURN: " . json_encode($invalid_response));
         
         return $invalid_response;
     }
     
     // Get the associate tag
     $associate_tag = ps_get_associate_tag($country);
-    ps_log_error("Using associate tag for {$country}: '{$associate_tag}'");
+    // ps_log_error("Using associate tag for {$country}: '{$associate_tag}'");
     
     // Parse the search results HTML
     $products = ps_parse_amazon_results($html_content, $associate_tag, $min_rating, $country);
@@ -185,7 +235,7 @@ function ps_search_amazon_products($query, $exclude_keywords = '', $sort_by = 'p
  * This helps handle changes in Amazon's HTML structure
  */
 function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $country = 'us') {
-    ps_log_error("Attempting alternative parsing methods");
+    // ps_log_error("Attempting alternative parsing methods");
     
     $products = array();
     
@@ -217,12 +267,12 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
         
         // Try each selector set
         foreach ($selector_sets as $index => $selectors) {
-            ps_log_error("Trying alternative selector set #" . ($index + 1));
+            // ps_log_error("Trying alternative selector set #" . ($index + 1));
             
             $product_nodes = $xpath->query($selectors['product']);
             
             if ($product_nodes && $product_nodes->length > 0) {
-                ps_log_error("Found " . $product_nodes->length . " potential product nodes with selector set #" . ($index + 1));
+                // ps_log_error("Found " . $product_nodes->length . " potential product nodes with selector set #" . ($index + 1));
                 
                 foreach ($product_nodes as $node) {
                     $title_nodes = $xpath->query($selectors['title'], $node);
@@ -471,13 +521,13 @@ function ps_try_alternative_parsing($html, $affiliate_id, $min_rating = 4.0, $co
                 }
                 
                 if (!empty($products)) {
-                    ps_log_error("Alternative parsing method successfully extracted " . count($products) . " products with selector set #" . ($index + 1));
+                    // ps_log_error("Alternative parsing method successfully extracted " . count($products) . " products with selector set #" . ($index + 1));
                     break; // Stop trying other selectors if we found products
                 }
             }
         }
     } catch (Exception $e) {
-        ps_log_error("Alternative parsing failed with error: " . $e->getMessage());
+        // ps_log_error("Alternative parsing failed with error: " . $e->getMessage());
     }
     
     return $products;
@@ -505,7 +555,7 @@ function ps_is_amazon_blocking($html) {
     
     foreach ($blocking_indicators as $indicator) {
         if (strpos($html_lower, $indicator) !== false) {
-            ps_log_error("ps_is_amazon_blocking: Detected blocking indicator: '{$indicator}'");
+            // ps_log_error("ps_is_amazon_blocking: Detected blocking indicator: '{$indicator}'");
             return true;
         }
     }
@@ -556,7 +606,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
     $seen_links = array();
     $seen_asins = array();
 
-    ps_log_error("Starting to parse Amazon results.");
+    // ps_log_error("Starting to parse Amazon results.");
 
     // --- Using XPath parsing ---
     try {
@@ -574,11 +624,11 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
         $errors = libxml_get_errors();
         if (!empty($errors)) {
             $error_count = count($errors);
-            ps_log_error("XPath: DOMDocument encountered {$error_count} XML parsing errors (showing first 3)");
+            // ps_log_error("XPath: DOMDocument encountered {$error_count} XML parsing errors (showing first 3)");
             
             // Log first 3 errors only to avoid flooding the log
             for ($i = 0; $i < min(3, $error_count); $i++) {
-                ps_log_error("XPath XML Error " . ($i + 1) . ": " . trim($errors[$i]->message));
+                // ps_log_error("XPath XML Error " . ($i + 1) . ": " . trim($errors[$i]->message));
             }
             // Clear the errors
             libxml_clear_errors();
@@ -609,7 +659,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
         }
         
         $totalProductCount = count($allProductElements);
-        ps_log_error("XPath: Found " . $productElements->length . " regular products and " . $sponsoredElements->length . " sponsored products (total: " . $totalProductCount . ")");
+        // ps_log_error("XPath: Found " . $productElements->length . " regular products and " . $sponsoredElements->length . " sponsored products (total: " . $totalProductCount . ")");
         
         if ($totalProductCount > 0) {
             $debug_extraction_data = []; // For detailed logging of extraction attempts
@@ -758,7 +808,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                 
                 // Skip if title or link is empty or title contains learn more/let us know
                 if (empty($title) || empty($link) || stripos($title, 'learn more') !== false || stripos($title, 'let us know') !== false ) {
-                    ps_log_error("Skipping product " . ($idx + 1) . ": Empty title/link or unwanted content. Title: '{$title}', Link: '{$link}'");
+                    // ps_log_error("Skipping product " . ($idx + 1) . ": Empty title/link or unwanted content. Title: '{$title}', Link: '{$link}'");
                     $debug_extraction_data[$idx] = $current_product_debug; // Log debug even for skipped
                     continue;
                 }
@@ -1113,24 +1163,24 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                         $raw_items_for_cache[] = $product_data;
                     }
                 } else {
-                    ps_log_error("Product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
+                    // ps_log_error("Product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
                 }
             }
             
             // Log detailed extraction attempts if debugging is enabled (e.g. via a constant or setting)
             if (defined('PS_DEBUG_PARSING') && PS_DEBUG_PARSING) {
                  foreach($debug_extraction_data as $prod_idx => $debug_data) {
-                     ps_log_error("Debug Extraction for Product #" . ($prod_idx +1) . ": " . json_encode($debug_data));
+                     // ps_log_error("Debug Extraction for Product #" . ($prod_idx +1) . ": " . json_encode($debug_data));
                 }
             }
             
             if (!empty($products)) {
-                ps_log_error("Successfully extracted " . count($products) . " products using XPath parsing (div[@role=\"listitem\"]).");
+                // ps_log_error("Successfully extracted " . count($products) . " products using XPath parsing (div[@role=\"listitem\"]).");
             } else {
-                 ps_log_error("XPath (div[@role=\"listitem\"]): Found " . $productElements->length . " elements, but extracted 0 valid products after field extraction.");
+                 // ps_log_error("XPath (div[@role=\"listitem\"]): Found " . $productElements->length . " elements, but extracted 0 valid products after field extraction.");
             }
         } else {
-            ps_log_error("XPath: No product elements found with div[@role=\"listitem\"] selector.");
+            // ps_log_error("XPath: No product elements found with div[@role=\"listitem\"] selector.");
         }
         
         // --- Add Carousel Parsing for Sponsored Products ---
@@ -1138,7 +1188,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
         $carouselElements = $xpath->query('//div[contains(@class, "puis-card-container")]');
         
         if ($carouselElements && $carouselElements->length > 0) {
-            ps_log_error("XPath: Found " . $carouselElements->length . " puis-card-container product elements");
+            // ps_log_error("XPath: Found " . $carouselElements->length . " puis-card-container product elements");
             
             foreach ($carouselElements as $idx => $element) {
                 $current_product_debug = []; // Debug info for the current product
@@ -1301,22 +1351,22 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
                         $products[] = $product_data;
                         $raw_items_for_cache[] = $product_data;
                         
-                        ps_log_error("Puis-card product added: " . substr($title, 0, 50) . "... (Price: $price_str)");
+                        // ps_log_error("Puis-card product added: " . substr($title, 0, 50) . "... (Price: $price_str)");
                     }
                 } else {
-                    ps_log_error("Puis-card product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
+                    // ps_log_error("Puis-card product " . ($idx + 1) . " missing essential data. Title: '$title', Link: '$link', Price: $price_value, Image: '$image'");
                 }
             }
             
             if (count($carouselElements) > 0) {
-                ps_log_error("Successfully processed " . count($carouselElements) . " puis-card elements.");
+                // ps_log_error("Successfully processed " . count($carouselElements) . " puis-card elements.");
             }
         } else {
-            ps_log_error("XPath: No puis-card-container product elements found.");
+            // ps_log_error("XPath: No puis-card-container product elements found.");
         }
         
     } catch (Exception $e) {
-        ps_log_error("XPath parsing failed with error: " . $e->getMessage());
+        // ps_log_error("XPath parsing failed with error: " . $e->getMessage());
     }
 
     $raw_items_count_for_cache = count($raw_items_for_cache);
@@ -1328,7 +1378,7 @@ function ps_parse_amazon_results($html, $affiliate_id, $min_rating = 4.0, $count
     $total_unique_products = count($raw_items_for_cache);
     $total_seen_links = count($seen_links);
     $total_seen_asins = count($seen_asins);
-    ps_log_error("Duplicate prevention summary: {$total_unique_products} unique products added, {$total_seen_links} unique links tracked, {$total_seen_asins} unique ASINs tracked");
+    // ps_log_error("Duplicate prevention summary: {$total_unique_products} unique products added, {$total_seen_links} unique links tracked, {$total_seen_asins} unique ASINs tracked");
 
     // Return a structured array containing both display products and raw products for caching
     return array(
@@ -1355,11 +1405,11 @@ function ps_extract_pagination_urls($html, $country = 'us') {
     
     // First check if pagination section exists at all
     if (strpos($html, 's-pagination-container') === false) {
-        ps_log_error("No pagination container found in HTML");
+        // ps_log_error("No pagination container found in HTML");
         return $pagination_urls;
     }
     
-    ps_log_error("Found pagination container, extracting URLs...");
+    // ps_log_error("Found pagination container, extracting URLs...");
     
     // Use regex to find all pagination links directly from HTML
     // This pattern works based on our test results
@@ -1375,10 +1425,10 @@ function ps_extract_pagination_urls($html, $country = 'us') {
     );
     
     foreach ($patterns as $index => $pattern) {
-        ps_log_error("Trying pagination pattern " . ($index + 1));
+        // ps_log_error("Trying pagination pattern " . ($index + 1));
         
         if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
-            ps_log_error("Pattern " . ($index + 1) . " found " . count($matches) . " matches");
+            // ps_log_error("Pattern " . ($index + 1) . " found " . count($matches) . " matches");
             
             foreach ($matches as $match) {
                 // Handle different capture group orders
@@ -1412,21 +1462,21 @@ function ps_extract_pagination_urls($html, $country = 'us') {
                     // Amazon sometimes returns .com URLs even when on .ca site
                     if ($country === 'ca' && strpos($clean_url, 'amazon.com') !== false) {
                         $clean_url = str_replace('amazon.com', 'amazon.ca', $clean_url);
-                        ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .com to .ca domain");
+                        // ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .com to .ca domain");
                     } elseif ($country === 'us' && strpos($clean_url, 'amazon.ca') !== false) {
                         $clean_url = str_replace('amazon.ca', 'amazon.com', $clean_url);
-                        ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .ca to .com domain");
+                        // ps_log_error("Fixed pagination URL for page " . $page_num . ": corrected .ca to .com domain");
                     }
                     
                     // Remove everything after the page parameter to clean up the URL
                     if (preg_match('/^(.*[?&]page=' . $page_num . ')(&.*)?$/', $clean_url, $url_match)) {
                         $clean_url = $url_match[1]; // Keep only up to and including the page parameter
-                        ps_log_error("Cleaned pagination URL for page " . $page_num . ": removed extra parameters");
+                        // ps_log_error("Cleaned pagination URL for page " . $page_num . ": removed extra parameters");
                     }
                     
                     // Store with the key format expected by JavaScript and load more function
                     $pagination_urls['page_' . $page_num] = $clean_url;
-                    ps_log_error("Added pagination URL for page " . $page_num . ": " . $clean_url);
+                    // ps_log_error("Added pagination URL for page " . $page_num . ": " . $clean_url);
                 }
             }
             
@@ -1435,15 +1485,15 @@ function ps_extract_pagination_urls($html, $country = 'us') {
                 break;
             }
         } else {
-            ps_log_error("Pattern " . ($index + 1) . " found no matches");
+            // ps_log_error("Pattern " . ($index + 1) . " found no matches");
         }
     }
     
-    ps_log_error("Successfully extracted pagination URLs: " . json_encode(array_keys($pagination_urls)));
+    // ps_log_error("Successfully extracted pagination URLs: " . json_encode(array_keys($pagination_urls)));
     
     // Also log the actual URLs for debugging
     foreach ($pagination_urls as $key => $url) {
-        ps_log_error("Pagination URL stored: {$key} => " . substr($url, 0, 100) . (strlen($url) > 100 ? '...' : ''));
+        // ps_log_error("Pagination URL stored: {$key} => " . substr($url, 0, 100) . (strlen($url) > 100 ? '...' : ''));
     }
     
     return $pagination_urls;
@@ -1475,29 +1525,20 @@ function ps_sanitize_html_for_parsing($html) {
 
 /**
  * Log errors to the error log
- *
+ * 
  * @param string $message The message to log
  */
 function ps_log_error($message) {
-    // Get the current date and time
-    $date = date('Y-m-d H:i:s');
-    
-    // Format the log message
-    $log_message = "[{$date}] {$message}" . PHP_EOL;
-    
-    // Log directory
-    $log_dir = PS_PLUGIN_DIR . 'logs';
-    
-    // Create log directory if it doesn't exist
-    if (!file_exists($log_dir)) {
-        mkdir($log_dir, 0755, true);
+    $logs_dir = PS_PLUGIN_DIR . 'logs';
+    if (!file_exists($logs_dir)) {
+        mkdir($logs_dir, 0755, true);
     }
     
-    // Log file path
-    $log_file = $log_dir . '/error_log.txt';
+    $error_log_file = $logs_dir . '/error_log.txt';
+    $timestamp = date('Y-m-d H:i:s');
+    $log_entry = "[{$timestamp}] {$message}" . PHP_EOL;
     
-    // Write to log file
-    file_put_contents($log_file, $log_message, FILE_APPEND);
+    file_put_contents($error_log_file, $log_entry, FILE_APPEND | LOCK_EX);
 }
 
 /**
@@ -1506,29 +1547,21 @@ function ps_log_error($message) {
  * @param string $html The HTML content
  */
 function ps_save_response_sample($html) {
-    // Save the full HTML response
     $logs_dir = PS_PLUGIN_DIR . 'logs';
     if (!file_exists($logs_dir)) {
         mkdir($logs_dir, 0755, true);
     }
     
-    // Save the full response
-    $file = $logs_dir . '/amazon_response_' . date('Y-m-d_H-i-s') . '.html';
-    file_put_contents($file, $html);
-    ps_log_error("Saved full HTML response to " . basename($file));
+    $timestamp = date('Y-m-d_H-i-s');
+    $sample_file = $logs_dir . "/amazon_response_{$timestamp}.html";
     
-    // Keep only the 5 most recent samples
-    $files = glob($logs_dir . '/amazon_response_*.html');
-    if (count($files) > 5) {
-        usort($files, function($a, $b) {
-            return filemtime($a) - filemtime($b);
-        });
-        
-        $files_to_delete = array_slice($files, 0, count($files) - 5);
-        foreach ($files_to_delete as $file) {
-            unlink($file);
-        }
-    }
+    // Save only first 1MB to avoid huge files
+    $content_to_save = strlen($html) > 1048576 ? substr($html, 0, 1048576) : $html;
+    
+    file_put_contents($sample_file, $content_to_save);
+    
+    // Log the save
+    ps_log_error("Amazon response sample saved: {$sample_file} (Size: " . number_format(strlen($html)) . " bytes)");
 }
 
 /**
@@ -1574,13 +1607,17 @@ function ps_construct_amazon_search_url($query, $country = 'us', $page = 1) {
  * @param string $country Country code ('us' or 'ca')
  * @return string|false The HTML content or false on failure
  */
-function ps_fetch_amazon_search_results($url, $country = 'us') {
+function ps_fetch_amazon_search_results($url, $country = 'us', $force_proxy = false) {
     ps_log_error("Fetching search results from URL: {$url}");
     ps_log_error("DEBUG: Checking proxy constants - HOST defined: " . (defined('PS_DECODO_PROXY_HOST') ? 'YES' : 'NO') . ", PORT defined: " . (defined('PS_DECODO_PROXY_PORT') ? 'YES' : 'NO'));
     
     // Check if we're on the current network to determine proxy usage
     $on_current_network = ps_is_on_current_network();
-    $should_use_proxy = $on_current_network;
+    $should_use_proxy = $on_current_network || $force_proxy;
+    
+    if ($force_proxy) {
+        ps_log_error("PROXY FALLBACK: Forcing proxy usage due to previous blocking");
+    }
     
     ps_log_error("Network detection result: On current network = " . ($on_current_network ? 'YES' : 'NO') . ", Will use proxy = " . ($should_use_proxy ? 'YES' : 'NO'));
     ps_log_error("PROXY DECISION: " . ($should_use_proxy ? 'USING PROXY' : 'DIRECT REQUEST') . " for URL: {$url}");
@@ -1639,10 +1676,14 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     // Set user agent to mimic a browser
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36');
     
+    // Enable automatic decompression of gzip/deflate responses
+    curl_setopt($ch, CURLOPT_ENCODING, ''); // Empty string means "accept all encodings"
+    
     // Add headers to make the request look more like a browser
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language: en-US,en;q=0.5',
+        'Accept-Encoding: gzip, deflate, br',
         'Connection: keep-alive',
         'Upgrade-Insecure-Requests: 1',
         'Cache-Control: max-age=0'
@@ -1666,7 +1707,6 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
     // Check for successful response
     if ($http_code !== 200) {
         ps_log_error("HTTP Error: " . $http_code);
-        curl_close($ch);
         // Return error information instead of just false
         return array(
             'error' => true,
@@ -1701,7 +1741,7 @@ function ps_fetch_amazon_search_results($url, $country = 'us') {
  * @return string Stripped HTML containing only product-related content
  */
 function ps_extract_product_html($html) {
-    ps_log_error("Starting bandwidth optimization - extracting product-only HTML");
+    // ps_log_error("Starting bandwidth optimization - extracting product-only HTML");
     
     $original_size = strlen($html);
     
@@ -1727,7 +1767,7 @@ function ps_extract_product_html($html) {
         // Extract the main search results container
         $searchResults = $xpath->query('//div[@data-component-type="s-search-result"]');
         if ($searchResults->length > 0) {
-            ps_log_error("Found " . $searchResults->length . " search result containers");
+            // ps_log_error("Found " . $searchResults->length . " search result containers");
             
             // Create a container for all products
             $containerDiv = $newDom->createElement('div');
@@ -1744,7 +1784,7 @@ function ps_extract_product_html($html) {
             // Fallback: try to find products using role="listitem"
             $listItems = $xpath->query('//div[@role="listitem"]');
             if ($listItems->length > 0) {
-                ps_log_error("Found " . $listItems->length . " listitem containers (fallback method)");
+                // ps_log_error("Found " . $listItems->length . " listitem containers (fallback method)");
                 
                 $containerDiv = $newDom->createElement('div');
                 $containerDiv->setAttribute('id', 'search-results-container');
@@ -1759,7 +1799,7 @@ function ps_extract_product_html($html) {
                 // Last resort: try to find any product-like containers
                 $productContainers = $xpath->query('//div[contains(@class, "s-result-item") or contains(@class, "sg-col-inner")]');
                 if ($productContainers->length > 0) {
-                    ps_log_error("Found " . $productContainers->length . " product containers (last resort method)");
+                    // ps_log_error("Found " . $productContainers->length . " product containers (last resort method)");
                     
                     $containerDiv = $newDom->createElement('div');
                     $containerDiv->setAttribute('id', 'search-results-container');
@@ -1771,7 +1811,7 @@ function ps_extract_product_html($html) {
                     
                     $bodyElement->appendChild($containerDiv);
                 } else {
-                    ps_log_error("No product containers found - returning original HTML");
+                    // ps_log_error("No product containers found - returning original HTML");
                     return $html; // Return original if we can't find products
                 }
             }
@@ -1780,14 +1820,14 @@ function ps_extract_product_html($html) {
         // IMPORTANT: Also preserve the pagination container for load more functionality
         $paginationContainers = $xpath->query('//div[contains(@class, "s-pagination-container")]');
         if ($paginationContainers->length > 0) {
-            ps_log_error("Found " . $paginationContainers->length . " pagination containers - preserving for load more functionality");
+            // ps_log_error("Found " . $paginationContainers->length . " pagination containers - preserving for load more functionality");
             
             foreach ($paginationContainers as $pagination) {
                 $importedPagination = $newDom->importNode($pagination, true);
                 $bodyElement->appendChild($importedPagination);
             }
         } else {
-            ps_log_error("No pagination containers found - load more functionality may not work");
+            // ps_log_error("No pagination containers found - load more functionality may not work");
         }
         
         // Get the optimized HTML
@@ -1807,12 +1847,12 @@ function ps_extract_product_html($html) {
         $optimized_size = strlen($optimizedHtml);
         $savings_percent = round((($original_size - $optimized_size) / $original_size) * 100, 1);
         
-        ps_log_error("Bandwidth optimization complete - Original: " . number_format($original_size) . " bytes, Optimized: " . number_format($optimized_size) . " bytes, Savings: {$savings_percent}%");
+        // ps_log_error("Bandwidth optimization complete - Original: " . number_format($original_size) . " bytes, Optimized: " . number_format($optimized_size) . " bytes, Savings: {$savings_percent}%");
         
         return $optimizedHtml;
         
     } catch (Exception $e) {
-        ps_log_error("Error during HTML optimization: " . $e->getMessage() . " - returning original HTML");
+        // ps_log_error("Error during HTML optimization: " . $e->getMessage() . " - returning original HTML");
         return $html; // Return original HTML if optimization fails
     }
 }
@@ -1830,7 +1870,7 @@ function ps_is_on_current_network() {
     
     // If network detection is disabled, always use proxy (existing behavior)
     if (!$use_network_detection) {
-        ps_log_error("Network detection disabled - will use proxy");
+        ps_log_error("Network detection disabled - will NOT use proxy");
         return false;
     }
     
@@ -1887,7 +1927,7 @@ function ps_is_on_current_network() {
         }
     }
     
-    ps_log_error("Network detection: Final result - On current network: " . ($on_current_network ? 'YES' : 'NO') . " (will " . ($on_current_network ? 'NOT use proxy' : 'use proxy') . ")");
+    ps_log_error("Network detection: Final result - On current network: " . ($on_current_network ? 'YES' : 'NO') . " (will " . ($on_current_network ? 'use proxy' : 'NOT use proxy') . ")");
     
     return $on_current_network;
 }

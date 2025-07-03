@@ -25,11 +25,11 @@ function ps_search_bestbuy_products($query, $exclude_keywords = '', $sort_by = '
         return array();
     }
     
-    ps_log_error("Initiating Best Buy search for: '{$query}' in country: {$country}, page: {$page}");
+    // ps_log_error("Initiating Best Buy search for: '{$query}' in country: {$country}, page: {$page}");
     
     // Construct the Best Buy search URL with pagination
     $search_url = ps_construct_bestbuy_search_url($query, $country, $page);
-    ps_log_error("Constructed Best Buy search URL: {$search_url}");
+    // ps_log_error("Constructed Best Buy search URL: {$search_url}");
     
     // Get the search results HTML
     $html_content = ps_fetch_bestbuy_search_results($search_url, $country);
@@ -37,7 +37,7 @@ function ps_search_bestbuy_products($query, $exclude_keywords = '', $sort_by = '
     // Check if we got an error response
     if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
         $http_code = $html_content['http_code'];
-        ps_log_error("Failed to fetch Best Buy search results for query: '{$query}' page {$page} - HTTP {$http_code}");
+        // ps_log_error("Failed to fetch Best Buy search results for query: '{$query}' page {$page} - HTTP {$http_code}");
         
         // Check if it's a blocking error (503, 429, etc.)
         if (in_array($http_code, [503, 429, 403, 502, 504])) {
@@ -74,7 +74,7 @@ function ps_search_bestbuy_products($query, $exclude_keywords = '', $sort_by = '
     }
     
     if (empty($html_content)) {
-        ps_log_error("Failed to fetch Best Buy search results for query: '{$query}' page {$page} - No response received");
+        // ps_log_error("Failed to fetch Best Buy search results for query: '{$query}' page {$page} - No response received");
         
         // Create Best Buy search URL for the user to continue searching manually
         $bestbuy_base = ($country === 'ca') ? 'https://www.bestbuy.ca' : 'https://www.bestbuy.com';
@@ -92,7 +92,7 @@ function ps_search_bestbuy_products($query, $exclude_keywords = '', $sort_by = '
     }
     
     // TODO: Implement Best Buy parsing
-    ps_log_error("Best Buy search not yet fully implemented for query: '{$query}'");
+    // ps_log_error("Best Buy search not yet fully implemented for query: '{$query}'");
     
     return array(
         'success' => false,
@@ -126,7 +126,7 @@ function ps_construct_bestbuy_search_url($query, $country = 'us', $page = 1) {
  */
 function ps_fetch_bestbuy_search_results($url, $country = 'us') {
     // For now, return placeholder implementation
-    ps_log_error("Best Buy fetch not yet implemented for URL: {$url}");
+    // ps_log_error("Best Buy fetch not yet implemented for URL: {$url}");
     
     return array(
         'error' => true,

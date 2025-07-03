@@ -25,11 +25,11 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
         return array();
     }
     
-    ps_log_error("Initiating Walmart search for: '{$query}' in country: {$country}, page: {$page}");
+    // ps_log_error("Initiating Walmart search for: '{$query}' in country: {$country}, page: {$page}");
     
     // Construct the Walmart search URL with pagination
     $search_url = ps_construct_walmart_search_url($query, $country, $page);
-    ps_log_error("Constructed Walmart search URL: {$search_url}");
+    // ps_log_error("Constructed Walmart search URL: {$search_url}");
     
     // Get the search results HTML
     $html_content = ps_fetch_walmart_search_results($search_url, $country);
@@ -37,7 +37,7 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
     // Check if we got an error response
     if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
         $http_code = $html_content['http_code'];
-        ps_log_error("Failed to fetch Walmart search results for query: '{$query}' page {$page} - HTTP {$http_code}");
+        // ps_log_error("Failed to fetch Walmart search results for query: '{$query}' page {$page} - HTTP {$http_code}");
         
         // Check if it's a blocking error (503, 429, etc.)
         if (in_array($http_code, [503, 429, 403, 502, 504])) {
@@ -74,7 +74,7 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
     }
     
     if (empty($html_content)) {
-        ps_log_error("Failed to fetch Walmart search results for query: '{$query}' page {$page} - No response received");
+        // ps_log_error("Failed to fetch Walmart search results for query: '{$query}' page {$page} - No response received");
         
         // Create Walmart search URL for the user to continue searching manually
         $walmart_base = ($country === 'ca') ? 'https://www.walmart.ca' : 'https://www.walmart.com';
@@ -92,7 +92,7 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
     }
     
     // TODO: Implement Walmart parsing
-    ps_log_error("Walmart search not yet fully implemented for query: '{$query}'");
+    // ps_log_error("Walmart search not yet fully implemented for query: '{$query}'");
     
     return array(
         'success' => false,
@@ -126,7 +126,7 @@ function ps_construct_walmart_search_url($query, $country = 'us', $page = 1) {
  */
 function ps_fetch_walmart_search_results($url, $country = 'us') {
     // For now, return placeholder implementation
-    ps_log_error("Walmart fetch not yet implemented for URL: {$url}");
+    // ps_log_error("Walmart fetch not yet implemented for URL: {$url}");
     
     return array(
         'error' => true,

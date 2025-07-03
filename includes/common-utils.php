@@ -76,13 +76,13 @@ function ps_validate_unit_price($unit_price_numeric, $total_price, $context = ''
     
     // If unit price is more than 50x the product price, it's likely wrong
     if ($ratio > 50) {
-        ps_log_error("Unit price reasonableness check failed ({$context}): ratio " . number_format($ratio, 2) . " too high");
+        // ps_log_error("Unit price reasonableness check failed ({$context}): ratio " . number_format($ratio, 2) . " too high");
         return false;
     }
     
     // If unit price is less than 1/1000th of product price, also suspicious
     if ($ratio < 0.001) {
-        ps_log_error("Unit price reasonableness check failed ({$context}): ratio " . number_format($ratio, 6) . " too low");
+        // ps_log_error("Unit price reasonableness check failed ({$context}): ratio " . number_format($ratio, 6) . " too low");
         return false;
     }
     
@@ -331,4 +331,3 @@ function ps_sort_products($items, $sortBy = 'price') {
     
     return $sorted_items;
 }
-?> 

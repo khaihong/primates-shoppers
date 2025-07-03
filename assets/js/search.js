@@ -1979,6 +1979,13 @@ console.log('search.js loaded');
             $loadMoreText.hide();
             $loadMoreSpinner.show();
             
+            // Immediately disable the search button when load more is clicked
+            const searchButton = document.querySelector('.ps-search-button');
+            if (searchButton) {
+                searchButton.disabled = true;
+                console.log('Load More: Disabled search button immediately');
+            }
+            
             // Debug logging for troubleshooting
             console.log('Load More: Button clicked with parameters:', {
                 lastSearchQuery: lastSearchQuery,
@@ -2007,6 +2014,13 @@ console.log('search.js loaded');
                 $topButton.prop('disabled', false);
                 $loadMoreText.show();
                 $loadMoreSpinner.hide();
+                
+                // Re-enable search button on error
+                const searchButton = document.querySelector('.ps-search-button');
+                if (searchButton) {
+                    searchButton.disabled = false;
+                }
+                
                 toggleLoadMoreButton(false);
                 return;
             }
@@ -2023,6 +2037,12 @@ console.log('search.js loaded');
                 $topButton.prop('disabled', false);
                 $loadMoreText.show();
                 $loadMoreSpinner.hide();
+                
+                // Re-enable search button on error
+                const searchButton = document.querySelector('.ps-search-button');
+                if (searchButton) {
+                    searchButton.disabled = false;
+                }
                 
                 // Show error message
                 $container.after('<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">Please select at least one platform to load more results.</div>');
@@ -2222,6 +2242,12 @@ console.log('search.js loaded');
                         page: nextPage
                     });
                     
+                    // Re-enable search button on AJAX error
+                    const searchButton = document.querySelector('.ps-search-button');
+                    if (searchButton) {
+                        searchButton.disabled = false;
+                    }
+                    
                     // Show error message
                     $container.after('<div class="ps-load-more-error" style="text-align: center; padding: 20px; color: #d63031;">Failed to load more results. Please try again.</div>');
                     
@@ -2236,6 +2262,13 @@ console.log('search.js loaded');
                     $topButton.prop('disabled', false);
                     $loadMoreText.show();
                     $loadMoreSpinner.hide();
+                    
+                    // Ensure search button is re-enabled as final fallback
+                    const searchButton = document.querySelector('.ps-search-button');
+                    if (searchButton && searchButton.disabled) {
+                        searchButton.disabled = false;
+                        console.log('Load More: Re-enabled search button in complete handler');
+                    }
                 }
             });
         });

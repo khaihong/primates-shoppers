@@ -62,9 +62,9 @@ function ps_settings_page() {
     $amazon_associate_tag_us = isset($settings['amazon_associate_tag_us']) ? $settings['amazon_associate_tag_us'] : 'primatesshopp-20';
     $cache_duration = isset($settings['cache_duration']) ? $settings['cache_duration'] : 86400;
     $bandwidth_optimization = isset($settings['bandwidth_optimization']) ? $settings['bandwidth_optimization'] : 1; // Default enabled
-    $use_network_detection = isset($settings['use_network_detection']) ? $settings['use_network_detection'] : 0; // Default disabled
-    $current_network_range = isset($settings['current_network_range']) ? $settings['current_network_range'] : '';
-    $current_network_hostnames = isset($settings['current_network_hostnames']) ? $settings['current_network_hostnames'] : '';
+    $use_network_detection = isset($settings['use_network_detection']) ? $settings['use_network_detection'] : 1; // Default enabled for local dev
+    $current_network_range = isset($settings['current_network_range']) ? $settings['current_network_range'] : '192.168.0.0/16'; // Default local network
+    $current_network_hostnames = isset($settings['current_network_hostnames']) ? $settings['current_network_hostnames'] : 'localhost,*.local,primates.life';
     
     // Display the settings form
     ?>

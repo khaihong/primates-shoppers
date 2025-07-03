@@ -25,11 +25,11 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
         return array();
     }
     
-    ps_log_error("Initiating eBay search for: '{$query}' in country: {$country}, page: {$page}");
+    // ps_log_error("Initiating eBay search for: '{$query}' in country: {$country}, page: {$page}");
     
     // Construct the eBay search URL with pagination
     $search_url = ps_construct_ebay_search_url($query, $country, $page);
-    ps_log_error("Constructed eBay search URL: {$search_url}");
+    // ps_log_error("Constructed eBay search URL: {$search_url}");
     
     // Get the search results HTML
     $html_content = ps_fetch_ebay_search_results($search_url, $country);
@@ -37,7 +37,7 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
     // Check if we got an error response
     if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
         $http_code = $html_content['http_code'];
-        ps_log_error("Failed to fetch eBay search results for query: '{$query}' page {$page} - HTTP {$http_code}");
+        // ps_log_error("Failed to fetch eBay search results for query: '{$query}' page {$page} - HTTP {$http_code}");
         
         // Check if it's a blocking error (503, 429, etc.)
         if (in_array($http_code, [503, 429, 403, 502, 504])) {
@@ -74,7 +74,7 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
     }
     
     if (empty($html_content)) {
-        ps_log_error("Failed to fetch eBay search results for query: '{$query}' page {$page} - No response received");
+        // ps_log_error("Failed to fetch eBay search results for query: '{$query}' page {$page} - No response received");
         
         // Create eBay search URL for the user to continue searching manually
         $ebay_base = ($country === 'ca') ? 'https://www.ebay.ca' : 'https://www.ebay.com';
@@ -93,7 +93,7 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
     
     // Check if eBay is blocking the request
     if (ps_is_ebay_blocking($html_content)) {
-        ps_log_error("eBay is blocking search for query: '{$query}' page {$page} - Blocking page detected");
+        // ps_log_error("eBay is blocking search for query: '{$query}' page {$page} - Blocking page detected");
         
         // Create eBay search URL for the user to continue searching manually
         $ebay_base = ($country === 'ca') ? 'https://www.ebay.ca' : 'https://www.ebay.com';
@@ -112,7 +112,7 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
     
     // Check if it's a valid search page
     if (!ps_is_valid_ebay_search_page($html_content)) {
-        ps_log_error("Invalid eBay search results format: " . substr($html_content, 0, 100));
+        // ps_log_error("Invalid eBay search results format: " . substr($html_content, 0, 100));
         
         // Create eBay search URL for the user to continue searching manually
         $ebay_base = ($country === 'ca') ? 'https://www.ebay.ca' : 'https://www.ebay.com';
@@ -128,12 +128,12 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
             'country' => $country
         );
         
-        ps_log_error("INVALID_EBAY_RESPONSE_RETURN: " . json_encode($invalid_response));
+        // ps_log_error("INVALID_EBAY_RESPONSE_RETURN: " . json_encode($invalid_response));
         
         return $invalid_response;
     }
     
-    ps_log_error("Parsing eBay search results for {$country}");
+    // ps_log_error("Parsing eBay search results for {$country}");
     
     // Parse the search results HTML
     $products = ps_parse_ebay_results($html_content, $min_rating, $country);
@@ -167,7 +167,7 @@ function ps_is_ebay_blocking($html) {
     
     foreach ($blocking_indicators as $indicator) {
         if (strpos($html_lower, $indicator) !== false) {
-            ps_log_error("eBay blocking detected: '{$indicator}'");
+            // ps_log_error("eBay blocking detected: '{$indicator}'");
             return true;
         }
     }
@@ -206,7 +206,7 @@ function ps_is_valid_ebay_search_page($html) {
  * Parse eBay search results HTML
  */
 function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
-    ps_log_error("Starting eBay results parsing");
+    // ps_log_error("Starting eBay results parsing");
     
     $products = array();
     
@@ -226,7 +226,7 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
         foreach ($item_selectors as $selector) {
             $found_items = $xpath->query($selector);
             if ($found_items->length > 0) {
-                ps_log_error("Found " . $found_items->length . " items using selector: " . $selector);
+                // ps_log_error("Found " . $found_items->length . " items using selector: " . $selector);
                 $items = $found_items;
                 
                 // Debug: Log first few item classes to understand structure
@@ -243,7 +243,7 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
         }
         
         if ($items->length === 0) {
-            ps_log_error("No eBay items found with any selector");
+            // ps_log_error("No eBay items found with any selector");
             return array(
                 'success' => true,
                 'items' => array(),
@@ -253,7 +253,7 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
             );
         }
         
-        ps_log_error("Processing " . $items->length . " eBay items");
+        // ps_log_error("Processing " . $items->length . " eBay items");
         
         $raw_items_for_cache = array();
         
@@ -269,7 +269,7 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
                     if (isset($product_data['rating_numeric']) && is_numeric($product_data['rating_numeric'])) {
                         $product_rating = floatval($product_data['rating_numeric']);
                         if ($product_rating < $min_rating) {
-                            ps_log_error("Skipping eBay product '" . substr($product_data['title'], 0, 50) . "...' - seller rating {$product_rating} below minimum {$min_rating}");
+                            // ps_log_error("Skipping eBay product '" . substr($product_data['title'], 0, 50) . "...' - seller rating {$product_rating} below minimum {$min_rating}");
                             continue; // Skip this product
                         }
                     }
@@ -302,12 +302,12 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
                 // No limit on items processed - get all available results
                 
             } catch (Exception $e) {
-                ps_log_error("Error processing eBay item " . ($index + 1) . ": " . $e->getMessage());
+                // ps_log_error("Error processing eBay item " . ($index + 1) . ": " . $e->getMessage());
                 continue;
             }
         }
         
-        ps_log_error("Successfully parsed " . count($raw_items_for_cache) . " eBay products");
+        // ps_log_error("Successfully parsed " . count($raw_items_for_cache) . " eBay products");
         
         return array(
             'success' => true,
@@ -318,7 +318,7 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
         );
         
     } catch (Exception $e) {
-        ps_log_error("Exception in eBay parsing: " . $e->getMessage());
+        // ps_log_error("Exception in eBay parsing: " . $e->getMessage());
         return array(
             'success' => false,
             'items' => array(),
@@ -616,9 +616,9 @@ function ps_extract_ebay_product_data($item, $xpath, $country = 'us') {
             $product['rating_link'] = isset($product['link']) ? $product['link'] : '#';
             
             // Debug logging for seller rating (found rating case)
-            ps_log_error("eBay Seller Rating Debug - Found rating: seller_name='{$seller_name}', feedback_count='{$seller_feedback_count}', percentage={$seller_rating_percentage}%, stars={$seller_rating_numeric}, display='{$seller_display}'");
-            ps_log_error("eBay Seller Rating Debug - Product fields set: rating='{$product['rating']}', rating_link='{$product['rating_link']}', seller=" . (isset($product['seller']) ? "'{$product['seller']}'" : 'NOT_SET'));
-            ps_log_error("eBay FINAL RATING SET: '{$product['rating']}' for product: '{$product['title']}'");
+            // ps_log_error("eBay Seller Rating Debug - Found rating: seller_name='{$seller_name}', feedback_count='{$seller_feedback_count}', percentage={$seller_rating_percentage}%, stars={$seller_rating_numeric}, display='{$seller_display}'");
+            // ps_log_error("eBay Seller Rating Debug - Product fields set: rating='{$product['rating']}', rating_link='{$product['rating_link']}', seller=" . (isset($product['seller']) ? "'{$product['seller']}'" : 'NOT_SET'));
+            // ps_log_error("eBay FINAL RATING SET: '{$product['rating']}' for product: '{$product['title']}'");
         } else {
             // Default rating if none found - set to 4.0 (90%+ equivalent) to pass 4.0+ filter
             $seller_rating_numeric = 4.0;
@@ -644,9 +644,9 @@ function ps_extract_ebay_product_data($item, $xpath, $country = 'us') {
             $product['rating_link'] = isset($product['link']) ? $product['link'] : '#';
             
             // Debug logging for seller rating (default case)
-            ps_log_error("eBay Seller Rating Debug - Default rating: seller_name='{$seller_name}', feedback_count='{$seller_feedback_count}', stars={$seller_rating_numeric}, display='{$seller_display}'");
-            ps_log_error("eBay Seller Rating Debug - Product fields set (default): rating='{$product['rating']}', rating_link='{$product['rating_link']}', seller=" . (isset($product['seller']) ? "'{$product['seller']}'" : 'NOT_SET'));
-            ps_log_error("eBay FINAL RATING SET (default): '{$product['rating']}' for product: '{$product['title']}'");
+            // ps_log_error("eBay Seller Rating Debug - Default rating: seller_name='{$seller_name}', feedback_count='{$seller_feedback_count}', stars={$seller_rating_numeric}, display='{$seller_display}'");
+            // ps_log_error("eBay Seller Rating Debug - Product fields set (default): rating='{$product['rating']}', rating_link='{$product['rating_link']}', seller=" . (isset($product['seller']) ? "'{$product['seller']}'" : 'NOT_SET'));
+            // ps_log_error("eBay FINAL RATING SET (default): '{$product['rating']}' for product: '{$product['title']}'");
         }
         
         // Default image if none found - use a data URI instead of external placeholder
@@ -662,12 +662,12 @@ function ps_extract_ebay_product_data($item, $xpath, $country = 'us') {
         }
         
         // Final debug logging before returning product
-        ps_log_error("eBay PRODUCT FINAL BEFORE RETURN: title='{$product['title']}', rating='{$product['rating']}', is_ebay_seller_rating=" . (isset($product['is_ebay_seller_rating']) ? 'true' : 'false'));
+        // ps_log_error("eBay PRODUCT FINAL BEFORE RETURN: title='{$product['title']}', rating='{$product['rating']}', is_ebay_seller_rating=" . (isset($product['is_ebay_seller_rating']) ? 'true' : 'false'));
         
         return $product;
         
     } catch (Exception $e) {
-        ps_log_error("Error extracting eBay product data: " . $e->getMessage());
+        // ps_log_error("Error extracting eBay product data: " . $e->getMessage());
         return null;
     }
 }
@@ -745,12 +745,12 @@ function ps_fetch_ebay_search_results($url, $country = 'us') {
     curl_close($ch);
     
     if ($error) {
-        ps_log_error("eBay cURL error: " . $error);
+        // ps_log_error("eBay cURL error: " . $error);
         return array('error' => true, 'http_code' => 0, 'message' => $error);
     }
     
     if ($http_code !== 200) {
-        ps_log_error("eBay HTTP error: " . $http_code);
+        // ps_log_error("eBay HTTP error: " . $http_code);
         return array('error' => true, 'http_code' => $http_code);
     }
     

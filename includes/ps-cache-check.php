@@ -24,7 +24,7 @@ function ps_ajax_check_base_cache() {
         (!isset($_POST['check_cache_nonce']) || !wp_verify_nonce($_POST['check_cache_nonce'], 'ps_filter_nonce'))
     ) {
         $nonce_value = isset($_POST['nonce']) ? substr($_POST['nonce'], 0, 5) . '...' : 'not set';
-        ps_log_error("Security check failed in ps_ajax_check_base_cache. Nonce: " . $nonce_value);
+        // ps_log_error("Security check failed in ps_ajax_check_base_cache. Nonce: " . $nonce_value);
         wp_send_json_error(array('message' => 'Security check failed.'));
     }
 
@@ -40,7 +40,7 @@ function ps_ajax_check_base_cache() {
     $user_id = ps_get_user_identifier();
     
     // Log the check attempt for debugging
-    ps_log_error("Checking base cache for query '{$query}', country '{$country_code}', user '{$user_id}'");
+    // ps_log_error("Checking base cache for query '{$query}', country '{$country_code}', user '{$user_id}'");
     
     // Try to get the cached base results (using empty exclude/sort parameters as ps_ajax_filter does)
     $base_cache_data = ps_get_cached_results($query, $country_code, '', '');
@@ -48,7 +48,7 @@ function ps_ajax_check_base_cache() {
     if ($base_cache_data && !empty($base_cache_data['items'])) {
         // The base cache exists and has items
         $count = count($base_cache_data['items']);
-        ps_log_error("Base cache found with {$count} items for query '{$query}', country '{$country_code}'");
+        // ps_log_error("Base cache found with {$count} items for query '{$query}', country '{$country_code}'");
         wp_send_json_success(array(
             'cache_exists' => true,
             'base_items_count' => $count,
@@ -56,7 +56,7 @@ function ps_ajax_check_base_cache() {
         ));
     } else {
         // No valid base cache found
-        ps_log_error("No suitable base cache found for query '{$query}', country '{$country_code}'");
+        // ps_log_error("No suitable base cache found for query '{$query}', country '{$country_code}'");
         wp_send_json_success(array(
             'cache_exists' => false,
             'message' => 'No cached results found. Please perform a new search.'

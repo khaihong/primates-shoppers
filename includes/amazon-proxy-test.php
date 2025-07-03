@@ -317,16 +317,16 @@ function ps_ajax_test_proxy_connection() {
     // Test URL - Amazon product page to verify full page loading
     $test_url = 'https://www.amazon.com/Best-Sellers-Health-Personal-Care/zgbs/hpc/';
     
-    ps_log_error("Running proxy connection test to Amazon Best Sellers page with country: {$country}");
+    // ps_log_error("Running proxy connection test to Amazon Best Sellers page with country: {$country}");
     
     // Add detailed proxy debugging
     if (defined('PS_DECODO_USER_BASE') && defined('PS_DECODO_PASSWORD')) {
         $proxy_username = PS_DECODO_USER_BASE . '-country-' . $country;
-        ps_log_error("Proxy connection test: Using proxy username: {$proxy_username}");
-        ps_log_error("Proxy connection test: Proxy host: " . (defined('PS_DECODO_PROXY_HOST') ? PS_DECODO_PROXY_HOST : 'NOT_DEFINED'));
-        ps_log_error("Proxy connection test: Proxy port: " . (defined('PS_DECODO_PROXY_PORT') ? PS_DECODO_PROXY_PORT : 'NOT_DEFINED'));
+    // ps_log_error("Proxy connection test: Using proxy username: {$proxy_username}");
+    // ps_log_error("Proxy connection test: Proxy host: " . (defined('PS_DECODO_PROXY_HOST') ? PS_DECODO_PROXY_HOST : 'NOT_DEFINED'));
+    // ps_log_error("Proxy connection test: Proxy port: " . (defined('PS_DECODO_PROXY_PORT') ? PS_DECODO_PROXY_PORT : 'NOT_DEFINED'));
     } else {
-        ps_log_error("Proxy connection test: ERROR - Proxy credentials not defined!");
+    // ps_log_error("Proxy connection test: ERROR - Proxy credentials not defined!");
         wp_send_json_error(array(
             'message' => 'Proxy credentials are not properly configured.',
             'details' => 'PS_DECODO_USER_BASE or PS_DECODO_PASSWORD constants are not defined.'
@@ -339,11 +339,11 @@ function ps_ajax_test_proxy_connection() {
     
     // If we got a response, check if it's valid
     if ($response !== false) {
-        ps_log_error("Proxy connection test: Received response, length: " . strlen($response) . " bytes");
+    // ps_log_error("Proxy connection test: Received response, length: " . strlen($response) . " bytes");
         
         // Check if Amazon is blocking
         if (ps_is_amazon_blocking($response)) {
-            ps_log_error("Proxy connection test: Amazon is blocking requests");
+    // ps_log_error("Proxy connection test: Amazon is blocking requests");
             wp_send_json_error(array(
                 'message' => 'Amazon is blocking the request.',
                 'details' => 'The connection was established, but Amazon is returning a blocking page. The proxy authentication may be working, but Amazon is detecting automated access.'
@@ -370,7 +370,7 @@ function ps_ajax_test_proxy_connection() {
         }
         
         if (!$found_content) {
-            ps_log_error("Proxy connection test: Received unexpected content - no expected Amazon text found");
+    // ps_log_error("Proxy connection test: Received unexpected content - no expected Amazon text found");
             wp_send_json_error(array(
                 'message' => 'Received unexpected content from Amazon.',
                 'details' => 'The connection was established, but the response did not contain expected Amazon content. This could indicate Amazon is returning an error page or the proxy is not working correctly.'
@@ -378,7 +378,7 @@ function ps_ajax_test_proxy_connection() {
             return;
         }
         
-        ps_log_error("Proxy connection test: Found expected content: '{$found_text}'");
+    // ps_log_error("Proxy connection test: Found expected content: '{$found_text}'");
         
         // Check if the response contains product listings or other valid Amazon elements
         $has_products = (strpos($response, 'data-component-type="s-search-results"') !== false) || 
@@ -388,7 +388,7 @@ function ps_ajax_test_proxy_connection() {
                         (strpos($response, 'amazonGlobal') !== false);
         
         if (!$has_products) {
-            ps_log_error("Proxy connection test: No Amazon page elements found in response");
+    // ps_log_error("Proxy connection test: No Amazon page elements found in response");
             wp_send_json_error(array(
                 'message' => 'No recognizable Amazon page elements found.',
                 'details' => 'The connection was established and found expected text, but no typical Amazon page elements were detected. This may still indicate a successful connection.'
@@ -398,7 +398,7 @@ function ps_ajax_test_proxy_connection() {
         
         // If we get here, we have a successful response
         $request_time = microtime(true) - $start_time;
-        ps_log_error("Proxy connection test successful - found Amazon content and page elements");
+    // ps_log_error("Proxy connection test successful - found Amazon content and page elements");
         wp_send_json_success(array(
             'message' => 'Successfully connected to Amazon via proxy and verified page content.',
             'details' => 'Response time: ' . round($request_time, 2) . ' seconds. Response size: ' . number_format(strlen($response)) . ' bytes. Proxy username: ' . (PS_DECODO_USER_BASE . '-' . $country) . '. Found content: "' . $found_text . '".'
@@ -408,7 +408,7 @@ function ps_ajax_test_proxy_connection() {
     
     // If we get here, the request failed
     $request_time = microtime(true) - $start_time;
-    ps_log_error("Proxy connection test failed - no response received");
+    // ps_log_error("Proxy connection test failed - no response received");
     wp_send_json_error(array(
         'message' => 'Failed to connect to Amazon via proxy.',
         'details' => 'Total time: ' . round($request_time, 2) . ' seconds. No response received from Amazon. Please check your proxy settings and credentials. Expected proxy username: ' . (defined('PS_DECODO_USER_BASE') ? PS_DECODO_USER_BASE . '-' . $country : 'NOT_CONFIGURED') . '.'
@@ -440,16 +440,16 @@ function ps_ajax_test_proxy_search() {
     // Start timing
     $start_time = microtime(true);
     
-    ps_log_error("Running proxy search test for query: '{$query}' in country: {$country}");
+    // ps_log_error("Running proxy search test for query: '{$query}' in country: {$country}");
     
     // Add detailed proxy debugging for search test
     if (defined('PS_DECODO_USER_BASE') && defined('PS_DECODO_PASSWORD')) {
         $proxy_username = PS_DECODO_USER_BASE . '-country-' . $country;
-        ps_log_error("Proxy search test: Using proxy username: {$proxy_username}");
-        ps_log_error("Proxy search test: Proxy host: " . (defined('PS_DECODO_PROXY_HOST') ? PS_DECODO_PROXY_HOST : 'NOT_DEFINED'));
-        ps_log_error("Proxy search test: Proxy port: " . (defined('PS_DECODO_PROXY_PORT') ? PS_DECODO_PROXY_PORT : 'NOT_DEFINED'));
+    // ps_log_error("Proxy search test: Using proxy username: {$proxy_username}");
+    // ps_log_error("Proxy search test: Proxy host: " . (defined('PS_DECODO_PROXY_HOST') ? PS_DECODO_PROXY_HOST : 'NOT_DEFINED'));
+    // ps_log_error("Proxy search test: Proxy port: " . (defined('PS_DECODO_PROXY_PORT') ? PS_DECODO_PROXY_PORT : 'NOT_DEFINED'));
     } else {
-        ps_log_error("Proxy search test: ERROR - Proxy credentials not defined!");
+    // ps_log_error("Proxy search test: ERROR - Proxy credentials not defined!");
         wp_send_json_error(array(
             'message' => 'Proxy credentials are not properly configured.',
             'details' => 'PS_DECODO_USER_BASE or PS_DECODO_PASSWORD constants are not defined.',
@@ -461,7 +461,7 @@ function ps_ajax_test_proxy_search() {
     
     // Construct the search URL
     $url = ps_construct_amazon_search_url($query, $country);
-    ps_log_error("Proxy search test: Constructed URL: {$url}");
+    // ps_log_error("Proxy search test: Constructed URL: {$url}");
     
     // Fetch the search results page
     $response = ps_fetch_amazon_search_results($url, $country);
@@ -470,7 +470,7 @@ function ps_ajax_test_proxy_search() {
     $request_time = microtime(true) - $start_time;
     
     if ($response === false) {
-        ps_log_error("Proxy search test failed for query: '{$query}' - No response received");
+    // ps_log_error("Proxy search test failed for query: '{$query}' - No response received");
         wp_send_json_error(array(
             'message' => 'Failed to fetch search results from Amazon.',
             'details' => 'The proxy connection attempt failed. No response received from Amazon.',
@@ -482,7 +482,7 @@ function ps_ajax_test_proxy_search() {
     
     // Check if Amazon is blocking
     if (ps_is_amazon_blocking($response)) {
-        ps_log_error("Proxy search test: Amazon is blocking search for query: '{$query}' - Blocking page detected");
+    // ps_log_error("Proxy search test: Amazon is blocking search for query: '{$query}' - Blocking page detected");
         wp_send_json_error(array(
             'message' => 'Amazon is blocking the search request.',
             'details' => 'The connection was established, but Amazon is returning a blocking page. This usually means Amazon has detected automated access.',
@@ -494,7 +494,7 @@ function ps_ajax_test_proxy_search() {
     
     // Check if we got a valid search results page
     if (strpos($response, 's-result-item') === false && strpos($response, 'a-carousel-card') === false) {
-        ps_log_error("Proxy search test: Invalid search results page for query: '{$query}' - No product elements found");
+    // ps_log_error("Proxy search test: Invalid search results page for query: '{$query}' - No product elements found");
         wp_send_json_error(array(
             'message' => 'Invalid search results page received.',
             'details' => 'The response does not contain expected product elements. This could indicate Amazon has changed their page structure or is returning an error page.',
@@ -509,13 +509,13 @@ function ps_ajax_test_proxy_search() {
     $products = ps_parse_amazon_results($response, $associate_tag);
     
     if (empty($products)) {
-        ps_log_error("Proxy search test: No products found for query: '{$query}' - Primary parsing failed");
+    // ps_log_error("Proxy search test: No products found for query: '{$query}' - Primary parsing failed");
         
         // Try alternative parsing methods
         $products = ps_try_alternative_parsing($response, $associate_tag, 4.0, $country);
         
         if (empty($products)) {
-            ps_log_error("Proxy search test: Alternative parsing also failed for query: '{$query}'");
+    // ps_log_error("Proxy search test: Alternative parsing also failed for query: '{$query}'");
             wp_send_json_error(array(
                 'message' => 'No products found in search results.',
                 'details' => 'Connected to Amazon successfully, but could not extract any products from the search results. This could indicate Amazon has changed their page structure.',
@@ -529,7 +529,7 @@ function ps_ajax_test_proxy_search() {
     // Limit to first 10 products for display
     $products = array_slice($products, 0, 10);
     
-    ps_log_error("Proxy search test successful - found " . count($products) . " products for query: '{$query}'");
+    // ps_log_error("Proxy search test successful - found " . count($products) . " products for query: '{$query}'");
     
     wp_send_json_success(array(
         'message' => 'Successfully retrieved ' . count($products) . ' products from Amazon via proxy.',
@@ -558,11 +558,11 @@ function ps_ajax_check_proxy_ip() {
     // Start timing
     $start_time = microtime(true);
     
-    ps_log_error("Running proxy IP check for country: {$country}");
+    // ps_log_error("Running proxy IP check for country: {$country}");
     
     // Check if proxy credentials are defined
     if (!defined('PS_DECODO_USER_BASE') || !defined('PS_DECODO_PASSWORD')) {
-        ps_log_error("Proxy IP check: ERROR - Proxy credentials not defined!");
+    // ps_log_error("Proxy IP check: ERROR - Proxy credentials not defined!");
         wp_send_json_error(array(
             'message' => 'Proxy credentials are not properly configured.',
             'details' => 'PS_DECODO_USER_BASE or PS_DECODO_PASSWORD constants are not defined.'
@@ -581,7 +581,7 @@ function ps_ajax_check_proxy_ip() {
     $found_ip = null;
     
     foreach ($ip_services as $service_name => $url) {
-        ps_log_error("Proxy IP check: Testing with {$service_name} ({$url})");
+    // ps_log_error("Proxy IP check: Testing with {$service_name} ({$url})");
         
         // Initialize cURL
         $ch = curl_init();
@@ -605,9 +605,9 @@ function ps_ajax_check_proxy_ip() {
             curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, "{$proxy_username}:{$proxy_password}");
             
-            ps_log_error("Proxy IP check: Using proxy {$proxy_host}:{$proxy_port} with username: {$proxy_username}");
+    // ps_log_error("Proxy IP check: Using proxy {$proxy_host}:{$proxy_port} with username: {$proxy_username}");
         } else {
-            ps_log_error("Proxy IP check: WARNING - Making direct request (no proxy configured)");
+    // ps_log_error("Proxy IP check: WARNING - Making direct request (no proxy configured)");
         }
         
         // Execute the request
@@ -643,13 +643,13 @@ function ps_ajax_check_proxy_ip() {
                 if (!$found_ip) {
                     $found_ip = $ip;
                 }
-                ps_log_error("Proxy IP check: {$service_name} returned IP: {$ip}");
+    // ps_log_error("Proxy IP check: {$service_name} returned IP: {$ip}");
             } else {
                 $results[$service_name] = array(
                     'success' => false,
                     'error' => 'Invalid IP in response: ' . $response
                 );
-                ps_log_error("Proxy IP check: {$service_name} returned invalid IP: {$response}");
+    // ps_log_error("Proxy IP check: {$service_name} returned invalid IP: {$response}");
             }
         } else {
             $results[$service_name] = array(
@@ -657,7 +657,7 @@ function ps_ajax_check_proxy_ip() {
                 'error' => "HTTP {$http_code}: " . ($error ? $error : 'Unknown error'),
                 'response' => $response
             );
-            ps_log_error("Proxy IP check: {$service_name} failed - HTTP {$http_code}: {$error}");
+    // ps_log_error("Proxy IP check: {$service_name} failed - HTTP {$http_code}: {$error}");
         }
     }
     
@@ -670,7 +670,7 @@ function ps_ajax_check_proxy_ip() {
     });
     
     if (empty($successful_services)) {
-        ps_log_error("Proxy IP check: All services failed");
+    // ps_log_error("Proxy IP check: All services failed");
         wp_send_json_error(array(
             'message' => 'Failed to determine proxy IP address.',
             'details' => 'All IP checking services failed. This could indicate proxy connectivity issues.',
@@ -684,7 +684,7 @@ function ps_ajax_check_proxy_ip() {
     $unique_ips = array_unique(array_column($successful_services, 'ip'));
     
     if (count($unique_ips) === 1) {
-        ps_log_error("Proxy IP check: Successfully determined IP {$found_ip} from " . count($successful_services) . " services");
+    // ps_log_error("Proxy IP check: Successfully determined IP {$found_ip} from " . count($successful_services) . " services");
         
         // Try to get additional IP information
         $ip_info = ps_get_ip_geolocation($found_ip);
@@ -698,7 +698,7 @@ function ps_ajax_check_proxy_ip() {
             'time' => round($request_time, 2)
         ));
     } else {
-        ps_log_error("Proxy IP check: Inconsistent results - found different IPs: " . implode(', ', $unique_ips));
+    // ps_log_error("Proxy IP check: Inconsistent results - found different IPs: " . implode(', ', $unique_ips));
         wp_send_json_error(array(
             'message' => 'Inconsistent IP addresses returned by different services.',
             'details' => 'Services returned different IPs: ' . implode(', ', $unique_ips) . '. This could indicate proxy configuration issues.',

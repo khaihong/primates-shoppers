@@ -173,6 +173,9 @@ add_action('admin_init', function() {
  * Plugin activation function
  */
 function ps_activate() {
+    // Prevent any output during activation
+    ob_start();
+    
     // Create default settings
     add_option('ps_settings', array(
         'amazon_associate_tag' => PS_AFFILIATE_ID, // CA tag
@@ -189,8 +192,8 @@ function ps_activate() {
         mkdir($logs_dir, 0755, true);
     }
     
-    // Log activation
-    // ps_log_error("Plugin activated. Cache table created with user_id column.");
+    // Clear any output that might have been generated
+    ob_end_clean();
 }
 
 /**
@@ -446,7 +449,7 @@ function ps_ajax_search() {
     
     // Log the request
     $platforms_str = implode(', ', $platforms);
-    ps_log_error("AJAX Search Request - User: {$user_id}, Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}', Min Rating: '{$min_rating}', Country: '{$country}', Platforms: '{$platforms_str}', Filter Cached: " . ($filter_cached ? 'true' : 'false'));
+    // ps_log_error("AJAX Search Request - User: {$user_id}, Query: '{$search_query}', Exclude: '{$exclude_keywords}', Sort: '{$sort_by}', Min Rating: '{$min_rating}', Country: '{$country}', Platforms: '{$platforms_str}', Filter Cached: " . ($filter_cached ? 'true' : 'false'));
     
     // If this is a page refresh (filter_cached true and query is empty), fetch the most recent cache entry for the user, regardless of query/country
     if ($filter_cached && $search_query === '') {
@@ -548,7 +551,7 @@ function ps_ajax_search() {
                 wp_send_json_success($display_results);
             } else {
                 if (isset($display_results['amazon_search_url'])) {
-                    ps_log_error("FRONTEND_ERROR_WITH_URL: " . json_encode($display_results));
+                    // ps_log_error("FRONTEND_ERROR_WITH_URL: " . json_encode($display_results));
                 }
                 wp_send_json_error($display_results);
             }
@@ -796,11 +799,11 @@ function ps_get_cached_results($query, $country_code, $exclude, $sort_by) {
     
     // Get the user identifier
     $user_id = ps_get_user_identifier();
-    ps_log_error("ps_get_cached_results: Generated user_id = '{$user_id}' for query '{$query}'");
+    // ps_log_error("ps_get_cached_results: Generated user_id = '{$user_id}' for query '{$query}'");
     
     // Create a unique hash including the user ID
     $query_hash = md5($query . '|' . $country_code . '|' . $exclude . '|' . $sort_by . '|' . $user_id);
-    ps_log_error("ps_get_cached_results: Looking for query_hash = '{$query_hash}' with user_id = '{$user_id}'");
+    // ps_log_error("ps_get_cached_results: Looking for query_hash = '{$query_hash}' with user_id = '{$user_id}'");
     
     // Table name
     $table_name = $wpdb->prefix . 'ps_cache';
@@ -856,7 +859,7 @@ function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
 
     // Get the user identifier
     $user_id = ps_get_user_identifier();
-    ps_log_error("ps_cache_results: Generated user_id = '{$user_id}' for query '{$query}'");
+    // ps_log_error("ps_cache_results: Generated user_id = '{$user_id}' for query '{$query}'");
     
     // Create a unique hash including the user ID
     $query_hash = md5($query . '|' . $country_code . '|' . $exclude . '|' . $sort_by . '|' . $user_id);
@@ -896,14 +899,14 @@ function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
     $json_results = json_encode($clean_results);
     $size_kb = strlen($json_results) / 1024;
     // Log the size for monitoring
-    ps_log_error("Caching results for user {$user_id} (query: '{$query}', country: {$country_code}): {$size_kb} KB. Items: " . (isset($clean_results['count']) ? $clean_results['count'] : 'N/A'));
+    // ps_log_error("Caching results for user {$user_id} (query: '{$query}', country: {$country_code}): {$size_kb} KB. Items: " . (isset($clean_results['count']) ? $clean_results['count'] : 'N/A'));
     
     // Check if record already exists for this query hash
     $existing_record = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$table_name} WHERE query_hash = %s AND user_id = %s", $query_hash, $user_id));
     
     if ($existing_record) {
         // Update existing record
-        ps_log_error("ps_cache_results: Updating existing cache record ID {$existing_record->id} with user_id = '{$user_id}', query_hash = '{$query_hash}'");
+        // ps_log_error("ps_cache_results: Updating existing cache record ID {$existing_record->id} with user_id = '{$user_id}', query_hash = '{$query_hash}'");
         $update_result = $wpdb->update(
             $table_name,
             array(
@@ -927,15 +930,15 @@ function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
                 '%s'  // user_id
             )
         );
-        ps_log_error("ps_cache_results: Update result = " . ($update_result !== false ? 'SUCCESS' : 'FAILED') . " for record ID {$existing_record->id}");
+        // ps_log_error("ps_cache_results: Update result = " . ($update_result !== false ? 'SUCCESS' : 'FAILED') . " for record ID {$existing_record->id}");
         if ($wpdb->last_error) {
-            ps_log_error("Database error when updating cache results for hash {$query_hash}: " . $wpdb->last_error);
+            // ps_log_error("Database error when updating cache results for hash {$query_hash}: " . $wpdb->last_error);
         } else {
-            ps_log_error("Successfully updated cache results with hash: " . $query_hash . ", User: " . $user_id);
+            // ps_log_error("Successfully updated cache results with hash: " . $query_hash . ", User: " . $user_id);
         }
     } else {
         // Insert new record
-        ps_log_error("ps_cache_results: Creating new cache record with user_id = '{$user_id}', query_hash = '{$query_hash}'");
+        // ps_log_error("ps_cache_results: Creating new cache record with user_id = '{$user_id}', query_hash = '{$query_hash}'");
         $insert_result = $wpdb->insert(
             $table_name,
             array(
@@ -955,11 +958,11 @@ function ps_cache_results($query, $country_code, $exclude, $sort_by, $results) {
                 '%s'  // user_id - explicitly specify as string
             )
         );
-        ps_log_error("ps_cache_results: Insert result = " . ($insert_result ? 'SUCCESS' : 'FAILED') . ", wpdb->insert_id = " . $wpdb->insert_id);
+        // ps_log_error("ps_cache_results: Insert result = " . ($insert_result ? 'SUCCESS' : 'FAILED') . ", wpdb->insert_id = " . $wpdb->insert_id);
         if ($wpdb->last_error) {
-            ps_log_error("Database error when caching results for hash {$query_hash}: " . $wpdb->last_error);
+            // ps_log_error("Database error when caching results for hash {$query_hash}: " . $wpdb->last_error);
         } else {
-            ps_log_error("Successfully cached results with hash: " . $query_hash . ", User: " . $user_id);
+            // ps_log_error("Successfully cached results with hash: " . $query_hash . ", User: " . $user_id);
         }
     }
 }
@@ -1150,10 +1153,10 @@ function ps_clear_all_cache() {
     $result = $wpdb->query("DELETE FROM $table_name");
     
     if ($result !== false) {
-        ps_log_error("Cache cleared successfully. Deleted $result entries.");
+        // ps_log_error("Cache cleared successfully. Deleted $result entries.");
         return $result;
     } else {
-        ps_log_error("Error clearing cache: " . $wpdb->last_error);
+        // ps_log_error("Error clearing cache: " . $wpdb->last_error);
         return false;
     }
 }
@@ -1461,7 +1464,7 @@ function ps_ajax_load_more() {
     $user_id = ps_get_user_identifier();
     
     // Log the request
-    ps_log_error("AJAX Load More Request - User: {$user_id}, Query: '{$search_query}', Page: {$page}, Country: '{$country}', Requested Platforms: " . implode(', ', $requested_platforms));
+    // ps_log_error("AJAX Load More Request - User: {$user_id}, Query: '{$search_query}', Page: {$page}, Country: '{$country}', Requested Platforms: " . implode(', ', $requested_platforms));
     
     if (empty($search_query)) {
         ps_send_ajax_response(array(
@@ -1497,15 +1500,15 @@ function ps_ajax_load_more() {
     if (!empty($requested_platforms)) {
         // Use platforms requested by the client
         $platforms = $requested_platforms;
-        ps_log_error("Load More: Using requested platforms: " . implode(', ', $platforms));
+        // ps_log_error("Load More: Using requested platforms: " . implode(', ', $platforms));
     } elseif (isset($existing_cache['platforms']) && !empty($existing_cache['platforms'])) {
         // Fall back to platforms from cache
         $platforms = is_array($existing_cache['platforms']) ? $existing_cache['platforms'] : array($existing_cache['platforms']);
-        ps_log_error("Load More: Using cached platforms: " . implode(', ', $platforms));
+        // ps_log_error("Load More: Using cached platforms: " . implode(', ', $platforms));
     } else {
         // Default fallback
         $platforms = array('amazon');
-        ps_log_error("Load More: Using default platforms: " . implode(', ', $platforms));
+        // ps_log_error("Load More: Using default platforms: " . implode(', ', $platforms));
     }
     
     // Filter platforms to only supported ones (for load more, only Amazon and eBay currently support pagination)
@@ -1520,7 +1523,7 @@ function ps_ajax_load_more() {
         return;
     }
     
-    ps_log_error("Load More: Loading page {$page} for supported platforms: " . implode(', ', $platforms));
+    // ps_log_error("Load More: Loading page {$page} for supported platforms: " . implode(', ', $platforms));
     
     // Collect new items from all platforms
     $all_new_items = array();
@@ -1542,7 +1545,7 @@ function ps_ajax_load_more() {
                 
                 if (!empty($pagination_urls) && isset($pagination_urls[$page_key])) {
                     $page_url = $pagination_urls[$page_key];
-                    ps_log_error("Load More Amazon: Using pagination URL for page {$page}: {$page_url}");
+                    // ps_log_error("Load More Amazon: Using pagination URL for page {$page}: {$page_url}");
                     
                     // Fetch the page using the parsed URL
                     $html_content = ps_fetch_amazon_search_results($page_url, $country);
@@ -1582,16 +1585,16 @@ function ps_ajax_load_more() {
                         // Check if Amazon has more pages available
                         $platform_has_more = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
                         
-                        ps_log_error("Load More Amazon: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                        // ps_log_error("Load More Amazon: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
                     }
                 } else {
-                    ps_log_error("Load More Amazon: No pagination URL for page {$page}");
+                    // ps_log_error("Load More Amazon: No pagination URL for page {$page}");
                     $platform_errors[] = "Amazon: No pagination URL available for page {$page}";
                 }
                 
             } elseif ($platform === 'ebay') {
                 // eBay pagination uses page numbers
-                ps_log_error("Load More eBay: Searching page {$page}");
+                // ps_log_error("Load More eBay: Searching page {$page}");
                 
                 $ebay_results = ps_search_ebay_products($search_query, '', $sort_by, $country, $min_rating, $page);
                 
@@ -1605,7 +1608,7 @@ function ps_ajax_load_more() {
                     // eBay has more pages if we got results (assume 3 page limit for consistency)
                     $platform_has_more = ($page < 3) && count($platform_new_items) > 0;
                     
-                    ps_log_error("Load More eBay: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                    // ps_log_error("Load More eBay: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
                 } else {
                     if (isset($ebay_results['message'])) {
                         $platform_errors[] = "eBay: " . $ebay_results['message'];
@@ -1616,7 +1619,7 @@ function ps_ajax_load_more() {
                 
             } else {
                 // Future platform support (Best Buy, Walmart, etc.)
-                ps_log_error("Load More: Platform '{$platform}' not yet implemented for pagination");
+                // ps_log_error("Load More: Platform '{$platform}' not yet implemented for pagination");
                 $platform_errors[] = ucfirst($platform) . ": Not yet supported for load more";
             }
             
@@ -1631,7 +1634,7 @@ function ps_ajax_load_more() {
             }
             
         } catch (Exception $e) {
-            ps_log_error("Error loading more from {$platform}: " . $e->getMessage());
+            // ps_log_error("Error loading more from {$platform}: " . $e->getMessage());
             $platform_errors[] = ucfirst($platform) . ": Error - " . $e->getMessage();
         }
     }
@@ -1691,11 +1694,11 @@ function ps_ajax_load_more() {
     // Cache the updated results with extended expiry (24 hours from now)
     ps_cache_results($search_query, $country, '', '', $updated_cache_data);
     
-    ps_log_error("Load More: Successfully merged " . count($all_new_items) . " new items with existing cache. Total items: " . count($unique_items));
+    // ps_log_error("Load More: Successfully merged " . count($all_new_items) . " new items with existing cache. Total items: " . count($unique_items));
     
     // Measure elapsed time
     $elapsed_time = microtime(true) - $start_time;
-    ps_log_error("Load more page {$page} completed in " . number_format($elapsed_time, 2) . " seconds");
+    // ps_log_error("Load more page {$page} completed in " . number_format($elapsed_time, 2) . " seconds");
     
     // Return the complete merged dataset (unfiltered) for frontend filtering
     // The frontend will apply all current filters via applyAllFilters()
@@ -1836,7 +1839,7 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
     $success = false;
     $messages = array();
     
-    ps_log_error("Multi-platform search for platforms: " . implode(', ', $platforms));
+    // ps_log_error("Multi-platform search for platforms: " . implode(', ', $platforms));
     
     // Search each platform
     $pagination_urls = array(); // Collect pagination URLs from platforms
@@ -1848,16 +1851,16 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
             $platform_results = array();
             
             if ($platform === 'amazon') {
-                ps_log_error("Searching Amazon...");
+                // ps_log_error("Searching Amazon...");
                 $platform_results = ps_search_amazon_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
             } elseif ($platform === 'ebay') {
-                ps_log_error("Searching eBay...");
+                // ps_log_error("Searching eBay...");
                 $platform_results = ps_search_ebay_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
             } elseif ($platform === 'bestbuy') {
-                ps_log_error("Searching Best Buy...");
+                // ps_log_error("Searching Best Buy...");
                 $platform_results = ps_search_bestbuy_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
             } elseif ($platform === 'walmart') {
-                ps_log_error("Searching Walmart...");
+                // ps_log_error("Searching Walmart...");
                 $platform_results = ps_search_walmart_products($query, $exclude_keywords, $sort_by, $country, $min_rating);
             }
             
@@ -1868,7 +1871,7 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
                     // Capture pagination URLs from Amazon
                     if ($platform === 'amazon' && isset($platform_results['pagination_urls'])) {
                         $pagination_urls = $platform_results['pagination_urls'];
-                        ps_log_error("Multi-platform: Captured Amazon pagination URLs: " . json_encode(array_keys($pagination_urls)));
+                        // ps_log_error("Multi-platform: Captured Amazon pagination URLs: " . json_encode(array_keys($pagination_urls)));
                     }
                     
                     if (isset($platform_results['items']) && is_array($platform_results['items'])) {
@@ -1888,7 +1891,7 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
             }
             
         } catch (Exception $e) {
-            ps_log_error("Error searching {$platform}: " . $e->getMessage());
+            // ps_log_error("Error searching {$platform}: " . $e->getMessage());
             $messages[] = ucfirst($platform) . ': Error - ' . $e->getMessage();
         }
     }
@@ -1922,7 +1925,7 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
         );
     }
     
-    ps_log_error("Multi-platform search completed. Total items: " . count($all_items) . ", Filtered items: " . (isset($filtered_items) ? count($filtered_items) : 0));
+    // ps_log_error("Multi-platform search completed. Total items: " . count($all_items) . ", Filtered items: " . (isset($filtered_items) ? count($filtered_items) : 0));
     
     return $combined_results;
 }
@@ -1999,7 +2002,7 @@ function ps_ajax_debug_log() {
         if (!empty($data)) {
             $log_entry .= " | Data: " . $data;
         }
-        ps_log_error($log_entry);
+        // ps_log_error($log_entry);
     }
     
     wp_send_json_success(array('logged' => true));
