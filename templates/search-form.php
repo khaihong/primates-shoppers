@@ -122,8 +122,35 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                         <option value="4.5">4.5+ stars, 95%+</option>
                         <option value="4.0" selected>4.0+ stars, 90%+</option>
                         <option value="3.5">3.5+ stars, 85%+</option>
+                        <option value="0">All ratings</option>
                     </select>
                 </td>
+            </tr>
+            <tr>
+                <td class="ps-search-label">
+                    <label for="ps-delivery-filter">Delivery:</label>
+                </td>
+                <td class="ps-search-input">
+                    <div class="ps-delivery-filter-container">
+                        <div class="ps-delivery-dropdown">
+                            <div class="ps-delivery-dropdown-header" id="ps-delivery-dropdown-header">
+                                <div class="ps-delivery-header-controls">
+                                    <button type="button" id="ps-delivery-all-button" class="ps-delivery-all-button" data-selected="true">
+                                        All
+                                    </button>
+                                </div>
+                                <span class="ps-delivery-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="ps-delivery-dropdown-content" id="ps-delivery-dropdown-content">
+                                <div class="ps-delivery-dates-container" id="ps-delivery-dates-container">
+                                    <!-- Delivery date options will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="ps-search-label"></td>
+                <td class="ps-search-input"></td>
             </tr>
         </table>
         <div class="ps-search-row">

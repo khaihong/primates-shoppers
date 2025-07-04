@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Primates Shoppers
  * Description: Search Amazon products with filtering by keywords and sorting by price or price per unit.
- * Version: 1.0.0
+ * Version: ultra-specific-css-classes
  * Author: Primates Shopper
  * Text Domain: primates-shoppers
  */
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('PS_VERSION', '1.0.0');
+define('PS_VERSION', 'ultra-specific-css-classes');
 define('PS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('PS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('PS_AFFILIATE_ID', 'primatessho0c-20');
@@ -350,14 +350,14 @@ function ps_fix_database() {
  * Enqueue scripts and styles
  */
 function ps_enqueue_scripts() {
-    $version = '1.0.0.' . time(); // Use timestamp for cache busting during development
+    $version = '1.0.0.' . time() . '.delivery-behavior'; // Use timestamp for cache busting during development
     
     // Enqueue the main search script
     wp_enqueue_script(
-        'ps-search-js',
+        'ps-search-script',
         plugins_url('assets/js/search.js', __FILE__),
         array('jquery'),
-        $version,
+        'fix-platform-change-preserve-search-' . time(), // Version with timestamp to bust cache
         true
     );
     
@@ -371,7 +371,7 @@ function ps_enqueue_scripts() {
     
     // Pass AJAX URL and nonce to JavaScript
     wp_localize_script(
-        'ps-search-js',
+        'ps-search-script',
         'psData',
         array(
         'ajaxurl' => admin_url('admin-ajax.php'),
@@ -406,6 +406,203 @@ function ps_simple_ajax_trigger_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('primates_simple_ajax_trigger', 'ps_simple_ajax_trigger_shortcode');
+
+/**
+ * Extract platform-specific delivery dates from product items
+ * @param array $items - Array of product items with platform and delivery_time
+ * @return array - Array grouped by platform with unique delivery dates
+ */
+function ps_extract_platform_delivery_dates($items) {
+    $platform_dates = array();
+    $platforms_with_unspecified = array();
+    
+    if (!is_array($items)) {
+        return $platform_dates;
+    }
+    
+    foreach ($items as $item) {
+        $platform = isset($item['platform']) ? $item['platform'] : 'unknown';
+        $delivery_time = isset($item['delivery_time']) ? trim($item['delivery_time']) : '';
+        
+        // Initialize platform array if not exists
+        if (!isset($platform_dates[$platform])) {
+            $platform_dates[$platform] = array();
+        }
+        
+        // Track platforms that have products without delivery info
+        if (empty($delivery_time) || $delivery_time === 'N/A') {
+            $platforms_with_unspecified[$platform] = true;
+            continue;
+        }
+        
+        // Extract specific delivery dates using regex patterns
+        $date_matches = preg_match_all('/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*,?\s+[A-Z][a-z]{2,8}\s+\d{1,2}\b/', $delivery_time, $matches);
+        
+        if ($date_matches && !empty($matches[0])) {
+            foreach ($matches[0] as $date) {
+                // Clean up the date string
+                $clean_date = preg_replace('/^,?\s*/', '', $date);
+                $clean_date = preg_replace('/,?\s*$/', '', $clean_date);
+                
+                if (!in_array($clean_date, $platform_dates[$platform])) {
+                    $platform_dates[$platform][] = $clean_date;
+                }
+            }
+        } else {
+            // If no specific date pattern found, use the first line of delivery text
+            $first_line = explode("\n", $delivery_time)[0];
+            $first_line = trim($first_line);
+            
+            if (!empty($first_line) && !in_array($first_line, $platform_dates[$platform])) {
+                $platform_dates[$platform][] = $first_line;
+            }
+        }
+    }
+    
+    // Sort dates for each platform by actual date values
+    foreach ($platform_dates as $platform => $dates) {
+        // Create array of date objects for sorting
+        $date_objects = array();
+        
+        foreach ($dates as $date_string) {
+            // Try to parse the date
+            $parsed_date = null;
+            $day_number = null;
+            $month_number = null;
+            
+            // Extract day and month from date string (e.g., "Monday, Dec 2" or "Delivery Tomorrow, Jul 4")
+            // First try to find a month name followed by a day number pattern
+            if (preg_match('/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/', $date_string, $matches)) {
+                $month_text = $matches[1];
+                $day_number = intval($matches[2]);
+                
+                // Extract month name and convert to number
+                $month_names = array(
+                    'jan' => 1, 'january' => 1,
+                    'feb' => 2, 'february' => 2,
+                    'mar' => 3, 'march' => 3,
+                    'apr' => 4, 'april' => 4,
+                    'may' => 5,
+                    'jun' => 6, 'june' => 6,
+                    'jul' => 7, 'july' => 7,
+                    'aug' => 8, 'august' => 8,
+                    'sep' => 9, 'september' => 9,
+                    'oct' => 10, 'october' => 10,
+                    'nov' => 11, 'november' => 11,
+                    'dec' => 12, 'december' => 12
+                );
+                
+                foreach ($month_names as $month_name => $month_num) {
+                    if (stripos($month_text, $month_name) !== false) {
+                        $month_number = $month_num;
+                        break;
+                    }
+                }
+            } else {
+                // Fallback: try to find any day number and month name separately
+                if (preg_match('/\b(\d{1,2})\b/', $date_string, $day_matches)) {
+                    $day_number = intval($day_matches[1]);
+                    
+                    // Extract month name and convert to number
+                    $month_names = array(
+                        'jan' => 1, 'january' => 1,
+                        'feb' => 2, 'february' => 2,
+                        'mar' => 3, 'march' => 3,
+                        'apr' => 4, 'april' => 4,
+                        'may' => 5,
+                        'jun' => 6, 'june' => 6,
+                        'jul' => 7, 'july' => 7,
+                        'aug' => 8, 'august' => 8,
+                        'sep' => 9, 'september' => 9,
+                        'oct' => 10, 'october' => 10,
+                        'nov' => 11, 'november' => 11,
+                        'dec' => 12, 'december' => 12
+                    );
+                    
+                    foreach ($month_names as $month_name => $month_num) {
+                        if (stripos($date_string, $month_name) !== false) {
+                            $month_number = $month_num;
+                            break;
+                        }
+                    }
+                }
+            }
+                
+            // Try to create a proper date object for this year
+            if ($month_number !== null) {
+                $current_year = date('Y');
+                try {
+                    $parsed_date = new DateTime();
+                    $parsed_date->setDate($current_year, $month_number, $day_number);
+                    
+                    // If the created date is in the past, assume it's for next year
+                    $now = new DateTime();
+                    if ($parsed_date < $now) {
+                        $parsed_date->setDate($current_year + 1, $month_number, $day_number);
+                    }
+                } catch (Exception $e) {
+                    $parsed_date = null;
+                }
+            }
+            
+            $date_objects[] = array(
+                'original' => $date_string,
+                'parsed_date' => $parsed_date,
+                'day_number' => $day_number,
+                'month_number' => $month_number
+            );
+        }
+        
+        // Sort by parsed date first, then by month/day, then alphabetically
+        usort($date_objects, function($a, $b) {
+            // If both have parsed dates, sort by those
+            if ($a['parsed_date'] && $b['parsed_date']) {
+                return $a['parsed_date']->getTimestamp() - $b['parsed_date']->getTimestamp();
+            }
+            
+            // If both have month and day numbers, sort by those
+            if ($a['month_number'] !== null && $b['month_number'] !== null && 
+                $a['day_number'] !== null && $b['day_number'] !== null) {
+                
+                $month_diff = $a['month_number'] - $b['month_number'];
+                if ($month_diff !== 0) {
+                    return $month_diff;
+                }
+                return $a['day_number'] - $b['day_number'];
+            }
+            
+            // If both have day numbers only, sort by those
+            if ($a['day_number'] !== null && $b['day_number'] !== null) {
+                return $a['day_number'] - $b['day_number'];
+            }
+            
+            // If one has day number and other doesn't, prioritize the one with day number
+            if ($a['day_number'] !== null && $b['day_number'] === null) {
+                return -1;
+            }
+            if ($a['day_number'] === null && $b['day_number'] !== null) {
+                return 1;
+            }
+            
+            // Fallback to alphabetical sorting
+            return strcmp($a['original'], $b['original']);
+        });
+        
+        // Extract the sorted original date strings
+        $platform_dates[$platform] = array_map(function($date_obj) {
+            return $date_obj['original'];
+        }, $date_objects);
+    }
+    
+    // Add "unspecified" option to platforms that have products without delivery info
+    foreach ($platforms_with_unspecified as $platform => $has_unspecified) {
+        if ($has_unspecified && isset($platform_dates[$platform])) {
+            $platform_dates[$platform][] = 'unspecified';
+        }
+    }
+    
+    return $platform_dates;
+}
 
 /**
  * Handle AJAX search request
@@ -508,6 +705,7 @@ function ps_ajax_search() {
                     'exclude' => '', // Store raw results with no exclusion
                     'sort_by' => '', // Store raw results with no specific sort
                     'pagination_urls' => isset($search_response['pagination_urls']) ? $search_response['pagination_urls'] : array(), // Store pagination URLs
+                    'platform_delivery_dates' => $platform_delivery_dates, // Cache platform-specific delivery dates
                     'data_source' => 'live_request_raw_cache' 
                 );
                 
@@ -521,6 +719,12 @@ function ps_ajax_search() {
                 }
             }
         
+            // Extract platform-specific delivery dates from raw items for caching
+            $platform_delivery_dates = array();
+            if (isset($search_response['raw_items_for_cache']) && is_array($search_response['raw_items_for_cache'])) {
+                $platform_delivery_dates = ps_extract_platform_delivery_dates($search_response['raw_items_for_cache']);
+            }
+
             // Prepare the data for display (filtered items)
             $display_results = array(
                 'success' => isset($search_response['success']) ? $search_response['success'] : false,
@@ -533,6 +737,7 @@ function ps_ajax_search() {
                 'country_code' => $country,
                 'platforms' => $platforms, // Include platforms in response
                 'pagination_urls' => isset($search_response['pagination_urls']) ? $search_response['pagination_urls'] : array(), // Include pagination URLs
+                'platform_delivery_dates' => $platform_delivery_dates, // Add platform-specific delivery dates
                 'data_source' => 'live_request_filtered_display'
             );
 
@@ -1208,6 +1413,7 @@ function ps_ajax_filter() {
             'query' => $last_search_query, // Original query
             'exclude' => $new_exclude_keywords, // Applied filters
             'sort_by' => $new_sort_by,         // Applied sort
+            'platform_delivery_dates' => isset($cached_filtered_results['platform_delivery_dates']) ? $cached_filtered_results['platform_delivery_dates'] : array(),
             'data_source' => 'cache',
             'country_code' => $country_code,
             'user_id' => $user_id // Include user ID in response
@@ -1259,6 +1465,7 @@ function ps_ajax_filter() {
         'country_code' => $country_code,
         'exclude' => $new_exclude_keywords,
         'sort_by' => $new_sort_by,
+        'platform_delivery_dates' => isset($cached_base_data['platform_delivery_dates']) ? $cached_base_data['platform_delivery_dates'] : array(),
         'data_source' => 'derived_from_cache'
     );
     ps_cache_results($last_search_query, $country_code, $new_exclude_keywords, $new_sort_by, $newly_filtered_cache_data);
@@ -1272,6 +1479,7 @@ function ps_ajax_filter() {
         'query' => $last_search_query,          // Original query
         'exclude' => $new_exclude_keywords,     // Filters applied in this step
         'sort_by' => $new_sort_by,             // Sort applied in this step
+        'platform_delivery_dates' => isset($cached_base_data['platform_delivery_dates']) ? $cached_base_data['platform_delivery_dates'] : array(),
         'data_source' => 'filtered_base_cache',
         'country_code' => $country_code,
         'user_id' => $user_id // Include user ID in response
@@ -1402,15 +1610,25 @@ function ps_filter_amazon_products($items, $includeText = '', $excludeText = '',
     // else: if includeText is '*' or empty, do not filter by include
 
     // Rating filter: filter by minimum rating
-    if ($minRating !== null && $minRating > 0) {
+    if ($minRating !== null) {
         $filtered = array_filter($filtered, function($item) use ($minRating) {
-            // Exclude products with no rating when minimum rating filter is applied
-            if (!isset($item['rating_number']) || empty($item['rating_number']) || $item['rating_number'] === 'N/A') {
-                return false; // Exclude products with no rating when filtering by rating
+            // Include all products when "All ratings" is selected ($minRating = 0)
+            if ($minRating == 0) {
+                return true;
             }
             
-            $itemRating = floatval($item['rating_number']);
-            return $itemRating >= $minRating;
+            // Exclude products with no rating when minimum rating filter is applied
+            if (!isset($item['rating_numeric']) || $item['rating_numeric'] === '' || $item['rating_numeric'] === 'N/A') {
+                return false;
+            }
+            
+            $itemRating = 0;
+            
+                            // Both eBay and Amazon ratings are already in star format
+                // eBay API already converts percentages to stars (95% → 4.5 stars)
+                $itemRating = floatval($item['rating_numeric']);
+            
+            return $itemRating >= floatval($minRating);
         });
     }
 
@@ -1687,6 +1905,7 @@ function ps_ajax_load_more() {
         'sort_by' => '',
         'platforms' => $platforms, // Keep original platforms
         'pagination_urls' => isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array(), // Keep Amazon pagination URLs
+        'platform_delivery_dates' => ps_extract_platform_delivery_dates($unique_items), // Update platform delivery dates
         'data_source' => 'load_more_merged',
         'last_page_loaded' => $page
     );
@@ -1961,8 +2180,19 @@ function ps_filter_multi_platform_products($items, $includeText = '', $excludeTe
         
         // Apply rating filtering (for platforms that support it)
         if ($minRating !== null && isset($item['rating_numeric']) && is_numeric($item['rating_numeric'])) {
-            if (floatval($item['rating_numeric']) < floatval($minRating)) {
-                continue;
+            // Include all products when "All ratings" is selected ($minRating = 0)
+            if ($minRating == 0) {
+                // Continue to next filter
+            } else {
+                $itemRating = 0;
+                
+                // Both eBay and Amazon ratings are already in star format
+                // eBay API already converts percentages to stars (95% → 4.5 stars)
+                $itemRating = floatval($item['rating_numeric']);
+                
+                if ($itemRating < floatval($minRating)) {
+                    continue;
+                }
             }
         }
         

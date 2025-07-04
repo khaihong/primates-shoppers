@@ -1,25 +1,11 @@
 /**
  * Primates Shoppers JavaScript
  */
-console.log('search.js loaded');
 (function($) {
     'use strict';
     
-    // Debug the psData object - remove after debugging
-    console.log('psData available at load:', window.psData);
-    
     $(document).ready(function() {
-        console.log('jQuery ready fired');
-        // Debug the psData object again after document ready
-        console.log('psData available after document ready:', window.psData);
-        
-        // Add debug logs for the condition
-        console.log('psData.ajaxurl:', window.psData && window.psData.ajaxurl);
-        console.log('psData.nonce:', window.psData && window.psData.nonce);
-        console.log('Condition:', !!(window.psData && window.psData.ajaxurl && window.psData.nonce));
-        
         if (window.psData && window.psData.ajaxurl && window.psData.nonce) {
-            console.log('Calling loadCachedResults');
             
             // Log page initialization
             logToServer('Page Load: Document ready fired, initializing unit price sorting system', {
@@ -55,6 +41,11 @@ console.log('search.js loaded');
         const $filterCachedInput = $('#ps-filter-cached');
         const $cachedNotice = $('#ps-cached-notice');
         const $cachedTime = $('.ps-cached-time');
+        const $deliveryDropdownHeader = $('#ps-delivery-dropdown-header');
+        const $deliveryDropdownContent = $('#ps-delivery-dropdown-content');
+        const $deliveryDatesContainer = $('#ps-delivery-dates-container');
+        const $deliveryAllCheckbox = $('#ps-delivery-all-checkbox');
+        const $deliveryNoneCheckbox = $('#ps-delivery-none-checkbox');
         const productTemplate = $('#ps-product-template').html();
         
         // Make filter button the default action when pressing enter
@@ -69,8 +60,18 @@ console.log('search.js loaded');
         // Detect user's country and set the appropriate radio button
         detectUserCountry();
         
-        // Restore platform selections from cache
-        restorePlatformSelections();
+        // Note: Platform restoration will be handled after loading cached results
+        // based on what platforms are actually available in the data
+        
+        // Hide delivery filter by default until results are loaded
+        $deliveryDropdownHeader.closest('tr').hide();
+        
+        // Global click handler to close delivery dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.ps-delivery-dropdown').length) {
+                closeDeliveryDropdown();
+            }
+        });
         
         // Global variables
         let currentSearchResults = [];
@@ -84,6 +85,9 @@ console.log('search.js loaded');
         let loadButtonCooldownTimer = null;
         let savedDefaultSort = null;
         let isAfterLiveSearch = false;
+        
+        // Initialize delivery filter update flag (set to true for initial load)
+        window.deliveryFilterNeedsUpdate = true;
         
         // Unit detection patterns for title extraction
         const unitPatterns = [
@@ -131,17 +135,14 @@ console.log('search.js loaded');
                             if (countryCode === 'ca') {
                                 // Set Canada as selected
                                 $('input[name="country"][value="ca"]').prop('checked', true);
-                                console.log('Set country to CA based on IP detection');
+
                                 logToServer('Country Detection: Set country to CA based on IP detection');
                             }
                             // For US and all other countries, keep the default (US)
-                        } else {
-                            console.log('Country already set from cached preference, not overriding');
                         }
                     }
                 },
                 error: function(error) {
-                    console.log('Error detecting country from IP:', error);
                     logToServer('Country Detection: IP detection failed, falling back to browser language', {
                         error: error.statusText || 'Unknown error'
                     });
@@ -158,7 +159,6 @@ console.log('search.js loaded');
         function detectCountryFromBrowser() {
             try {
                 const language = (navigator.language || navigator.userLanguage || '').toLowerCase();
-                console.log('Browser language:', language);
                 
                 // Only set country if no cached preference has been applied
                 const hasExistingPreference = window.countrySetFromCache || false;
@@ -175,14 +175,11 @@ console.log('search.js loaded');
                     // Check for Canadian English/French
                     if (language === 'en-ca' || language === 'fr-ca') {
                         $('input[name="country"][value="ca"]').prop('checked', true);
-                        console.log('Set country to CA based on browser language');
+
                         logToServer('Country Detection: Set country to CA based on browser language');
                     }
-                } else {
-                    console.log('Country already set from cached preference, not overriding');
                 }
             } catch (e) {
-                console.log('Error detecting country from browser language:', e);
                 logToServer('Country Detection: Browser language detection failed', {
                     error: e.message
                 });
@@ -410,7 +407,6 @@ console.log('search.js loaded');
                 const excludeTerms = excludeText.toLowerCase().split(/\s+/).filter(term => term.length > 0);
                 
                 if (excludeTerms.length > 0) {
-                    console.log('Filtering out products containing terms:', excludeTerms);
                     
                     filteredItems = filteredItems.filter(item => {
                         const titleLower = (item.title || '').toLowerCase();
@@ -430,7 +426,6 @@ console.log('search.js loaded');
                 const includeTerms = includeText.toLowerCase().split(/\s+/).filter(term => term.length > 0);
                 
                 if (includeTerms.length > 0) {
-                    console.log('Filtering for products containing terms:', includeTerms);
                     
                     filteredItems = filteredItems.filter(item => {
                         const titleLower = (item.title || '').toLowerCase();
@@ -467,23 +462,888 @@ console.log('search.js loaded');
             }
             
             // Filter by minimum rating
-            if (minRating !== null && minRating > 0) {
+            if (minRating !== null) {
+                const beforeRatingFilter = filteredItems.length;
                 filteredItems = filteredItems.filter(item => {
+                    // Include all products when "All ratings" is selected (minRating = 0)
+                    if (minRating === 0) {
+                        return true;
+                    }
+                    
                     // Exclude products with no rating when minimum rating filter is applied
                     if (!item.rating_number || item.rating_number === '' || item.rating_number === 'N/A') {
                         return false; // Exclude products with no rating when filtering by rating
                     }
                     
-                    const itemRating = parseFloat(item.rating_number);
+                    let itemRating;
+                    
+                    // Both eBay and Amazon ratings are already in star format
+                    // eBay backend already converts percentages to stars (95% → 4.5 stars)
+                    itemRating = parseFloat(item.rating_number);
                     
                     const shouldInclude = itemRating >= minRating;
-                    if (!shouldInclude) {
-                    }
                     return shouldInclude;
                 });
+                
+                // Rating filter applied successfully
             }
             
             return filteredItems;
+        }
+        
+        /**
+         * Extract platform-specific delivery dates from product items (fallback function)
+         * @param {Array} items - Array of product items
+         * @returns {Object} - Object with platform keys and arrays of delivery dates
+         */
+        function extractPlatformDeliveryDatesFromItems(items) {
+            if (!items || !Array.isArray(items)) return {};
+            
+            const platformDates = {};
+            const platformsWithUnspecified = {};
+            
+            items.forEach(item => {
+                if (item.platform) {
+                    const platform = item.platform;
+                    const deliveryText = item.delivery_time;
+                    
+                    // Initialize platform array if not exists
+                    if (!platformDates[platform]) {
+                        platformDates[platform] = [];
+                    }
+                    
+                    // Track platforms that have products without delivery info
+                    if (!deliveryText || deliveryText.trim() === '' || deliveryText === 'N/A') {
+                        platformsWithUnspecified[platform] = true;
+                        return;
+                    }
+                    
+                    // Extract specific delivery dates using regex patterns
+                    const dateMatches = deliveryText.match(/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*,?\s+[A-Z][a-z]{2,8}\s+\d{1,2}\b/g);
+                    
+                    if (dateMatches) {
+                        dateMatches.forEach(date => {
+                            // Clean up the date string
+                            const cleanDate = date.replace(/^,?\s*/, '').replace(/,?\s*$/, '');
+                            if (!platformDates[platform].includes(cleanDate)) {
+                                platformDates[platform].push(cleanDate);
+                            }
+                        });
+                    } else {
+                        // If no specific date pattern found, use the first line of delivery text
+                        const firstLine = deliveryText.trim().split('\n')[0];
+                        if (firstLine && firstLine !== 'N/A' && !platformDates[platform].includes(firstLine)) {
+                            platformDates[platform].push(firstLine);
+                        }
+                    }
+                }
+            });
+            
+            // Sort dates for each platform by actual date values
+            Object.keys(platformDates).forEach(platform => {
+                const dates = platformDates[platform];
+                
+                // Create array of date objects for sorting
+                const dateObjects = dates.map(dateString => {
+                    let parsedDate = null;
+                    let dayNumber = null;
+                    let monthNumber = null;
+                    
+                    // Extract day and month from date string (e.g., "Monday, Dec 2" -> day: 2, month: 12)
+                    const dayMatch = dateString.match(/\b(\d{1,2})\b/);
+                    if (dayMatch) {
+                        dayNumber = parseInt(dayMatch[1]);
+                        
+                        // Extract month name and convert to number
+                        const monthNames = {
+                            'jan': 1, 'january': 1,
+                            'feb': 2, 'february': 2,
+                            'mar': 3, 'march': 3,
+                            'apr': 4, 'april': 4,
+                            'may': 5,
+                            'jun': 6, 'june': 6,
+                            'jul': 7, 'july': 7,
+                            'aug': 8, 'august': 8,
+                            'sep': 9, 'september': 9,
+                            'oct': 10, 'october': 10,
+                            'nov': 11, 'november': 11,
+                            'dec': 12, 'december': 12
+                        };
+                        
+                        for (const [monthName, monthNum] of Object.entries(monthNames)) {
+                            if (dateString.toLowerCase().includes(monthName)) {
+                                monthNumber = monthNum;
+                                break;
+                            }
+                        }
+                        
+                        // Try to create a proper date object for this year
+                        if (monthNumber !== null) {
+                            const currentYear = new Date().getFullYear();
+                            try {
+                                parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
+                                
+                                // If the created date is in the past, assume it's for next year
+                                const now = new Date();
+                                if (parsedDate < now) {
+                                    parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
+                                }
+                            } catch (e) {
+                                parsedDate = null;
+                            }
+                        }
+                    }
+                    
+                    return {
+                        original: dateString,
+                        parsedDate: parsedDate,
+                        dayNumber: dayNumber,
+                        monthNumber: monthNumber
+                    };
+                });
+                
+                // Sort by parsed date first, then by month/day, then alphabetically
+                dateObjects.sort((a, b) => {
+                    // If both have parsed dates, sort by those
+                    if (a.parsedDate && b.parsedDate) {
+                        return a.parsedDate.getTime() - b.parsedDate.getTime();
+                    }
+                    
+                    // If both have month and day numbers, sort by those
+                    if (a.monthNumber !== null && b.monthNumber !== null && 
+                        a.dayNumber !== null && b.dayNumber !== null) {
+                        
+                        const monthDiff = a.monthNumber - b.monthNumber;
+                        if (monthDiff !== 0) {
+                            return monthDiff;
+                        }
+                        return a.dayNumber - b.dayNumber;
+                    }
+                    
+                    // If both have day numbers only, sort by those
+                    if (a.dayNumber !== null && b.dayNumber !== null) {
+                        return a.dayNumber - b.dayNumber;
+                    }
+                    
+                    // If one has day number and other doesn't, prioritize the one with day number
+                    if (a.dayNumber !== null && b.dayNumber === null) {
+                        return -1;
+                    }
+                    if (a.dayNumber === null && b.dayNumber !== null) {
+                        return 1;
+                    }
+                    
+                    // Fallback to alphabetical sorting
+                    return a.original.localeCompare(b.original);
+                });
+                
+                // Extract the sorted original date strings
+                platformDates[platform] = dateObjects.map(dateObj => dateObj.original);
+            });
+            
+            // Add "unspecified" option to platforms that have products without delivery info
+            Object.keys(platformsWithUnspecified).forEach(platform => {
+                if (platformsWithUnspecified[platform]) {
+                    if (!platformDates[platform]) {
+                        platformDates[platform] = [];
+                    }
+                    platformDates[platform].push('unspecified');
+                }
+            });
+            
+            console.log('Extracted platform delivery dates:', platformDates);
+            return platformDates;
+        }
+
+        /**
+         * Extract distinct delivery dates from product items
+         * @param {Array} items - Array of product items
+         * @returns {Array} - Array of unique delivery date strings
+         */
+        function extractDeliveryDates(items) {
+            if (!items || !Array.isArray(items)) return [];
+            
+            const deliveryDates = new Set();
+            
+            items.forEach(item => {
+                if (item.delivery_time) {
+                    // Extract delivery dates from delivery_time text
+                    const deliveryText = item.delivery_time;
+                    
+                    // Look for date patterns like "Monday, Dec 2", "Tuesday, Dec 3", etc.
+                    const dateMatches = deliveryText.match(/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*,?\s+[A-Z][a-z]{2,8}\s+\d{1,2}\b/g);
+                    
+                    if (dateMatches) {
+                        dateMatches.forEach(date => {
+                            // Clean up the date string
+                            const cleanDate = date.replace(/^,?\s*/, '').replace(/,?\s*$/, '');
+                            deliveryDates.add(cleanDate);
+                        });
+                    } else {
+                        // If no specific date pattern found, add the full delivery text as an option
+                        const cleanDeliveryText = deliveryText.trim().split('\n')[0]; // Take first line only
+                        if (cleanDeliveryText && cleanDeliveryText !== 'N/A') {
+                            deliveryDates.add(cleanDeliveryText);
+                        }
+                    }
+                }
+            });
+            
+            const uniqueDates = Array.from(deliveryDates);
+            
+            // Sort dates by actual date values
+            const dateObjects = uniqueDates.map(dateString => {
+                let parsedDate = null;
+                let dayNumber = null;
+                let monthNumber = null;
+                
+                // Extract day and month from date string (e.g., "Monday, Dec 2" -> day: 2, month: 12)
+                const dayMatch = dateString.match(/\b(\d{1,2})\b/);
+                if (dayMatch) {
+                    dayNumber = parseInt(dayMatch[1]);
+                    
+                    // Extract month name and convert to number
+                    const monthNames = {
+                        'jan': 1, 'january': 1,
+                        'feb': 2, 'february': 2,
+                        'mar': 3, 'march': 3,
+                        'apr': 4, 'april': 4,
+                        'may': 5,
+                        'jun': 6, 'june': 6,
+                        'jul': 7, 'july': 7,
+                        'aug': 8, 'august': 8,
+                        'sep': 9, 'september': 9,
+                        'oct': 10, 'october': 10,
+                        'nov': 11, 'november': 11,
+                        'dec': 12, 'december': 12
+                    };
+                    
+                    for (const [monthName, monthNum] of Object.entries(monthNames)) {
+                        if (dateString.toLowerCase().includes(monthName)) {
+                            monthNumber = monthNum;
+                            break;
+                        }
+                    }
+                    
+                    // Try to create a proper date object for this year
+                    if (monthNumber !== null) {
+                        const currentYear = new Date().getFullYear();
+                        try {
+                            parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
+                            
+                            // If the created date is in the past, assume it's for next year
+                            const now = new Date();
+                            if (parsedDate < now) {
+                                parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
+                            }
+                        } catch (e) {
+                            parsedDate = null;
+                        }
+                    }
+                }
+                
+                return {
+                    original: dateString,
+                    parsedDate: parsedDate,
+                    dayNumber: dayNumber,
+                    monthNumber: monthNumber
+                };
+            });
+            
+            // Sort by parsed date first, then by month/day, then alphabetically
+            dateObjects.sort((a, b) => {
+                // If both have parsed dates, sort by those
+                if (a.parsedDate && b.parsedDate) {
+                    return a.parsedDate.getTime() - b.parsedDate.getTime();
+                }
+                
+                // If both have month and day numbers, sort by those
+                if (a.monthNumber !== null && b.monthNumber !== null && 
+                    a.dayNumber !== null && b.dayNumber !== null) {
+                    
+                    const monthDiff = a.monthNumber - b.monthNumber;
+                    if (monthDiff !== 0) {
+                        return monthDiff;
+                    }
+                    return a.dayNumber - b.dayNumber;
+                }
+                
+                // If both have day numbers only, sort by those
+                if (a.dayNumber !== null && b.dayNumber !== null) {
+                    return a.dayNumber - b.dayNumber;
+                }
+                
+                // If one has day number and other doesn't, prioritize the one with day number
+                if (a.dayNumber !== null && b.dayNumber === null) {
+                    return -1;
+                }
+                if (a.dayNumber === null && b.dayNumber !== null) {
+                    return 1;
+                }
+                
+                // Fallback to alphabetical sorting
+                return a.original.localeCompare(b.original);
+            });
+            
+            // Extract the sorted original date strings
+            return dateObjects.map(dateObj => dateObj.original);
+        }
+        
+        /**
+         * Populate the delivery filter dropdown with platform-specific cached delivery dates
+         * @param {Array} items - Array of product items (used to determine relevant dates)
+         */
+        function populateDeliveryFilter(items) {
+            // Prevent multiple rapid re-populations
+            if (window.isPopulatingDeliveryFilter) {
+                console.log('🔄 Delivery filter population already in progress, skipping...');
+                return;
+            }
+            
+            window.isPopulatingDeliveryFilter = true;
+            console.log('🔄 Starting delivery filter population...');
+            
+            // IMMEDIATE state capture before any other operations
+            const existingButtons = $deliveryDatesContainer.find('.ps-delivery-date-button');
+            console.log('🔍 Found', existingButtons.length, 'existing buttons before processing');
+            existingButtons.each(function() {
+                const $btn = $(this);
+                const date = $btn.attr('data-date');
+                const selected = $btn.attr('data-selected');
+                const hasClass = $btn.hasClass('ps-selected');
+                console.log(`  🔍 Existing button: ${date} - data-selected: ${selected}, ps-selected: ${hasClass}`);
+            });
+            
+            // Always extract delivery dates from current items to ensure freshness
+            let platformDeliveryDates = {};
+            if (items && items.length > 0) {
+                console.log('populateDeliveryFilter: Extracting fresh delivery dates from current items');
+                platformDeliveryDates = extractPlatformDeliveryDatesFromItems(items);
+                console.log('Extracted platform delivery dates:', platformDeliveryDates);
+            } else {
+                console.log('populateDeliveryFilter: No items provided, using empty delivery dates');
+            }
+            
+            // Get currently available platforms in the items
+            const currentPlatforms = [...new Set(items.map(item => item.platform))].filter(Boolean);
+            
+            // Get delivery dates that exist in current results for verification
+            const currentDeliveryDates = extractDeliveryDates(items);
+            
+            // Combine all dates from relevant platforms
+            let allPlatformDates = [];
+            currentPlatforms.forEach(platform => {
+                if (platformDeliveryDates[platform] && Array.isArray(platformDeliveryDates[platform])) {
+                    allPlatformDates = [...allPlatformDates, ...platformDeliveryDates[platform]];
+                }
+            });
+            
+            // Remove duplicates and sort by date values
+            const uniqueDates = [...new Set(allPlatformDates)];
+            
+            // Sort the combined dates using the same logic as other functions
+            const dateObjects = uniqueDates.map(dateString => {
+                let parsedDate = null;
+                let dayNumber = null;
+                let monthNumber = null;
+                
+                // Extract day and month from date string (e.g., "Monday, Dec 2" -> day: 2, month: 12)
+                const dayMatch = dateString.match(/\b(\d{1,2})\b/);
+                if (dayMatch) {
+                    dayNumber = parseInt(dayMatch[1]);
+                    
+                    // Extract month name and convert to number
+                    const monthNames = {
+                        'jan': 1, 'january': 1,
+                        'feb': 2, 'february': 2,
+                        'mar': 3, 'march': 3,
+                        'apr': 4, 'april': 4,
+                        'may': 5,
+                        'jun': 6, 'june': 6,
+                        'jul': 7, 'july': 7,
+                        'aug': 8, 'august': 8,
+                        'sep': 9, 'september': 9,
+                        'oct': 10, 'october': 10,
+                        'nov': 11, 'november': 11,
+                        'dec': 12, 'december': 12
+                    };
+                    
+                    for (const [monthName, monthNum] of Object.entries(monthNames)) {
+                        if (dateString.toLowerCase().includes(monthName)) {
+                            monthNumber = monthNum;
+                            break;
+                        }
+                    }
+                    
+                    // Try to create a proper date object for this year
+                    if (monthNumber !== null) {
+                        const currentYear = new Date().getFullYear();
+                        try {
+                            parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
+                            
+                            // If the created date is in the past, assume it's for next year
+                            const now = new Date();
+                            if (parsedDate < now) {
+                                parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
+                            }
+                        } catch (e) {
+                            parsedDate = null;
+                        }
+                    }
+                }
+                
+                return {
+                    original: dateString,
+                    parsedDate: parsedDate,
+                    dayNumber: dayNumber,
+                    monthNumber: monthNumber
+                };
+            });
+            
+            // Sort by parsed date first, then by month/day, then alphabetically
+            dateObjects.sort((a, b) => {
+                // If both have parsed dates, sort by those
+                if (a.parsedDate && b.parsedDate) {
+                    return a.parsedDate.getTime() - b.parsedDate.getTime();
+                }
+                
+                // If both have month and day numbers, sort by those
+                if (a.monthNumber !== null && b.monthNumber !== null && 
+                    a.dayNumber !== null && b.dayNumber !== null) {
+                    
+                    const monthDiff = a.monthNumber - b.monthNumber;
+                    if (monthDiff !== 0) {
+                        return monthDiff;
+                    }
+                    return a.dayNumber - b.dayNumber;
+                }
+                
+                // If both have day numbers only, sort by those
+                if (a.dayNumber !== null && b.dayNumber !== null) {
+                    return a.dayNumber - b.dayNumber;
+                }
+                
+                // If one has day number and other doesn't, prioritize the one with day number
+                if (a.dayNumber !== null && b.dayNumber === null) {
+                    return -1;
+                }
+                if (a.dayNumber === null && b.dayNumber !== null) {
+                    return 1;
+                }
+                
+                // Fallback to alphabetical sorting
+                return a.original.localeCompare(b.original);
+            });
+            
+            const sortedDates = dateObjects.map(dateObj => dateObj.original);
+            
+            // Clear existing date options
+            $deliveryDatesContainer.empty();
+            
+            if (sortedDates.length === 0) {
+                $deliveryDropdownHeader.closest('tr').hide();
+                return;
+            }
+            
+            // Show the delivery filter row
+            $deliveryDropdownHeader.closest('tr').show();
+            
+            // Store all dates for reference
+            window.allDeliveryDates = sortedDates;
+            
+            // Create button-style delivery date options - leave them unselected by default
+            // The "All" button will be selected by default to show all products
+            let allDatesHtml = '';
+            sortedDates.forEach((date, index) => {
+                const sanitizedId = 'delivery-date-' + date.replace(/[^a-zA-Z0-9]/g, '-');
+                
+                allDatesHtml += `
+                    <button type="button" id="${sanitizedId}" class="ps-delivery-date-button" data-date="${date}" data-selected="false">
+                        ${date}
+                    </button>
+                `;
+            });
+            
+            // Update the dropdown content with all dates
+            $deliveryDatesContainer.html(allDatesHtml);
+            
+            // Calculate and set uniform button width based on longest text (only if not already set)
+            setTimeout(() => {
+                const allButtons = $deliveryDatesContainer.find('.ps-delivery-date-button');
+                const allButton = $('#ps-delivery-all-button');
+                
+                // Check if width has already been calculated and set
+                if (allButton.data('width-calculated')) {
+                    return;
+                }
+                
+                // Include the All button in width calculation
+                const allElementsToMeasure = allButtons.add(allButton);
+                
+                // Reset any existing min-width to get natural width
+                allElementsToMeasure.css('min-width', '');
+                
+                let maxWidth = 0;
+                
+                // Measure all buttons to find the widest
+                allElementsToMeasure.each(function() {
+                    const buttonWidth = $(this).outerWidth();
+                    if (buttonWidth > maxWidth) {
+                        maxWidth = buttonWidth;
+                    }
+                });
+                
+                // Add some padding to the max width
+                const uniformWidth = maxWidth + 20;
+                
+                // Apply uniform width to all buttons
+                allElementsToMeasure.css('min-width', uniformWidth + 'px');
+                
+                // Mark that width has been calculated
+                allButton.data('width-calculated', true);
+            }, 50);
+            
+            // Preserve current selection state if delivery filter already exists
+            const currentAllSelected = $('#ps-delivery-all-button').attr('data-selected');
+            const currentSelectedDates = [];
+            
+            // Store current individual date selections BEFORE any HTML changes
+            $deliveryDatesContainer.find('.ps-delivery-date-button[data-selected="true"]').each(function() {
+                const dateValue = $(this).attr('data-date');
+                currentSelectedDates.push(dateValue);
+                console.log('  📦 Storing selected date for restoration:', dateValue);
+            });
+            
+            console.log('🔄 Captured state before HTML recreation:');
+            console.log('  📊 All button selected:', currentAllSelected);
+            console.log('  📊 Individual dates selected:', currentSelectedDates);
+            
+            // Only set "All" to highlighted by default if this is the first time (no current state)
+            if (currentAllSelected === undefined) {
+                $('#ps-delivery-all-button').attr('data-selected', 'true').addClass('ps-selected');
+                console.log('🔄 Delivery filter initialized: First time setup');
+            } else {
+                // Preserve current "All" button state
+                const $allBtn = $('#ps-delivery-all-button');
+                $allBtn.attr('data-selected', currentAllSelected);
+                if (currentAllSelected === 'true') {
+                    $allBtn.addClass('ps-selected');
+                } else {
+                    $allBtn.removeClass('ps-selected');
+                }
+                console.log('🔄 Delivery filter re-populated: Preserving existing state');
+            }
+            
+            // Re-bind control events after recreating elements
+            bindDeliveryControlEvents();
+            
+            // Check if CSS is properly loaded for date buttons
+            setTimeout(function() {
+                console.log('🎨 CSS Style Check for newly created buttons:');
+                $deliveryDatesContainer.find('.ps-delivery-date-button').each(function() {
+                    const $btn = $(this);
+                    const date = $btn.attr('data-date');
+                    const isSelected = $btn.attr('data-selected') === 'true';
+                    const bgColor = $btn.css('background-color');
+                    const borderColor = $btn.css('border-color');
+                    const color = $btn.css('color');
+                    console.log(`  🔲 ${date} - selected: ${isSelected}, bg: ${bgColor}, border: ${borderColor}, color: ${color}`);
+                });
+            }, 100);
+            
+            // Bind individual date button events after HTML is inserted
+            $deliveryDatesContainer.find('.ps-delivery-date-button').off('click').on('click', function() {
+                const $clickedButton = $(this);
+                const clickedValue = $clickedButton.attr('data-date');
+                const allButtons = $deliveryDatesContainer.find('.ps-delivery-date-button');
+                const isSelected = $clickedButton.attr('data-selected') === 'true';
+                
+                if (!isSelected) {
+                    // Handle "unspecified" separately - it doesn't participate in cumulative selection
+                    if (clickedValue === 'unspecified') {
+                        console.log('🗓️ SELECTING unspecified date - standalone selection');
+                        $clickedButton.attr('data-selected', 'true').addClass('ps-selected');
+                        console.log('  ✅ Set data-selected=true + added ps-selected class for UNSPECIFIED date');
+                        // Force style application
+                        $clickedButton[0].offsetHeight; // Trigger reflow
+                        console.log('  🎨 CSS check - background color after setting:', $clickedButton.css('background-color'));
+                        console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($clickedButton[0]).backgroundColor);
+                        console.log('  🎨 CSS check - has ps-selected class:', $clickedButton.hasClass('ps-selected'));
+                    } else {
+                        // When selecting a date, also select all dates before it (cumulative selection)
+                        console.log('🗓️ SELECTING date:', clickedValue, '- will also select all dates before it');
+                        let foundClicked = false;
+                        allButtons.each(function() {
+                            const $button = $(this);
+                            const buttonValue = $button.attr('data-date');
+                            
+                            // Skip "unspecified" in cumulative selection
+                            if (buttonValue === 'unspecified') {
+                                return;
+                            }
+                            
+                            if (buttonValue === clickedValue) {
+                                foundClicked = true;
+                                $button.attr('data-selected', 'true').addClass('ps-selected');
+                                console.log('  ✅ Set data-selected=true + added ps-selected class for CLICKED date:', buttonValue);
+                                // Force style application
+                                $button[0].offsetHeight; // Trigger reflow
+                                console.log('  🎨 CSS check - background color after setting:', $button.css('background-color'));
+                                console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($button[0]).backgroundColor);
+                                console.log('  🎨 CSS check - has ps-selected class:', $button.hasClass('ps-selected'));
+                            } else if (!foundClicked) {
+                                // This is a date before the clicked one
+                                $button.attr('data-selected', 'true').addClass('ps-selected');
+                                console.log('  ✅ Set data-selected=true + added ps-selected class for EARLIER date:', buttonValue);
+                                // Force style application
+                                $button[0].offsetHeight; // Trigger reflow
+                                console.log('  🎨 CSS check - background color after setting:', $button.css('background-color'));
+                                console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($button[0]).backgroundColor);
+                                console.log('  🎨 CSS check - has ps-selected class:', $button.hasClass('ps-selected'));
+                            }
+                        });
+                    }
+                } else {
+                    // Handle "unspecified" separately - it doesn't participate in cumulative selection
+                    if (clickedValue === 'unspecified') {
+                        console.log('🗓️ UNSELECTING unspecified date - standalone unselection');
+                        $clickedButton.attr('data-selected', 'false').removeClass('ps-selected');
+                        console.log('  ❌ Set data-selected=false + removed ps-selected class for UNSPECIFIED date');
+                    } else {
+                        // When unselecting a date, also unselect all dates after it
+                        console.log('🗓️ UNSELECTING date:', clickedValue, '- will also unselect all dates after it');
+                        let foundClicked = false;
+                        allButtons.each(function() {
+                            const $button = $(this);
+                            const buttonValue = $button.attr('data-date');
+                            
+                            // Skip "unspecified" in cumulative selection
+                            if (buttonValue === 'unspecified') {
+                                return;
+                            }
+                            
+                            if (buttonValue === clickedValue) {
+                                foundClicked = true;
+                                $button.attr('data-selected', 'false').removeClass('ps-selected');
+                                console.log('  ❌ Set data-selected=false + removed ps-selected class for CLICKED date:', buttonValue);
+                            } else if (foundClicked) {
+                                // This is a date after the clicked one
+                                $button.attr('data-selected', 'false').removeClass('ps-selected');
+                                console.log('  ❌ Set data-selected=false + removed ps-selected class for LATER date:', buttonValue);
+                            }
+                        });
+                    }
+                }
+                
+                // Update "All" button based on individual button states
+                const selectedButtons = allButtons.filter('[data-selected="true"]');
+                
+                const $allButton = $('#ps-delivery-all-button');
+                
+                if (selectedButtons.length === allButtons.length) {
+                    // All selected - select "All" button
+                    $allButton.attr('data-selected', 'true').addClass('ps-selected');
+                } else {
+                    // Some or none selected - unselect "All" button
+                    $allButton.attr('data-selected', 'false').removeClass('ps-selected');
+                }
+                
+                // Log the highlighting status of all date buttons
+                console.log('🗓️ Date button highlighting status:');
+                allButtons.each(function() {
+                    const $btn = $(this);
+                    const date = $btn.attr('data-date');
+                    const isHighlighted = $btn.attr('data-selected') === 'true';
+                    const hasSelectedClass = $btn.hasClass('ps-selected');
+                    const hasCorrectBgColor = $btn.css('background-color') === 'rgb(76, 175, 80)';
+                    console.log(`  ${isHighlighted ? '✅' : '❌'} ${date} - data-selected: ${$btn.attr('data-selected')}, ps-selected: ${hasSelectedClass}, green bg: ${hasCorrectBgColor}`);
+                });
+                
+                triggerDeliveryFilterChange();
+            });
+            
+            // Restore individual date button selections after HTML recreation
+            if (currentSelectedDates.length > 0) {
+                console.log('🔄 RESTORING individual date selections:', currentSelectedDates);
+                // Use setTimeout to ensure the DOM is fully updated before restoration
+                setTimeout(function() {
+                    currentSelectedDates.forEach(function(selectedDate) {
+                        const $restoredButton = $deliveryDatesContainer.find('.ps-delivery-date-button[data-date="' + selectedDate + '"]');
+                        if ($restoredButton.length > 0) {
+                            $restoredButton.attr('data-selected', 'true').addClass('ps-selected');
+                            console.log('  ✅ Restored data-selected=true + ps-selected class for date:', selectedDate);
+                            console.log('  🎨 CSS check - background color after restoration:', $restoredButton.css('background-color'));
+                            
+                            // Force a style recalculation to ensure CSS is applied
+                            $restoredButton[0].offsetHeight; // Trigger reflow
+                            console.log('  🎨 CSS check - background color after reflow:', $restoredButton.css('background-color'));
+                            console.log('  🎨 CSS check - has ps-selected class:', $restoredButton.hasClass('ps-selected'));
+                        } else {
+                            console.log('  ❌ Could not find button for date:', selectedDate);
+                        }
+                    });
+                    
+                    // Log final state of all buttons after restoration
+                    console.log('🗓️ Final state after restoration:');
+                    $deliveryDatesContainer.find('.ps-delivery-date-button').each(function() {
+                        const $btn = $(this);
+                        const date = $btn.attr('data-date');
+                        const isSelected = $btn.attr('data-selected') === 'true';
+                        const hasClass = $btn.hasClass('ps-selected');
+                        const bgColor = $btn.css('background-color');
+                        console.log(`  ${isSelected ? '✅' : '❌'} ${date} - data-selected: ${$btn.attr('data-selected')}, ps-selected: ${hasClass}, background: ${bgColor}`);
+                    });
+                }, 50);
+            }
+            
+            // Reset the flag to allow future populations after a delay
+            setTimeout(function() {
+                window.isPopulatingDeliveryFilter = false;
+                console.log('🔄 Delivery filter population completed, flag reset');
+            }, 200);
+        }
+        
+        /**
+         * Get currently selected delivery dates from buttons
+         * @returns {Array} - Array of selected delivery date strings
+         */
+        function getSelectedDeliveryDates() {
+            const selectedDates = [];
+            $deliveryDropdownContent.find('.ps-delivery-date-button[data-selected="true"]').each(function() {
+                selectedDates.push($(this).attr('data-date'));
+            });
+            return selectedDates;
+        }
+        
+        // updateDeliveryHeaderText function removed - using static "Delivery dates" text
+        
+        /**
+         * Bind events for delivery control elements
+         */
+        function bindDeliveryControlEvents() {
+            // Handle dropdown header click (open/close) - but not on checkbox clicks
+            $deliveryDropdownHeader.off('click').on('click', function(e) {
+                // Don't toggle dropdown if clicking on checkboxes or labels
+                if ($(e.target).is('input[type="checkbox"]') || $(e.target).closest('label').length) {
+                    return;
+                }
+                
+                e.stopPropagation();
+                const isActive = $(this).hasClass('active');
+                
+                if (isActive) {
+                    closeDeliveryDropdown();
+                } else {
+                    openDeliveryDropdown();
+                }
+            });
+            
+            // Handle "All" button in header
+            $('#ps-delivery-all-button').off('click').on('click', function(e) {
+                e.stopPropagation();
+                
+                const isSelected = $(this).attr('data-selected') === 'true';
+                
+                if (!isSelected) {
+                    // Select all date buttons
+                    $(this).attr('data-selected', 'true').addClass('ps-selected');
+                    $deliveryDatesContainer.find('.ps-delivery-date-button').attr('data-selected', 'true').addClass('ps-selected');
+                } else {
+                    // Unselect all date buttons
+                    $(this).attr('data-selected', 'false').removeClass('ps-selected');
+                    $deliveryDatesContainer.find('.ps-delivery-date-button').attr('data-selected', 'false').removeClass('ps-selected');
+                }
+                triggerDeliveryFilterChange();
+            });
+
+        }
+        
+        /**
+         * Open the delivery dropdown and show all dates
+         */
+        function openDeliveryDropdown() {
+            $deliveryDropdownHeader.addClass('active');
+            $deliveryDropdownContent.addClass('show');
+        }
+        
+        /**
+         * Close the delivery dropdown
+         */
+        function closeDeliveryDropdown() {
+            $deliveryDropdownHeader.removeClass('active');
+            $deliveryDropdownContent.removeClass('show');
+        }
+        
+        /**
+         * Reset delivery filter to "All" selected (show all products)
+         */
+        function resetDeliveryFilterToAll() {
+            console.log('🔄 Reset delivery filter: Clearing individual date selections');
+            $('#ps-delivery-all-button').attr('data-selected', 'true').addClass('ps-selected');
+            // Unselect all individual date buttons
+            $('#ps-delivery-dates-container .ps-delivery-date-button').attr('data-selected', 'false').removeClass('ps-selected');
+            console.log('🗓️ Reset complete: All individual dates cleared');
+        }
+
+        /**
+         * Trigger delivery filter change event
+         */
+        function triggerDeliveryFilterChange() {
+            if (originalCachedResults.length > 0) {
+                applyAllFilters();
+            }
+        }
+        
+        /**
+         * Filter products by selected delivery dates
+         * @param {Array} items - Array of product items
+         * @param {Array} selectedDates - Array of selected delivery date strings
+         * @returns {Array} - Filtered items
+         */
+        function filterProductsByDelivery(items, selectedDates) {
+            if (!items || !Array.isArray(items)) return [];
+            
+            const isAllSelected = $('#ps-delivery-all-button').attr('data-selected') === 'true';
+            
+            if (isAllSelected || selectedDates.length === 0) {
+                // "All" selected OR no specific dates selected: show all products (including those without delivery dates)
+                return items;
+            }
+            
+            // Check if "unspecified" is selected
+            const isUnspecifiedSelected = selectedDates.includes('unspecified');
+            
+            // Specific dates selected: filter to only products with matching delivery dates
+            return items.filter(item => {
+                const deliveryText = item.delivery_time;
+                
+                // If "unspecified" is selected and product has no delivery info, include it
+                if (isUnspecifiedSelected && (!deliveryText || deliveryText.trim() === '' || deliveryText === 'N/A')) {
+                    return true;
+                }
+                
+                // If product has no delivery info and "unspecified" is not selected, exclude it
+                if (!deliveryText || deliveryText.trim() === '' || deliveryText === 'N/A') {
+                    return false;
+                }
+                
+                // Check if any of the selected dates match this product's delivery info
+                return selectedDates.some(selectedDate => {
+                    // Skip the "unspecified" option when matching actual dates
+                    if (selectedDate === 'unspecified') {
+                        return false;
+                    }
+                    
+                    // For exact date matches
+                    if (deliveryText.includes(selectedDate)) {
+                        return true;
+                    }
+                    
+                    // For general delivery text matches (when no specific date was extracted)
+                    const firstLine = deliveryText.split('\n')[0];
+                    return firstLine === selectedDate;
+                });
+            });
         }
         
         /**
@@ -509,7 +1369,30 @@ console.log('search.js loaded');
             
             if (items.length === 0) {
                 $results.html('<div class="ps-no-results">No products found. Try different search terms.</div>');
+                
+                // Don't hide delivery filter if we have originalCachedResults (meaning delivery filter caused the empty result)
+                // Only hide if there are truly no products available at all
+                if (!originalCachedResults || originalCachedResults.length === 0) {
+                    $deliveryDropdownHeader.closest('tr').hide();
+                } else {
+                    // We have cached results, so populate the delivery filter based on those
+                    // This ensures the delivery filter remains functional even when current filtered results are empty
+                    populateDeliveryFilter(originalCachedResults);
+                }
                 return;
+            }
+            
+            // Only populate delivery filter if it doesn't exist yet OR if items have significantly changed
+            // Don't re-populate during normal filtering operations to preserve user selections
+            const currentFilterExists = $deliveryDatesContainer.find('.ps-delivery-date-button').length > 0;
+            const shouldRepopulate = !currentFilterExists || (window.deliveryFilterNeedsUpdate === true);
+            
+            if (shouldRepopulate) {
+                console.log('📋 Populating delivery filter because:', currentFilterExists ? 'update flag set' : 'filter doesn\'t exist');
+                populateDeliveryFilter(items);
+                window.deliveryFilterNeedsUpdate = false;
+            } else {
+                console.log('📋 Skipping delivery filter re-population to preserve user selections');
             }
             
             items.forEach(function(item) {
@@ -754,6 +1637,85 @@ console.log('search.js loaded');
                             0% { opacity: 0.7; transform: translateY(-5px); }
                             100% { opacity: 1; transform: translateY(0); }
                         }
+                        
+                        /* Button-style delivery filter elements */
+                        .ps-delivery-all-button,
+                        .ps-delivery-date-button {
+                            border: 1px solid #ccc;
+                            background-color: #fff;
+                            color: #333;
+                            padding: 6px 12px;
+                            margin: 2px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            min-width: 120px;
+                            text-align: center;
+                            transition: all 0.2s ease;
+                            white-space: nowrap;
+                        }
+                        
+                        .ps-delivery-all-button:hover,
+                        .ps-delivery-date-button:hover {
+                            border-color: #999;
+                            background-color: #f8f8f8;
+                        }
+                        
+                        .ps-delivery-all-button[data-selected="true"],
+                        .ps-delivery-date-button[data-selected="true"] {
+                            background-color: #4CAF50 !important;
+                            border-color: #4CAF50 !important;
+                            color: white !important;
+                        }
+                        
+                        .ps-delivery-all-button[data-selected="true"]:hover,
+                        .ps-delivery-date-button[data-selected="true"]:hover {
+                            background-color: #45a049 !important;
+                            border-color: #45a049 !important;
+                        }
+                        
+                        /* Ultra-specific selectors to override any dark theme */
+                        html body .ps-delivery-dropdown-content .ps-delivery-date-button[data-selected="true"] {
+                            background-color: #4CAF50 !important;
+                            border-color: #4CAF50 !important;
+                            color: white !important;
+                            background-image: none !important;
+                        }
+                        
+                        html body .ps-delivery-header-controls .ps-delivery-all-button[data-selected="true"] {
+                            background-color: #4CAF50 !important;
+                            border-color: #4CAF50 !important;
+                            color: white !important;
+                            background-image: none !important;
+                        }
+                        
+                        /* Class-based approach as backup */
+                        .ps-delivery-date-button.ps-selected {
+                            background-color: #4CAF50 !important;
+                            border-color: #4CAF50 !important;
+                            color: white !important;
+                            background-image: none !important;
+                        }
+                        
+                        .ps-delivery-all-button.ps-selected {
+                            background-color: #4CAF50 !important;
+                            border-color: #4CAF50 !important;
+                            color: white !important;
+                            background-image: none !important;
+                        }
+                        
+                        /* Container styling */
+                        .ps-delivery-dates-container {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 2px;
+                            padding: 8px;
+                        }
+                        
+                        .ps-delivery-header-controls {
+                            display: flex;
+                            align-items: center;
+                        }
                     </style>
                 `);
             }
@@ -772,7 +1734,30 @@ console.log('search.js loaded');
                 const minRating = parseFloat($('#ps-min-rating').val()) || null;
                 const sortCriteria = $(this).val();
                 
+                // Get selected platforms
+                const selectedPlatforms = [];
+                $('input[name="platforms"]:checked').each(function() {
+                    selectedPlatforms.push($(this).val());
+                });
+                
+                // Get selected delivery dates
+                const selectedDeliveryDates = $deliveryDropdownContent.val() || [];
+                
                 let filteredResults = [...originalCachedResults];
+                
+                // Apply platform filter first
+                if (selectedPlatforms.length > 0) {
+                    filteredResults = filteredResults.filter(function(item) {
+                        return selectedPlatforms.includes(item.platform);
+                    });
+                }
+                
+                // Apply delivery date filter
+                if (selectedDeliveryDates.length > 0) {
+                    filteredResults = filterProductsByDelivery(filteredResults, selectedDeliveryDates);
+                }
+                
+                // Apply other filters
                 filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
                 filteredResults = sortProducts(filteredResults, sortCriteria);
                 
@@ -789,34 +1774,57 @@ console.log('search.js loaded');
         
         // Handle minimum rating change (auto-trigger filter)
         $('#ps-min-rating').on('change', function() {
-            console.log('Rating dropdown changed to:', $(this).val());
             if (originalCachedResults.length > 0) {
-                console.log('Processing rating change with', originalCachedResults.length, 'cached results');
                 applyAllFilters();
-            } else {
-                console.log('No cached results available for rating filter');
             }
         });
         
         // Handle platform checkbox changes (auto-trigger filter)
         $('input[name="platforms"]').on('change', function() {
-            console.log('Platform checkbox changed:', $(this).val(), 'checked:', $(this).is(':checked'));
-            
             // Save platform selections to cache
             savePlatformSelections();
             
             if (originalCachedResults.length > 0) {
-                console.log('Processing platform change with', originalCachedResults.length, 'cached results');
+                // Get selected platforms to filter the data
+                const selectedPlatforms = [];
+                $('input[name="platforms"]:checked').each(function() {
+                    selectedPlatforms.push($(this).val());
+                });
+                
+                // Filter cached results to only include selected platforms
+                let platformFilteredResults = [...originalCachedResults];
+                if (selectedPlatforms.length > 0) {
+                    platformFilteredResults = platformFilteredResults.filter(function(item) {
+                        return selectedPlatforms.includes(item.platform);
+                    });
+                }
+                
+                // Repopulate delivery filter based on filtered results
+                // This ensures only delivery dates from selected platforms are shown
+                window.deliveryFilterNeedsUpdate = true;
+                populateDeliveryFilter(platformFilteredResults);
+                
+                // Apply all filters while preserving user's search terms
                 applyAllFilters();
             }
         });
         
-        // Function to apply all filters (rating, text, platform)
+        // Delivery filter events are now handled by bindDeliveryControlEvents() function
+        
+        // Function to apply all filters (rating, text, platform, delivery)
         function applyAllFilters() {
             const excludeText = $('#ps-exclude-keywords').val();
             const includeText = $('#ps-search-query').val();
             const minRating = parseFloat($('#ps-min-rating').val()) || null;
             const sortCriteria = $sortBy.val();
+            
+            // Check if search terms have changed - if so, reset delivery filter to "All"
+            const currentSearchTerms = includeText + '|' + excludeText;
+            if (window.lastSearchTerms && window.lastSearchTerms !== currentSearchTerms) {
+                console.log('Search terms changed, resetting delivery filter to "All"');
+                resetDeliveryFilterToAll();
+            }
+            window.lastSearchTerms = currentSearchTerms;
             
             // Get selected platforms
             const selectedPlatforms = [];
@@ -824,7 +1832,10 @@ console.log('search.js loaded');
                 selectedPlatforms.push($(this).val());
             });
             
-            console.log('Filter criteria:', { excludeText, includeText, minRating, sortCriteria, selectedPlatforms });
+            // Get selected delivery dates
+            const selectedDeliveryDates = getSelectedDeliveryDates();
+            
+            // Apply filters based on current criteria
             
             let filteredResults = [...originalCachedResults];
             
@@ -835,9 +1846,14 @@ console.log('search.js loaded');
                 });
             }
             
+            // Apply delivery date filter
+            filteredResults = filterProductsByDelivery(filteredResults, selectedDeliveryDates);
+            
             // Apply other filters
             filteredResults = filterProducts(filteredResults, excludeText, includeText, minRating);
             filteredResults = sortProducts(filteredResults, sortCriteria);
+            
+
             
             currentSearchResults = filteredResults;
             renderProducts(filteredResults);
@@ -881,25 +1897,38 @@ console.log('search.js loaded');
             $loadingText.text('Loading all cached results...');
             $loading.show();
             
-            // Clear all filter fields
-            $('#ps-search-query').val('');
-            $('#ps-exclude-keywords').val('');
-            $('#ps-min-rating').val('4.0'); // Reset to default
-            
-            // Show all original cached results without any filters
+            // Ensure all available platforms are selected first
             if (originalCachedResults.length > 0) {
-                const sortCriteria = $sortBy.val();
-                let allResults = [...originalCachedResults];
-                // Only apply sorting, no filtering
-                allResults = sortProducts(allResults, sortCriteria);
-                // Update UI
-                $loading.hide();
-                const totalCount = originalCachedResults.length;
-                if (!isAfterLiveSearch) {
-                    $resultsCount.html('<p><strong>' + totalCount + '</strong> products.</p>').show();
-                }
-                currentSearchResults = allResults;
-                renderProducts(allResults);
+                autoDetectAndCheckPlatforms(originalCachedResults);
+                
+                // Show all results without any filtering - bypass the normal filter pipeline
+                // that might pick up residual search terms
+                setTimeout(function() {
+                    // Clear all filter fields AFTER bypassing filters
+                    $('#ps-search-query').val('');
+                    $('#ps-exclude-keywords').val('');
+                    $('#ps-min-rating').val('4.0');
+                    
+                    // Reset delivery filter to "All" to show all products
+                    resetDeliveryFilterToAll();
+                    
+                    // Just apply sorting to all original cached results
+                    const sortCriteria = $sortBy.val();
+                    let allResults = [...originalCachedResults];
+                    allResults = sortProducts(allResults, sortCriteria);
+                    
+                    // Update UI directly
+                    currentSearchResults = allResults;
+                    renderProducts(allResults);
+                    
+                    // Update results count
+                    const totalCount = originalCachedResults.length;
+                    if (!isAfterLiveSearch) {
+                        $resultsCount.html('<p><strong>' + totalCount + '</strong> products.</p>').show();
+                    }
+                    
+                    $loading.hide();
+                }, 50);
             } else {
                 $loading.hide();
                 $results.html('<div class="ps-no-results">No cached results available. Please perform a search first.</div>');
@@ -962,6 +1991,14 @@ console.log('search.js loaded');
                     if (products.length > 0) {
                         // Store the original cached results for filtering
                         originalCachedResults = [...products];
+                        
+                        // Note: Platform-specific delivery dates will be extracted fresh from current items when needed
+                        // No need to cache them since the delivery filter now always uses current data
+                        
+                        // CRITICAL: Auto-detect and check platform checkboxes BEFORE filtering
+                        // This ensures that eBay and other platform checkboxes are properly restored
+                        // before the platform filtering logic runs
+                        autoDetectAndCheckPlatforms(products);
                         
                         // Reset pagination state
                         currentPage = 1;
@@ -1046,11 +2083,28 @@ console.log('search.js loaded');
                         
                         let filteredProducts = [...products];
                         
+
+                        
                         // Apply platform filter first
                         if (selectedPlatforms.length > 0) {
                             filteredProducts = filteredProducts.filter(function(item) {
                                 return selectedPlatforms.includes(item.platform);
                             });
+                        }
+                        
+                        // Populate delivery filter first to get available dates (fresh search results)
+                        window.deliveryFilterNeedsUpdate = true;
+                        populateDeliveryFilter(filteredProducts);
+                        
+                        // Ensure delivery filter starts with "All" selected (default behavior)
+                        resetDeliveryFilterToAll();
+                        
+                        // Get selected delivery dates (all selected by default after population)
+                        const selectedDeliveryDates = getSelectedDeliveryDates();
+                        
+                        // Apply delivery date filter
+                        if (selectedDeliveryDates.length > 0) {
+                            filteredProducts = filterProductsByDelivery(filteredProducts, selectedDeliveryDates);
                         }
                         
                         // Apply other filters
@@ -1932,6 +2986,78 @@ console.log('search.js loaded');
             }
         }
 
+        /**
+         * Auto-detect and check platform checkboxes based on available results
+         * @param {Array} products - Array of product items
+         */
+        function autoDetectAndCheckPlatforms(products) {
+            if (!products || products.length === 0) {
+                console.log('Platform Auto-Detection: No products to analyze');
+                logToServer('Platform Auto-Detection: No products to analyze');
+                return;
+            }
+
+            // Get all unique platforms from the products
+            const availablePlatforms = [...new Set(products.map(item => item.platform))].filter(Boolean);
+            
+
+            logToServer('Platform Auto-Detection: Detected platforms', {
+                availablePlatforms: availablePlatforms,
+                totalProducts: products.length
+            });
+
+            // If we have cached platform selections, restore those first
+            const restoredFromCache = restorePlatformSelections();
+            
+            if (!restoredFromCache) {
+                // No cached selections, so check all available platforms
+
+                $('input[name="platforms"]').prop('checked', false);
+                availablePlatforms.forEach(function(platform) {
+                    $('input[name="platforms"][value="' + platform + '"]').prop('checked', true);
+                });
+                
+
+                logToServer('Platform Auto-Detection: Checked all available platforms (no cache)', {
+                    checkedPlatforms: availablePlatforms
+                });
+            } else {
+                // We restored from cache, but also check any new platforms that have results
+                // but weren't in the cached selections
+                const currentlySelected = [];
+                $('input[name="platforms"]:checked').each(function() {
+                    currentlySelected.push($(this).val());
+                });
+                
+                const newPlatforms = availablePlatforms.filter(platform => !currentlySelected.includes(platform));
+                
+
+                
+                if (newPlatforms.length > 0) {
+                    newPlatforms.forEach(function(platform) {
+                        $('input[name="platforms"][value="' + platform + '"]').prop('checked', true);
+                    });
+                    
+
+                    logToServer('Platform Auto-Detection: Added new platforms to cached selections', {
+                        cachedPlatforms: currentlySelected,
+                        newPlatforms: newPlatforms,
+                        finalPlatforms: [...currentlySelected, ...newPlatforms]
+                    });
+                    
+                    // Save the updated selections
+                    savePlatformSelections();
+                }
+            }
+            
+            // Final verification - log what's actually checked
+            const finalSelected = [];
+            $('input[name="platforms"]:checked').each(function() {
+                finalSelected.push($(this).val());
+            });
+
+        }
+
         // Handle Load More button click
         $('#ps-load-more-button').on('click', function(e) {
             e.preventDefault();
@@ -1972,7 +3098,7 @@ console.log('search.js loaded');
             const nextPage = currentPage + 1;
             
             // Show loading state (after variables are declared)
-            console.log('Load More: Spinner started - showing loading state');
+
             logToServer('Load More: Spinner started', { currentPage, nextPage });
             $button.prop('disabled', true);
             $topButton.prop('disabled', true);
@@ -1983,24 +3109,10 @@ console.log('search.js loaded');
             const searchButton = document.querySelector('.ps-search-button');
             if (searchButton) {
                 searchButton.disabled = true;
-                console.log('Load More: Disabled search button immediately');
+
             }
             
-            // Debug logging for troubleshooting
-            console.log('Load More: Button clicked with parameters:', {
-                lastSearchQuery: lastSearchQuery,
-                query: query,
-                exclude: exclude,
-                sortBy: sortBy,
-                minRating: minRating,
-                country: country,
-                lastSearchCountry: lastSearchCountry,
-                currentPage: currentPage,
-                nextPage: nextPage,
-                selectedPlatforms: selectedPlatforms,
-                hasAjaxUrl: !!(window.psData && window.psData.ajaxurl),
-                hasNonce: !!(window.psData && window.psData.nonce)
-            });
+
             
             // Check if we have the required data for load more
             if (!query || !lastSearchQuery) {
@@ -2008,7 +3120,7 @@ console.log('search.js loaded');
                 logToServer('Load More: Missing search query', { query, lastSearchQuery });
                 
                 // Reset button state and hide buttons
-                console.log('Load More: Spinner stopped - missing search query error');
+
                 logToServer('Load More: Spinner stopped', { reason: 'missing_search_query' });
                 $button.prop('disabled', false);
                 $topButton.prop('disabled', false);
@@ -2031,7 +3143,7 @@ console.log('search.js loaded');
                 logToServer('Load More: No platforms selected', { selectedPlatforms });
                 
                 // Reset button state and show error
-                console.log('Load More: Spinner stopped - no platforms selected error');
+
                 logToServer('Load More: Spinner stopped', { reason: 'no_platforms_selected' });
                 $button.prop('disabled', false);
                 $topButton.prop('disabled', false);
@@ -2085,14 +3197,14 @@ console.log('search.js loaded');
                     page: nextPage
                 },
                 success: function(response) {
-                    console.log('Load More: AJAX response received:', response);
+
                     
                     if (response.success && response.items && response.items.length > 0) {
                         // Backend has already merged, filtered, and sorted the complete dataset
                         const completeItems = response.items;
                         const newItemsCount = response.new_items_count || 0;
                         
-                        console.log('Load More: Successfully received complete dataset with', completeItems.length, 'items (', newItemsCount, 'new items added)');
+
                         
                         // Update current page
                         currentPage = response.page_loaded || (currentPage + 1);
@@ -2103,7 +3215,7 @@ console.log('search.js loaded');
                         
                         // Apply all current filters to the complete dataset
                         // This ensures any client-side filtering (platform selection, include/exclude text, etc.) is applied
-                        console.log('Load More: Applying all filters to complete dataset with', completeItems.length, 'total items');
+
                         
                         logToServer('Load More: Auto-applying filters after load more', {
                             totalItemsBeforeFilter: completeItems.length,
@@ -2125,19 +3237,11 @@ console.log('search.js loaded');
                         isAfterLiveSearch = false;
                         
                         // Check if more pages are available
-                        console.log('Load More: Checking has_more_pages...', {
-                            has_more_pages: response.has_more_pages,
-                            page_loaded: response.page_loaded,
-                            currentPage: currentPage,
-                            responseHasMorePages: !!response.has_more_pages
-                        });
                         
                         if (!response.has_more_pages) {
                             // Hide load more buttons when no more pages
-                            console.log('Load More: No more pages available, hiding buttons');
+
                             toggleLoadMoreButton(false);
-                        } else {
-                            console.log('Load More: More pages available, keeping buttons visible');
                         }
                         
                         logToServer('Load More: Successfully loaded page ' + (response.page_loaded || currentPage), {
@@ -2306,6 +3410,6 @@ console.log('search.js loaded');
             
             // Trigger the same functionality as the bottom load more button
             $('#ps-load-more-button').trigger('click');
-        });
-    });
-})(jQuery);
+                  });
+      });
+  })(jQuery);

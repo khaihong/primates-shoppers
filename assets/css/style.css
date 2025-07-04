@@ -916,3 +916,125 @@
         line-height: 1.4;
     }
 }
+
+/* Delivery Filter Styles */
+.ps-delivery-filter-container {
+    position: relative;
+}
+
+.ps-delivery-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.ps-delivery-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+    min-height: 20px;
+    transition: border-color 0.15s ease;
+}
+
+.ps-delivery-dropdown-header:hover {
+    border-color: #adb5bd;
+}
+
+.ps-delivery-dropdown-header.active {
+    border-color: #007cba;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.ps-delivery-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.ps-delivery-header-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 13px;
+    gap: 4px;
+}
+
+.ps-delivery-header-option:hover .ps-delivery-option-text {
+    color: #007cba;
+}
+
+.ps-delivery-dropdown-arrow {
+    color: #666;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+    margin-left: 8px;
+}
+
+.ps-delivery-dropdown-header.active .ps-delivery-dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.ps-delivery-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #007cba;
+    border-top: none;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.ps-delivery-dropdown-content.show {
+    display: block;
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.ps-delivery-control-checkbox,
+.ps-delivery-date-checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.ps-delivery-option-text,
+.ps-delivery-date-text {
+    cursor: pointer;
+    user-select: none;
+}
+
+.ps-delivery-dates-container {
+    /* Container for date options */
+}
+
+.ps-delivery-date-option {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 6px;
+}
+
+.ps-delivery-date-option:hover {
+    background-color: #f8f9fa;
+}
+
+.ps-delivery-date-option:last-child {
+    border-bottom: none;
+}
