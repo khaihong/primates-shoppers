@@ -206,29 +206,27 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
             <h3 class="ps-product-title">
                 <a href="{{link}}" target="_blank">{{title}}</a>
             </h3>
-            {{#if rating}}
-            <div class="ps-product-rating">
-                <a href="{{rating_link}}" target="_blank">
-                    {{#if is_ebay_seller_rating}}
-                    <span class="ps-stars">{{rating}}</span>
-                    {{else}}
-                    {{#if rating_number}}
-                    <span class="ps-rating-number">{{rating_number}}</span>
-                    {{/if}}
-                    <span class="ps-stars">{{rating}}</span>
-                    {{#if rating_count}}
-                    <span class="ps-rating-count">({{rating_count}})</span>
-                    {{/if}}
-                    {{/if}}
-                </a>
-            </div>
-            {{else}}
-            <div class="ps-rating-spacer"></div>
-            {{/if}}
             <div class="ps-product-pricing">
                 <div class="ps-product-price">{{price}}</div>
                 {{#if price_per_unit}}
                 <div class="ps-product-price-unit">({{price_per_unit}})</div>
+                {{/if}}
+                {{#if rating}}
+                <div class="ps-product-rating-inline">
+                    <a href="{{rating_link}}" target="_blank">
+                        {{#if is_ebay_seller_rating}}
+                        <span class="ps-stars">{{rating}}</span>
+                        {{else}}
+                        {{#if rating_number}}
+                        <span class="ps-rating-number">{{rating_number}}</span>
+                        {{/if}}
+                        <span class="ps-stars">{{rating}}</span>
+                        {{#if rating_count}}
+                        <span class="ps-rating-count">({{rating_count}})</span>
+                        {{/if}}
+                        {{/if}}
+                    </a>
+                </div>
                 {{/if}}
             </div>
             {{#if delivery_time}}

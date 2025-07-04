@@ -387,7 +387,7 @@
 }
 
 .ps-product-platform {
-    font-size: 0.75em;
+    font-size: 0.5625em;
     font-weight: bold;
     text-transform: uppercase;
     color: #fff;
@@ -437,30 +437,22 @@
     color: #4CAF50;
 }
 
-.ps-product-rating {
-    display: flex;
-    align-items: center;
-    margin-bottom: 3px;
-    order: 3;
-}
-
 .ps-product-price {
-    font-weight: normal;
+    font-weight: bold;
     font-size: 14px;
     color: #e63946;
-    order: 4;
 }
 
 /* eBay pricing breakdown styling */
 .ps-ebay-price-breakdown {
     font-size: 75%; /* 25% smaller than main price */
+    font-weight: normal; /* Keep breakdown text not bold */
     opacity: 0.9;
 }
 
 .ps-product-price-unit {
-    font-size: 13px;
+    font-size: 14px;
     color: #666;
-    order: 4;
 }
 
 .ps-product-pricing {
@@ -468,14 +460,25 @@
     align-items: baseline;
     gap: 8px;
     margin-bottom: 3px;
-    order: 4;
+    order: 3;
 }
 
-.ps-product-rating a {
+.ps-product-rating-inline {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.ps-product-rating-inline a {
     text-decoration: none;
     color: inherit;
     display: flex;
     align-items: center;
+}
+
+.ps-rating-number {
+    margin-right: 5px;
+    font-weight: normal;
 }
 
 .ps-stars {
@@ -483,13 +486,17 @@
     margin-right: 5px;
 }
 
+/* eBay rating styling - make eBay seller ratings black */
+.ps-product-rating-inline a .ps-stars.ps-ebay-rating {
+    color: #000;
+}
+
 .ps-rating-count {
     color: #666;
-    font-size: 12px;
 }
 
 .ps-delivery-time {
-    font-size: 12px;
+    font-size: 14px;
     color: #555;
     margin-top: auto;
     order: 6;

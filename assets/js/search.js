@@ -1420,28 +1420,28 @@
                         // eBay debug removed
                         
                         // For eBay seller ratings, replace the entire rating conditional block with just the eBay rating
-                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}[\s\S]*?{{\/if}}\s*<\/a>\s*<\/div>\s*{{else}}\s*<div class="ps-rating-spacer"><\/div>\s*{{\/if}}/g;
+                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating-inline">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}[\s\S]*?{{\/if}}\s*<\/a>\s*<\/div>\s*{{\/if}}/g;
                         
                         productHtml = productHtml.replace(
                             ratingPattern,
-                            '<div class="ps-product-rating"><a href="{{rating_link}}" target="_blank"><span class="ps-stars">{{rating}}</span></a></div>'
+                            '<div class="ps-product-rating-inline"><a href="{{rating_link}}" target="_blank"><span class="ps-stars ps-ebay-rating">{{rating}}</span></a></div>'
                         );
                         
                         // eBay debug removed
                     } else {
                         // For regular Amazon ratings, replace with the Amazon section content
-                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}([\s\S]*?){{\/if}}\s*<\/a>\s*<\/div>\s*{{else}}\s*<div class="ps-rating-spacer"><\/div>\s*{{\/if}}/g;
+                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating-inline">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}([\s\S]*?){{\/if}}\s*<\/a>\s*<\/div>\s*{{\/if}}/g;
                         
                         productHtml = productHtml.replace(
                             ratingPattern,
-                            '<div class="ps-product-rating"><a href="{{rating_link}}" target="_blank">$1</a></div>'
+                            '<div class="ps-product-rating-inline"><a href="{{rating_link}}" target="_blank">$1</a></div>'
                         );
                     }
                 } else {
-                    // For items without ratings, replace the entire rating section with just the spacer
+                    // For items without ratings, remove the entire rating section
                     productHtml = productHtml.replace(
-                        /{{#if rating}}[\s\S]*?{{else}}\s*(<div class="ps-rating-spacer"><\/div>)\s*{{\/if}}/g,
-                        '$1'
+                        /{{#if rating}}[\s\S]*?{{\/if}}/g,
+                        ''
                     );
                 }
                 
@@ -1566,60 +1566,8 @@
                         .ps-product-title a:hover {
                             color: #4CAF50;
                         }
-                        .ps-product-rating {
-                            display: flex;
-                            align-items: center;
-                            margin-bottom: 3px;
-                            font-size: 0.9em;
-                            order: 3;
-                        }
-                        .ps-product-rating a {
-                            text-decoration: none;
-                            color: inherit;
-                            display: flex;
-                            align-items: center;
-                        }
-                        .ps-rating-number {
-                            margin-right: 5px;
-                            font-weight: bold;
-                        }
-                        .ps-stars {
-                            color: #ffc107; /* Gold color for stars */
-                            margin-right: 5px;
-                        }
-                        .ps-rating-count {
-                            color: #666;
-                            font-size: 0.9em; /* Slightly smaller */
-                        }
-                        .ps-rating-spacer {
-                            height: 8px; /* Provides spacing equivalent to rating section */
-                            margin-bottom: 3px;
-                            order: 3;
-                        }
-                        .ps-product-pricing {
-                            margin-bottom: 3px;
-                            order: 4;
-                            display: flex;
-                            align-items: baseline;
-                            gap: 8px;
-                        }
-                        .ps-product-price {
-                            font-weight: bold;
-                            font-size: 1em; /* Reduced from 1.2em */
-                            color: #e63946;
-                        }
-                        .ps-product-price-unit {
-                            font-size: 0.8em;
-                            color: #666;
-                        }
-                        .ps-delivery-time {
-                            font-size: 0.8em;
-                            color: #555;
-                            text-align: left; /* Ensure left alignment */
-                            margin-top: auto; /* Pushes delivery time to the bottom */
-                            white-space: pre-line; /* Preserve line breaks */
-                            order: 5;
-                        }
+
+
                         /* Ensure the grid layout is removed or adjusted if it conflicts */
                         .ps-results-grid {
                            display: block; /* Override grid if it was set */
