@@ -378,6 +378,14 @@
     flex-direction: column;
 }
 
+.ps-product-brand-platform-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    min-height: 20px;
+    width: 100%;
+}
+
 .ps-product-platform {
     font-size: 0.75em;
     font-weight: bold;
@@ -386,9 +394,8 @@
     background-color: #4CAF50;
     padding: 2px 6px;
     border-radius: 3px;
-    margin-bottom: 5px;
-    align-self: flex-start;
-    order: 0;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .ps-product-platform[data-platform="amazon"] {
@@ -410,8 +417,8 @@
 .ps-product-brand {
     font-size: 0.85em;
     color: #555;
-    margin-bottom: 5px;
-    order: 1;
+    flex-shrink: 0;
+    margin-right: 10px;
 }
 
 .ps-product-title {

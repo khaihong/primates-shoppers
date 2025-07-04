@@ -195,12 +195,14 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
             </a>
         </div>
         <div class="ps-product-info">
-            {{#if platform}}
-            <div class="ps-product-platform" data-platform="{{platform}}">{{platform}}</div>
-            {{/if}}
-            {{#if brand}}
-            <div class="ps-product-brand">{{brand}}</div>
-            {{/if}}
+            <div class="ps-product-brand-platform-row">
+                {{#if brand}}
+                <div class="ps-product-brand">{{brand}}</div>
+                {{/if}}
+                {{#if platform}}
+                <div class="ps-product-platform" data-platform="{{platform}}">{{platform}}</div>
+                {{/if}}
+            </div>
             <h3 class="ps-product-title">
                 <a href="{{link}}" target="_blank">{{title}}</a>
             </h3>

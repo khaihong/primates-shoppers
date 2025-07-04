@@ -1551,12 +1551,7 @@
                             display: flex;
                             flex-direction: column;
                         }
-                        .ps-product-brand {
-                            font-size: 0.85em;
-                            color: #555;
-                            margin-bottom: 5px;
-                            order: 1;
-                        }
+
                         .ps-product-title {
                             font-size: 0.85em; /* Reduced font size */
                             line-height: 1.3;
