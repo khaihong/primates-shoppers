@@ -91,16 +91,47 @@
         
         // Unit detection patterns for title extraction
         const unitPatterns = [
-            { regex: /\b(\d+)\s*ml\b/i, unit: 'ml', multiplier: 100 },
-            { regex: /\b(\d+)\s*milliliter(s)?\b/i, unit: 'ml', multiplier: 100 },
-            { regex: /\b(\d+)\s*millilitre(s)?\b/i, unit: 'ml', multiplier: 100 },
-            { regex: /\b(\d+)\s*g\b/i, unit: 'g', multiplier: 100 },
-            { regex: /\b(\d+)\s*gram(s)?\b/i, unit: 'g', multiplier: 100 },
-            { regex: /\b(\d+)\s*oz\b/i, unit: 'oz', multiplier: 100 },
-            { regex: /\b(\d+)\s*ounce(s)?\b/i, unit: 'oz', multiplier: 100 },
-            { regex: /\b(\d+)\s*fl\s*oz\b/i, unit: 'fl oz', multiplier: 100 },
-            { regex: /\b(\d+)\s*pound(s)?\b/i, unit: 'lb', multiplier: 1 },
-            { regex: /\b(\d+)\s*lb(s)?\b/i, unit: 'lb', multiplier: 1 }
+            // Milliliters (ml) - various formats including parentheses
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*ml\s*\)/i, unit: 'ml', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*ml\b/i, unit: 'ml', multiplier: 100 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*milliliter(s)?\s*\)/i, unit: 'ml', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*milliliter(s)?\b/i, unit: 'ml', multiplier: 100 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*millilitre(s)?\s*\)/i, unit: 'ml', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*millilitre(s)?\b/i, unit: 'ml', multiplier: 100 },
+            
+            // Grams (g) - various formats including parentheses
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*g\s*\)/i, unit: 'g', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*g\b/i, unit: 'g', multiplier: 100 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*gram(s)?\s*\)/i, unit: 'g', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*gram(s)?\b/i, unit: 'g', multiplier: 100 },
+            
+            // Ounces (oz) - various formats including parentheses
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*oz\s*\)/i, unit: 'oz', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*oz\b/i, unit: 'oz', multiplier: 100 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*ounce(s)?\s*\)/i, unit: 'oz', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*ounce(s)?\b/i, unit: 'oz', multiplier: 100 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*fl\s*oz\s*\)/i, unit: 'fl oz', multiplier: 100 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*fl\s*oz\b/i, unit: 'fl oz', multiplier: 100 },
+            
+            // Pounds (lb) - don't normalize to 100 for these larger units
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*pound(s)?\s*\)/i, unit: 'lb', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*pound(s)?\b/i, unit: 'lb', multiplier: 1 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*lb(s)?\s*\)/i, unit: 'lb', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*lb(s)?\b/i, unit: 'lb', multiplier: 1 },
+            
+            // Kilograms (kg) - don't normalize to 100 for these larger units
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*kg\s*\)/i, unit: 'kg', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*kg\b/i, unit: 'kg', multiplier: 1 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*kilogram(s)?\s*\)/i, unit: 'kg', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*kilogram(s)?\b/i, unit: 'kg', multiplier: 1 },
+            
+            // Liters (l) - don't normalize to 100 for these larger units
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*l\s*\)/i, unit: 'l', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*l\b/i, unit: 'l', multiplier: 1 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*liter(s)?\s*\)/i, unit: 'l', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*liter(s)?\b/i, unit: 'l', multiplier: 1 },
+            { regex: /\(\s*(\d+(?:\.\d+)?)\s*litre(s)?\s*\)/i, unit: 'l', multiplier: 1 },
+            { regex: /\b(\d+(?:\.\d+)?)\s*litre(s)?\b/i, unit: 'l', multiplier: 1 }
         ];
         
         /**
@@ -116,7 +147,7 @@
                 success: function(response) {
                     if (response && response.country_code) {
                         const countryCode = response.country_code.toLowerCase();
-                        console.log('Detected country from IP:', countryCode);
+            
                         
                         // Only set country if no cached preference has been applied
                         // Check if loadCachedResults has already set a country preference
@@ -219,16 +250,46 @@
          * @returns {object|null} - Size object or null if not found
          */
         function extractSizeFromTitle(title) {
-            for (const pattern of unitPatterns) {
+            // Simple test for debugging La Roche-Posay issue
+            if (title.includes('La Roche-Posay')) {
+                logToServer('UNIT_PRICE_DEBUG: Testing La Roche-Posay title', {
+                    title: title,
+                    testPattern: '/\\b(\\d+(?:\\.\\d+)?)\\s*ml\\b/i',
+                    testMatch: title.match(/\b(\d+(?:\.\d+)?)\s*ml\b/i)
+                });
+            }
+            
+            for (let i = 0; i < unitPatterns.length; i++) {
+                const pattern = unitPatterns[i];
                 const match = title.match(pattern.regex);
+                
                 if (match) {
-                    return {
+                    const result = {
                         value: parseFloat(match[1]),
                         unit: pattern.unit,
                         multiplier: pattern.multiplier
                     };
+                    
+                    // Only log successful extractions for eBay products
+                    if (title.includes('La Roche-Posay') || title.includes('150')) {
+                        logToServer('UNIT_PRICE_DEBUG: Size extracted', {
+                            title: title,
+                            extractedSize: result,
+                            matchedPattern: pattern.regex.toString()
+                        });
+                    }
+                    
+                    return result;
                 }
             }
+            
+            // Only log failures for specific problematic products
+            if (title.includes('La Roche-Posay') || title.includes('150')) {
+                logToServer('UNIT_PRICE_DEBUG: No size found in title', {
+                    title: title
+                });
+            }
+            
             return null;
         }
         
@@ -238,12 +299,49 @@
          * @returns {Array} - Processed items
          */
         function processProductItems(items) {
+            console.log('🔥 PROCESS DEBUG: processProductItems called', {
+                totalItems: items.length,
+                ebayItems: items.filter(i => i.platform === 'ebay').length
+            });
+            
+            // First, check if most Amazon products have unit prices
+            const amazonProducts = items.filter(item => item.platform === 'amazon');
+            const shouldCalculateUnitPrices = amazonProducts.length === 0 || shouldDefaultToUnitPrice(amazonProducts);
+            
+            console.log('🔥 PROCESS DEBUG: shouldCalculateUnitPrices', shouldCalculateUnitPrices);
+            
+            logToServer('UNIT_PRICE_DEBUG: processProductItems', {
+                totalItems: items.length,
+                ebayItems: items.filter(i => i.platform === 'ebay').length,
+                shouldCalculateUnitPrices: shouldCalculateUnitPrices
+            });
+            
             return items.map(function(item) {
                 const processedItem = {...item}; // Create a copy to avoid mutating the original
                 
+                // Log initial state for specific eBay products only
+                if (processedItem.platform === 'ebay' && (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150'))) {
+                    logToServer('UNIT_PRICE_DEBUG: eBay Product Initial State', {
+                        title: processedItem.title,
+                        price: processedItem.price,
+                        price_value: processedItem.price_value,
+                        unit: processedItem.unit,
+                        price_per_unit: processedItem.price_per_unit,
+                        price_per_unit_value: processedItem.price_per_unit_value
+                    });
+                }
+                
                 // Skip unit price handling if the backend already cleared the unit data
                 if (processedItem.unit === '' && processedItem.price_per_unit === '' && processedItem.price_per_unit_value === 0) {
-                    return processedItem;
+                    if (processedItem.platform === 'ebay') {
+                        logToServer('Unit Price Processing: eBay Product - Backend cleared unit data, but continuing', {
+                            title: processedItem.title
+                        });
+                    }
+                    // Don't return early for eBay - we want to try calculating from title
+                    if (processedItem.platform !== 'ebay') {
+                        return processedItem;
+                    }
                 }
                 
                 // Check if we need to calculate unit price from title
@@ -251,32 +349,88 @@
                 let pricePerUnitValue = parseFloat(processedItem.price_per_unit) || 0;
                 
                 // If no price per unit or it's a placeholder, try to extract from title
+                // For non-Amazon platforms, only calculate if most Amazon products have unit prices
                 if (!hasPricePerUnit && processedItem.title && processedItem.price_value > 0) {
-                    const sizeInfo = extractSizeFromTitle(processedItem.title);
-                    if (sizeInfo) {
-                        // Calculate price per unit based on extracted size
-                        // First, get the price per single unit (e.g., per 1ml)
-                        const pricePerSingleUnit = processedItem.price_value / sizeInfo.value;
+                    if (processedItem.platform === 'ebay') {
+                        logToServer('Unit Price Processing: eBay Product - Checking title extraction', {
+                            title: processedItem.title,
+                            hasPricePerUnit: hasPricePerUnit,
+                            shouldCalculateUnitPrices: shouldCalculateUnitPrices,
+                            willAttemptExtraction: processedItem.platform === 'amazon' || shouldCalculateUnitPrices
+                        });
+                    }
+                    
+                    // For Amazon products, always try to calculate (existing behavior)
+                    // For other platforms, only calculate if most Amazon products have unit prices
+                    if (processedItem.platform === 'amazon' || shouldCalculateUnitPrices) {
+                        const sizeInfo = extractSizeFromTitle(processedItem.title);
                         
-                        // Then calculate the price per 100 units
-                        const normalizedPrice = pricePerSingleUnit * sizeInfo.multiplier;
-                        
-                        // Format for display with proper decimal places
-                        processedItem.price_per_unit = normalizedPrice.toFixed(2);
-                        processedItem.price_per_unit_value = normalizedPrice; // Update the value used for sorting
-                        processedItem.unit = sizeInfo.unit === 'ml' ? '100 ml' : 
-                                    sizeInfo.unit === 'g' ? '100 grams' : 
-                                    sizeInfo.unit === 'oz' ? '100 oz' : 
-                                    sizeInfo.unit;
-                        
-                        pricePerUnitValue = normalizedPrice;
-                        hasPricePerUnit = true;
-
+                        if (sizeInfo) {
+                            // Calculate price per unit based on extracted size
+                            // First, get the price per single unit (e.g., per 1ml)
+                            const pricePerSingleUnit = processedItem.price_value / sizeInfo.value;
+                            
+                            // Then calculate the price per 100 units
+                            const normalizedPrice = pricePerSingleUnit * sizeInfo.multiplier;
+                            
+                            // Format for display with proper decimal places and currency
+                            let currencySymbol = processedItem.price.match(/^(C \$|[^\d\s]+)/)?.[0] || '$';
+                            // Clean up Canadian currency symbol from "C $" to just "$"
+                            if (currencySymbol === 'C $') {
+                                currencySymbol = '$';
+                            }
+                            const unitDisplay = sizeInfo.unit === 'ml' ? '100 ml' : 
+                                                sizeInfo.unit === 'g' ? '100 grams' : 
+                                                sizeInfo.unit === 'oz' ? '100 oz' : 
+                                                sizeInfo.unit === 'fl oz' ? '100 fl oz' : 
+                                                sizeInfo.unit === 'lb' ? 'lb' : 
+                                                sizeInfo.unit === 'kg' ? 'kg' : 
+                                                sizeInfo.unit === 'l' ? 'liter' : 
+                                                sizeInfo.unit;
+                            
+                            processedItem.price_per_unit = `${currencySymbol}${normalizedPrice.toFixed(2)}/${unitDisplay}`;
+                            processedItem.price_per_unit_value = normalizedPrice; // Update the value used for sorting
+                            processedItem.unit = unitDisplay;
+                            
+                            // Only log for specific products to debug
+                            if (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150')) {
+                                logToServer('UNIT_PRICE_DEBUG: Unit Price Calculated', {
+                                title: processedItem.title,
+                                extractedSize: sizeInfo.value + sizeInfo.unit,
+                                unitPrice: processedItem.price_per_unit,
+                                calculation: `${processedItem.price_value} ÷ ${sizeInfo.value} × ${sizeInfo.multiplier} = ${normalizedPrice.toFixed(2)}`
+                            });
+                            }
+                            
+                            pricePerUnitValue = normalizedPrice;
+                            hasPricePerUnit = true;
+                        } else {
+                            logToServer('UNIT_PRICE_DEBUG: No size info found for product', {
+                                platform: processedItem.platform,
+                                title: processedItem.title
+                            });
+                        }
+                    } else {
+                        logToServer('UNIT_PRICE_DEBUG: Skipping unit price calculation', {
+                            platform: processedItem.platform,
+                            title: processedItem.title,
+                            isAmazon: processedItem.platform === 'amazon',
+                            shouldCalculateUnitPrices: shouldCalculateUnitPrices
+                        });
                     }
                 }
 
                 // Normalize price per unit to 100 units
-                if (hasPricePerUnit) {
+                // Only normalize for Amazon products or when most Amazon products have unit prices
+                if (hasPricePerUnit && (processedItem.platform === 'amazon' || shouldCalculateUnitPrices)) {
+                    if (processedItem.platform === 'ebay') {
+                        logToServer('UNIT_PRICE_DEBUG: eBay Product - Entering normalization', {
+                            title: processedItem.title,
+                            hasPricePerUnit: hasPricePerUnit,
+                            unit: processedItem.unit,
+                            pricePerUnitValue: pricePerUnitValue
+                        });
+                    }
                     const unitLower = processedItem.unit.toLowerCase();
                     
 
@@ -296,31 +450,74 @@
                         }
                     }
                     
+                    // Get currency symbol from the product price
+                    let currencySymbol = processedItem.price.match(/^(C \$|[^\d\s]+)/)?.[0] || '$';
+                    // Clean up Canadian currency symbol from "C $" to just "$"
+                    if (currencySymbol === 'C $') {
+                        currencySymbol = '$';
+                    }
+                    
                     // Check for known units that should be normalized to 100
                     if (unitLower === 'gram' || unitLower === 'grams' || unitLower === 'g') {
                         // If unit is already "100 grams", don't multiply again
                         if (!unitLower.includes('100')) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                            const normalizedValue = pricePerUnitValue * 100;
+                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 grams`;
+                            processedItem.price_per_unit_value = normalizedValue;
                         }
                         processedItem.unit = '100 grams';
                     } else if (unitLower === 'ml' || unitLower === 'milliliter' || unitLower === 'milliliters' || unitLower === 'millilitre' || unitLower === 'millilitres') {
                         // If unit is already "100 ml", don't multiply again
                         if (!unitLower.includes('100')) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                            const normalizedValue = pricePerUnitValue * 100;
+                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 ml`;
+                            processedItem.price_per_unit_value = normalizedValue;
                         }
                         processedItem.unit = '100 ml';
-                    } else if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'ounces' || unitLower === 'fl oz') {
+                    } else if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'ounces') {
                         // If unit is already "100 oz", don't multiply again
                         if (!unitLower.includes('100')) {
-                            processedItem.price_per_unit = (pricePerUnitValue * 100).toFixed(2);
-                            processedItem.price_per_unit_value = pricePerUnitValue * 100;
+                            const normalizedValue = pricePerUnitValue * 100;
+                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 oz`;
+                            processedItem.price_per_unit_value = normalizedValue;
                         }
                         processedItem.unit = '100 oz';
+                    } else if (unitLower === 'fl oz') {
+                        // If unit is already "100 fl oz", don't multiply again
+                        if (!unitLower.includes('100')) {
+                            const normalizedValue = pricePerUnitValue * 100;
+                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 fl oz`;
+                            processedItem.price_per_unit_value = normalizedValue;
+                        }
+                        processedItem.unit = '100 fl oz';
+                    } else if (unitLower === 'lb' || unitLower === 'lbs' || unitLower === 'pound' || unitLower === 'pounds') {
+                        // Don't normalize pounds - keep as per pound
+                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/lb`;
+                        processedItem.price_per_unit_value = pricePerUnitValue;
+                        processedItem.unit = 'lb';
+                    } else if (unitLower === 'kg' || unitLower === 'kilogram' || unitLower === 'kilograms') {
+                        // Don't normalize kilograms - keep as per kg
+                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/kg`;
+                        processedItem.price_per_unit_value = pricePerUnitValue;
+                        processedItem.unit = 'kg';
+                    } else if (unitLower === 'l' || unitLower === 'liter' || unitLower === 'liters' || unitLower === 'litre' || unitLower === 'litres') {
+                        // Don't normalize liters - keep as per liter
+                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/liter`;
+                        processedItem.price_per_unit_value = pricePerUnitValue;
+                        processedItem.unit = 'liter';
                     }
                     
 
+                }
+                
+                // Log final state for specific eBay products only
+                if (processedItem.platform === 'ebay' && (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150'))) {
+                    logToServer('UNIT_PRICE_DEBUG: eBay Product Final State', {
+                        title: processedItem.title,
+                        price_per_unit: processedItem.price_per_unit,
+                        unit: processedItem.unit,
+                        price_per_unit_value: processedItem.price_per_unit_value
+                    });
                 }
 
                 return processedItem;
@@ -334,7 +531,16 @@
          * @returns {Array} - Sorted items
          */
         function sortProducts(items, sortBy) {
-            const sortedItems = [...items]; // Create a copy to avoid mutating the original
+            console.log('🔥 SORT DEBUG: sortProducts called', {
+                itemCount: items.length,
+                sortBy: sortBy,
+                ebayItems: items.filter(i => i.platform === 'ebay').length,
+                isApplyingSavedSorting: window.isApplyingSavedSorting
+            });
+            
+            // Process items for unit prices before sorting
+            const processedItems = processProductItems(items);
+            const sortedItems = [...processedItems]; // Create a copy to avoid mutating the original
             
             if (sortBy === 'price') {
 
@@ -345,6 +551,21 @@
                 });
 
             } else if (sortBy === 'price_per_unit') {
+                console.log('🔥 SORT DEBUG: price_per_unit sorting triggered');
+                
+                // DEBUG: Log the structure of the first few items to understand what fields are available
+                const firstFewItems = sortedItems.slice(0, 3);
+                console.log('🔥 DEBUG: First 3 items structure:', firstFewItems.map(item => ({
+                    title: item.title ? item.title.substring(0, 50) + '...' : 'NO TITLE',
+                    price: item.price,
+                    price_value: item.price_value,
+                    price_per_unit: item.price_per_unit,
+                    price_per_unit_value: item.price_per_unit_value,
+                    unit: item.unit,
+                    platform: item.platform,
+                    allKeys: Object.keys(item)
+                })));
+                
                 // Separate products with and without unit prices
                 const itemsWithUnitPrice = [];
                 const itemsWithoutUnitPrice = [];
@@ -352,15 +573,47 @@
                 sortedItems.forEach(function(item) {
                     // Use the same logic as shouldDefaultToUnitPrice - check for valid price_per_unit_value
                     // Even if unit is "No unit", it still represents a valid unit price
-                    if (item.price_per_unit && 
+                    const hasValidUnitPrice = item.price_per_unit && 
                         item.price_per_unit_value && 
                         parseFloat(item.price_per_unit_value) > 0 &&
                         item.price_per_unit !== '' &&
-                        item.price_per_unit !== 'N/A') {
+                        item.price_per_unit !== 'N/A';
+                    
+                    // Only log for specific eBay products to debug
+                    if (item.platform === 'ebay' && (item.title.includes('La Roche-Posay') || item.title.includes('150'))) {
+                        logToServer('UNIT_PRICE_DEBUG: Categorizing eBay item for sorting', {
+                            title: item.title,
+                            price_per_unit: item.price_per_unit,
+                            price_per_unit_value: item.price_per_unit_value,
+                            unit: item.unit,
+                            hasValidUnitPrice: hasValidUnitPrice,
+                            category: hasValidUnitPrice ? 'WITH_UNIT_PRICE' : 'WITHOUT_UNIT_PRICE'
+                        });
+                    }
+                    
+                    if (hasValidUnitPrice) {
                         itemsWithUnitPrice.push(item);
                     } else {
                         itemsWithoutUnitPrice.push(item);
                     }
+                });
+                
+                // Log actual unit price values for debugging
+                const sampleUnitPrices = itemsWithUnitPrice.slice(0, 5).map(item => ({
+                    title: item.title.substring(0, 50) + '...',
+                    price_per_unit: item.price_per_unit,
+                    price_per_unit_value: item.price_per_unit_value,
+                    unit: item.unit,
+                    platform: item.platform
+                }));
+                
+                console.log('🔥 UNIT PRICE DEBUG: Sample unit prices before sorting', sampleUnitPrices);
+                
+                logToServer('UNIT_PRICE_DEBUG: Sorting result', {
+                    itemsWithUnitPrice: itemsWithUnitPrice.length,
+                    itemsWithoutUnitPrice: itemsWithoutUnitPrice.length,
+                    ebayItemsWithUnitPrice: itemsWithUnitPrice.filter(i => i.platform === 'ebay').length,
+                    sampleUnitPrices: sampleUnitPrices
                 });
                 
                 // Sort products with unit prices by unit price
@@ -370,7 +623,16 @@
                     return priceA - priceB;
                 });
                 
-
+                // Log sorted unit prices to verify sorting worked
+                const sortedSampleUnitPrices = itemsWithUnitPrice.slice(0, 5).map(item => ({
+                    title: item.title.substring(0, 50) + '...',
+                    price_per_unit: item.price_per_unit,
+                    price_per_unit_value: item.price_per_unit_value,
+                    unit: item.unit,
+                    platform: item.platform
+                }));
+                
+                console.log('🔥 UNIT PRICE DEBUG: Sample unit prices AFTER sorting', sortedSampleUnitPrices);
                 
                 // Sort products without unit prices by regular price
                 itemsWithoutUnitPrice.sort(function(a, b) {
@@ -651,7 +913,7 @@
                 }
             });
             
-            console.log('Extracted platform delivery dates:', platformDates);
+
             return platformDates;
         }
 
@@ -796,32 +1058,18 @@
         function populateDeliveryFilter(items) {
             // Prevent multiple rapid re-populations
             if (window.isPopulatingDeliveryFilter) {
-                console.log('🔄 Delivery filter population already in progress, skipping...');
                 return;
             }
             
             window.isPopulatingDeliveryFilter = true;
-            console.log('🔄 Starting delivery filter population...');
             
             // IMMEDIATE state capture before any other operations
             const existingButtons = $deliveryDatesContainer.find('.ps-delivery-date-button');
-            console.log('🔍 Found', existingButtons.length, 'existing buttons before processing');
-            existingButtons.each(function() {
-                const $btn = $(this);
-                const date = $btn.attr('data-date');
-                const selected = $btn.attr('data-selected');
-                const hasClass = $btn.hasClass('ps-selected');
-                console.log(`  🔍 Existing button: ${date} - data-selected: ${selected}, ps-selected: ${hasClass}`);
-            });
             
             // Always extract delivery dates from current items to ensure freshness
             let platformDeliveryDates = {};
             if (items && items.length > 0) {
-                console.log('populateDeliveryFilter: Extracting fresh delivery dates from current items');
                 platformDeliveryDates = extractPlatformDeliveryDatesFromItems(items);
-                console.log('Extracted platform delivery dates:', platformDeliveryDates);
-            } else {
-                console.log('populateDeliveryFilter: No items provided, using empty delivery dates');
             }
             
             // Get currently available platforms in the items
@@ -1011,17 +1259,11 @@
             $deliveryDatesContainer.find('.ps-delivery-date-button[data-selected="true"]').each(function() {
                 const dateValue = $(this).attr('data-date');
                 currentSelectedDates.push(dateValue);
-                console.log('  📦 Storing selected date for restoration:', dateValue);
             });
-            
-            console.log('🔄 Captured state before HTML recreation:');
-            console.log('  📊 All button selected:', currentAllSelected);
-            console.log('  📊 Individual dates selected:', currentSelectedDates);
             
             // Only set "All" to highlighted by default if this is the first time (no current state)
             if (currentAllSelected === undefined) {
                 $('#ps-delivery-all-button').attr('data-selected', 'true').addClass('ps-selected');
-                console.log('🔄 Delivery filter initialized: First time setup');
             } else {
                 // Preserve current "All" button state
                 const $allBtn = $('#ps-delivery-all-button');
@@ -1031,7 +1273,6 @@
                 } else {
                     $allBtn.removeClass('ps-selected');
                 }
-                console.log('🔄 Delivery filter re-populated: Preserving existing state');
             }
             
             // Re-bind control events after recreating elements
@@ -1039,16 +1280,7 @@
             
             // Check if CSS is properly loaded for date buttons
             setTimeout(function() {
-                console.log('🎨 CSS Style Check for newly created buttons:');
-                $deliveryDatesContainer.find('.ps-delivery-date-button').each(function() {
-                    const $btn = $(this);
-                    const date = $btn.attr('data-date');
-                    const isSelected = $btn.attr('data-selected') === 'true';
-                    const bgColor = $btn.css('background-color');
-                    const borderColor = $btn.css('border-color');
-                    const color = $btn.css('color');
-                    console.log(`  🔲 ${date} - selected: ${isSelected}, bg: ${bgColor}, border: ${borderColor}, color: ${color}`);
-                });
+                // CSS is loaded after DOM insertion
             }, 100);
             
             // Bind individual date button events after HTML is inserted
@@ -1061,17 +1293,11 @@
                 if (!isSelected) {
                     // Handle "unspecified" separately - it doesn't participate in cumulative selection
                     if (clickedValue === 'unspecified') {
-                        console.log('🗓️ SELECTING unspecified date - standalone selection');
                         $clickedButton.attr('data-selected', 'true').addClass('ps-selected');
-                        console.log('  ✅ Set data-selected=true + added ps-selected class for UNSPECIFIED date');
                         // Force style application
                         $clickedButton[0].offsetHeight; // Trigger reflow
-                        console.log('  🎨 CSS check - background color after setting:', $clickedButton.css('background-color'));
-                        console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($clickedButton[0]).backgroundColor);
-                        console.log('  🎨 CSS check - has ps-selected class:', $clickedButton.hasClass('ps-selected'));
                     } else {
                         // When selecting a date, also select all dates before it (cumulative selection)
-                        console.log('🗓️ SELECTING date:', clickedValue, '- will also select all dates before it');
                         let foundClicked = false;
                         allButtons.each(function() {
                             const $button = $(this);
@@ -1085,33 +1311,22 @@
                             if (buttonValue === clickedValue) {
                                 foundClicked = true;
                                 $button.attr('data-selected', 'true').addClass('ps-selected');
-                                console.log('  ✅ Set data-selected=true + added ps-selected class for CLICKED date:', buttonValue);
                                 // Force style application
                                 $button[0].offsetHeight; // Trigger reflow
-                                console.log('  🎨 CSS check - background color after setting:', $button.css('background-color'));
-                                console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($button[0]).backgroundColor);
-                                console.log('  🎨 CSS check - has ps-selected class:', $button.hasClass('ps-selected'));
                             } else if (!foundClicked) {
                                 // This is a date before the clicked one
                                 $button.attr('data-selected', 'true').addClass('ps-selected');
-                                console.log('  ✅ Set data-selected=true + added ps-selected class for EARLIER date:', buttonValue);
                                 // Force style application
                                 $button[0].offsetHeight; // Trigger reflow
-                                console.log('  🎨 CSS check - background color after setting:', $button.css('background-color'));
-                                console.log('  🎨 CSS check - computed styles:', window.getComputedStyle($button[0]).backgroundColor);
-                                console.log('  🎨 CSS check - has ps-selected class:', $button.hasClass('ps-selected'));
                             }
                         });
                     }
                 } else {
                     // Handle "unspecified" separately - it doesn't participate in cumulative selection
                     if (clickedValue === 'unspecified') {
-                        console.log('🗓️ UNSELECTING unspecified date - standalone unselection');
                         $clickedButton.attr('data-selected', 'false').removeClass('ps-selected');
-                        console.log('  ❌ Set data-selected=false + removed ps-selected class for UNSPECIFIED date');
                     } else {
                         // When unselecting a date, also unselect all dates after it
-                        console.log('🗓️ UNSELECTING date:', clickedValue, '- will also unselect all dates after it');
                         let foundClicked = false;
                         allButtons.each(function() {
                             const $button = $(this);
@@ -1125,11 +1340,9 @@
                             if (buttonValue === clickedValue) {
                                 foundClicked = true;
                                 $button.attr('data-selected', 'false').removeClass('ps-selected');
-                                console.log('  ❌ Set data-selected=false + removed ps-selected class for CLICKED date:', buttonValue);
                             } else if (foundClicked) {
                                 // This is a date after the clicked one
                                 $button.attr('data-selected', 'false').removeClass('ps-selected');
-                                console.log('  ❌ Set data-selected=false + removed ps-selected class for LATER date:', buttonValue);
                             }
                         });
                     }
@@ -1148,15 +1361,15 @@
                     $allButton.attr('data-selected', 'false').removeClass('ps-selected');
                 }
                 
-                // Log the highlighting status of all date buttons
-                console.log('🗓️ Date button highlighting status:');
+                // Update date button highlighting status
                 allButtons.each(function() {
                     const $btn = $(this);
-                    const date = $btn.attr('data-date');
-                    const isHighlighted = $btn.attr('data-selected') === 'true';
-                    const hasSelectedClass = $btn.hasClass('ps-selected');
-                    const hasCorrectBgColor = $btn.css('background-color') === 'rgb(76, 175, 80)';
-                    console.log(`  ${isHighlighted ? '✅' : '❌'} ${date} - data-selected: ${$btn.attr('data-selected')}, ps-selected: ${hasSelectedClass}, green bg: ${hasCorrectBgColor}`);
+                    // Ensure proper highlighting is applied
+                    if ($btn.attr('data-selected') === 'true') {
+                        $btn.addClass('ps-selected');
+                    } else {
+                        $btn.removeClass('ps-selected');
+                    }
                 });
                 
                 triggerDeliveryFilterChange();
@@ -1171,27 +1384,10 @@
                         const $restoredButton = $deliveryDatesContainer.find('.ps-delivery-date-button[data-date="' + selectedDate + '"]');
                         if ($restoredButton.length > 0) {
                             $restoredButton.attr('data-selected', 'true').addClass('ps-selected');
-                            console.log('  ✅ Restored data-selected=true + ps-selected class for date:', selectedDate);
-                            console.log('  🎨 CSS check - background color after restoration:', $restoredButton.css('background-color'));
                             
                             // Force a style recalculation to ensure CSS is applied
                             $restoredButton[0].offsetHeight; // Trigger reflow
-                            console.log('  🎨 CSS check - background color after reflow:', $restoredButton.css('background-color'));
-                            console.log('  🎨 CSS check - has ps-selected class:', $restoredButton.hasClass('ps-selected'));
-                        } else {
-                            console.log('  ❌ Could not find button for date:', selectedDate);
                         }
-                    });
-                    
-                    // Log final state of all buttons after restoration
-                    console.log('🗓️ Final state after restoration:');
-                    $deliveryDatesContainer.find('.ps-delivery-date-button').each(function() {
-                        const $btn = $(this);
-                        const date = $btn.attr('data-date');
-                        const isSelected = $btn.attr('data-selected') === 'true';
-                        const hasClass = $btn.hasClass('ps-selected');
-                        const bgColor = $btn.css('background-color');
-                        console.log(`  ${isSelected ? '✅' : '❌'} ${date} - data-selected: ${$btn.attr('data-selected')}, ps-selected: ${hasClass}, background: ${bgColor}`);
                     });
                 }, 50);
             }
@@ -1199,7 +1395,6 @@
             // Reset the flag to allow future populations after a delay
             setTimeout(function() {
                 window.isPopulatingDeliveryFilter = false;
-                console.log('🔄 Delivery filter population completed, flag reset');
             }, 200);
         }
         
@@ -1278,11 +1473,9 @@
          * Reset delivery filter to "All" selected (show all products)
          */
         function resetDeliveryFilterToAll() {
-            console.log('🔄 Reset delivery filter: Clearing individual date selections');
             $('#ps-delivery-all-button').attr('data-selected', 'true').addClass('ps-selected');
             // Unselect all individual date buttons
             $('#ps-delivery-dates-container .ps-delivery-date-button').attr('data-selected', 'false').removeClass('ps-selected');
-            console.log('🗓️ Reset complete: All individual dates cleared');
         }
 
         /**
@@ -1388,12 +1581,13 @@
             const shouldRepopulate = !currentFilterExists || (window.deliveryFilterNeedsUpdate === true);
             
             if (shouldRepopulate) {
-                console.log('📋 Populating delivery filter because:', currentFilterExists ? 'update flag set' : 'filter doesn\'t exist');
                 populateDeliveryFilter(items);
                 window.deliveryFilterNeedsUpdate = false;
             } else {
-                console.log('📋 Skipping delivery filter re-population to preserve user selections');
+                // Skipping delivery filter re-population to preserve user selections
             }
+            
+            // Items are already processed in sortProducts function, so we can render them directly
             
             items.forEach(function(item) {
                 let productHtml = productTemplate;
@@ -1666,6 +1860,17 @@
         
         // Handle sort change (re-sort current results)
         $sortBy.on('change', function() {
+            console.log('🔥 SORT CHANGE: User changed sort dropdown', {
+                newValue: $(this).val(),
+                timestamp: new Date().toISOString()
+            });
+            
+            // Skip processing if we're programmatically applying saved sorting
+            if (window.isApplyingSavedSorting) {
+                console.log('🔥 SORT CHANGE: Skipping due to saved sorting application');
+                return;
+            }
+            
             // Clear saved default sorting preference when user manually changes sort
             // This allows the system to recalculate the preference on the next search
             clearSavedDefaultSorting();
@@ -1676,6 +1881,10 @@
                 const includeText = $('#ps-search-query').val();
                 const minRating = parseFloat($('#ps-min-rating').val()) || null;
                 const sortCriteria = $(this).val();
+                
+                console.log('🔥 SORT CHANGE: Applying filters with sort criteria', {
+                    sortCriteria: sortCriteria
+                });
                 
                 // Get selected platforms
                 const selectedPlatforms = [];
@@ -1761,10 +1970,15 @@
             const minRating = parseFloat($('#ps-min-rating').val()) || null;
             const sortCriteria = $sortBy.val();
             
+            console.log('🔥 APPLY ALL: applyAllFilters called', {
+                sortCriteria: sortCriteria,
+                timestamp: new Date().toISOString()
+            });
+            
             // Check if search terms have changed - if so, reset delivery filter to "All"
             const currentSearchTerms = includeText + '|' + excludeText;
             if (window.lastSearchTerms && window.lastSearchTerms !== currentSearchTerms) {
-                console.log('Search terms changed, resetting delivery filter to "All"');
+    
                 resetDeliveryFilterToAll();
             }
             window.lastSearchTerms = currentSearchTerms;
@@ -1950,7 +2164,13 @@
                         isAfterLiveSearch = false;
                         
                         // Apply saved default sorting preference (don't recalculate from cached data)
+                        // Set flag to prevent sort change handler from executing during saved sorting
+                        window.isApplyingSavedSorting = true;
                         const sortingChanged = applySavedDefaultSorting();
+                        // Clear flag after a short delay to allow normal sort changes
+                        setTimeout(() => {
+                            window.isApplyingSavedSorting = false;
+                        }, 50);
                         
                         // Auto-apply search/exclude terms when loading cached results
                         const queryElem = document.getElementById('ps-search-query');
@@ -2230,7 +2450,7 @@
             $topLoadMoreButton.prop('disabled', true);
             
             // Ensure spinner is hidden and text is shown during cooldown
-            console.log('Cooldown: Hiding spinner and showing text');
+
             $loadMoreButton.find('.ps-load-more-spinner').hide();
             $loadMoreButton.find('.ps-load-more-text').show();
             
@@ -2359,7 +2579,6 @@
             }
 
             // Hide load more buttons during search
-            console.log('New Search: Hiding load more buttons during search');
             logToServer('New Search: Hiding load more buttons', { 
                 query: query, 
                 platforms: platforms 
@@ -2387,7 +2606,7 @@
                     filter_cached: 'false'
                 },
                 success: function(response) {
-                    console.log('AJAX response (search):', response);
+    
                     let products = [];
                     let baseItemsCount = 0;
                     let errorMessage = null;
@@ -2417,18 +2636,7 @@
                         
                         // Add Amazon search link if available (for blocking errors)
                         if (response.data && response.data.amazon_search_url) {
-                            console.log('DEBUG: Found amazon_search_url in error response:', response.data.amazon_search_url);
                             errorHtml += '<br><br>Or continue search on <a href="' + response.data.amazon_search_url + '" target="_blank" rel="noopener">' + response.data.amazon_search_url + '</a>';
-                        } else {
-                            console.log('DEBUG: No amazon_search_url found in error response. response.data:', response.data);
-                            console.log('DEBUG: Full response structure:', response);
-                            console.log('DEBUG: response.amazon_search_url:', response.amazon_search_url);
-                            console.log('DEBUG: response.data && response.data.amazon_search_url:', response.data && response.data.amazon_search_url);
-                            console.log('DEBUG: typeof response.data:', typeof response.data);
-                            console.log('DEBUG: Object.keys(response):', Object.keys(response));
-                            if (response.data) {
-                                console.log('DEBUG: Object.keys(response.data):', Object.keys(response.data));
-                            }
                         }
                         
                         errorHtml += '</div>';
@@ -2505,7 +2713,6 @@
                         
                         // Show or hide load more button based on pagination availability
                         if (hasLoadMoreCapability) {
-                            console.log('New Search: Showing load more buttons - pagination available');
                             logToServer('New Search: Showing load more buttons', { 
                                 hasLoadMoreCapability: true,
                                 platforms: platforms,
@@ -2514,7 +2721,6 @@
                             });
                             toggleLoadMoreButton(true);
                         } else {
-                            console.log('New Search: Load more buttons remain hidden - no pagination capability');
                             logToServer('New Search: Load more buttons remain hidden', { 
                                 hasLoadMoreCapability: false,
                                 platforms: platforms,
@@ -2537,8 +2743,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log('AJAX error (search):', xhr.status, status, error);
-                    console.log('Response text:', xhr.responseText);
                     
                     if (xhr.status === 403) {
                         resultsContainer.innerHTML = '<div class="ps-error">Access forbidden. This could be due to a security check failure or session timeout. Please refresh the page and try again.</div>';
@@ -2615,7 +2819,7 @@
 
         // Debug function to check load more readiness
         function debugLoadMoreState() {
-            console.log('Debug: Load More State Check', {
+            logToServer('Debug: Load More State Check', {
                 currentSearchResults: currentSearchResults.length,
                 originalCachedResults: originalCachedResults.length,
                 currentPage: currentPage,
@@ -2799,6 +3003,12 @@
             
             const currentSortValue = sortByElem.value;
             
+            console.log('🔥 APPLY SAVED: applySavedDefaultSorting called', {
+                currentSortValue: currentSortValue,
+                savedDefaultSort: savedDefaultSort,
+                willChangeSorting: currentSortValue === 'price' && savedDefaultSort === 'price_per_unit'
+            });
+            
             logToServer('Apply Saved Default Sorting', {
                 currentSortValue: currentSortValue,
                 savedDefaultSort: savedDefaultSort,
@@ -2807,8 +3017,13 @@
             
             // Only change default if currently set to 'price' and we have a saved preference for unit price
             if (currentSortValue === 'price' && savedDefaultSort === 'price_per_unit') {
+                console.log('🔥 APPLY SAVED: About to change dropdown value, flag status', {
+                    isApplyingSavedSorting: window.isApplyingSavedSorting
+                });
 
                 sortByElem.value = 'price_per_unit';
+                
+                console.log('🔥 APPLY SAVED: Changed sort dropdown from price to price_per_unit');
                 
                 logToServer('Unit Price Sorting: Applied saved unit price sorting preference', {
                     previousValue: 'price',

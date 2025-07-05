@@ -448,17 +448,32 @@ function ps_extract_ebay_product_data($item, $xpath, $country = 'us') {
         if ($shipping_cost > 0) {
             $product['price_numeric'] = $total_price;
             $product['price_value'] = $total_price; // Amazon compatibility
-            // Update display price to show total with breakdown format: [total] ([price] + [ship] shipping)
-            if (!empty($product['price']) && $shipping_cost > 0) {
-                $currency_symbol = '$'; // Default
-                if (preg_match('/^([^0-9.,]+)/', $product['price'], $symbol_match)) {
-                    $currency_symbol = $symbol_match[1];
-                }
-                $product['price'] = $currency_symbol . number_format($total_price, 2) . ' <span class="ps-ebay-price-breakdown">(' . $product['price'] . ' + ' . $currency_symbol . number_format($shipping_cost, 2) . ' shipping)</span>';
+                    // Update display price to show total with breakdown format: [total] ([price] + [ship] shipping)
+        if (!empty($product['price']) && $shipping_cost > 0) {
+            $currency_symbol = '$'; // Default
+            if (preg_match('/^([^0-9.,]+)/', $product['price'], $symbol_match)) {
+                $currency_symbol = $symbol_match[1];
             }
+            // Clean up Canadian currency symbol from "C $" to just "$" for both main price and shipping breakdown
+            $cleaned_currency_symbol = ($currency_symbol === 'C $') ? '$' : $currency_symbol;
+            $shipping_currency_symbol = ($currency_symbol === 'C $') ? '$' : $currency_symbol;
+            
+            // Clean up the original price for the breakdown by removing "C $" prefix
+            $original_price_cleaned = $product['price'];
+            if (strpos($original_price_cleaned, 'C $') === 0) {
+                $original_price_cleaned = '$' . substr($original_price_cleaned, 3);
+            }
+            
+            $product['price'] = $cleaned_currency_symbol . number_format($total_price, 2) . ' <span class="ps-ebay-price-breakdown">(' . $original_price_cleaned . ' + ' . $shipping_currency_symbol . number_format($shipping_cost, 2) . ' shipping)</span>';
+        }
         } else {
             // Ensure we still have price_value for compatibility even without shipping
             $product['price_value'] = $base_price;
+            
+            // Clean up Canadian currency symbol from main price even when no shipping
+            if (!empty($product['price']) && strpos($product['price'], 'C $') === 0) {
+                $product['price'] = '$' . substr($product['price'], 3);
+            }
         }
         
         // Comprehensive seller info extraction with rating conversion
@@ -648,6 +663,11 @@ function ps_extract_ebay_product_data($item, $xpath, $country = 'us') {
             // ps_log_error("eBay Seller Rating Debug - Product fields set (default): rating='{$product['rating']}', rating_link='{$product['rating_link']}', seller=" . (isset($product['seller']) ? "'{$product['seller']}'" : 'NOT_SET'));
             // ps_log_error("eBay FINAL RATING SET (default): '{$product['rating']}' for product: '{$product['title']}'");
         }
+        
+        // Add unit price fields for JavaScript processing (initially empty - will be calculated from title)
+        $product['price_per_unit'] = '';
+        $product['price_per_unit_value'] = 0; // Start with 0 - will be set by JavaScript when unit price is calculated
+        $product['unit'] = '';
         
         // Default image if none found - use a data URI instead of external placeholder
         if (empty($product['image'])) {

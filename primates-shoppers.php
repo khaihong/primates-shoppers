@@ -1636,8 +1636,11 @@ function ps_filter_amazon_products($items, $includeText = '', $excludeText = '',
     $filtered = array_values($filtered); // reindex
     if ($sortBy === 'price_per_unit') {
         usort($filtered, function($a, $b) {
-            $aVal = isset($a['price_per_unit_value']) ? floatval($a['price_per_unit_value']) : 0;
-            $bVal = isset($b['price_per_unit_value']) ? floatval($b['price_per_unit_value']) : 0;
+            // Use price_per_unit_value (used by eBay) and fall back to price_per_unit_numeric (legacy)
+            $aVal = isset($a['price_per_unit_value']) ? floatval($a['price_per_unit_value']) : 
+                    (isset($a['price_per_unit_numeric']) ? floatval($a['price_per_unit_numeric']) : PHP_FLOAT_MAX);
+            $bVal = isset($b['price_per_unit_value']) ? floatval($b['price_per_unit_value']) : 
+                    (isset($b['price_per_unit_numeric']) ? floatval($b['price_per_unit_numeric']) : PHP_FLOAT_MAX);
             return $aVal <=> $bVal;
         });
     } else { // default to price
@@ -2207,9 +2210,26 @@ function ps_filter_multi_platform_products($items, $includeText = '', $excludeTe
             return $price_a - $price_b;
         });
     } elseif ($sortBy === 'price_per_unit' && !empty($filtered_items)) {
+        // Debug logging for unit price sorting
+        $ebay_items_with_unit_price = 0;
+        foreach ($filtered_items as $item) {
+            if (isset($item['platform']) && $item['platform'] === 'ebay' && 
+                isset($item['price_per_unit_value']) && floatval($item['price_per_unit_value']) > 0) {
+                $ebay_items_with_unit_price++;
+                // Log one example for debugging
+                if ($ebay_items_with_unit_price === 1) {
+                    error_log("BACKEND_SORT_DEBUG: eBay item with unit price - Title: " . substr($item['title'], 0, 50) . "..., price_per_unit_value: " . $item['price_per_unit_value']);
+                }
+            }
+        }
+        error_log("BACKEND_SORT_DEBUG: Sorting by price_per_unit - Total items: " . count($filtered_items) . ", eBay items with unit price: " . $ebay_items_with_unit_price);
+        
         usort($filtered_items, function($a, $b) {
-            $ppu_a = isset($a['price_per_unit_numeric']) ? floatval($a['price_per_unit_numeric']) : PHP_FLOAT_MAX;
-            $ppu_b = isset($b['price_per_unit_numeric']) ? floatval($b['price_per_unit_numeric']) : PHP_FLOAT_MAX;
+            // Use price_per_unit_value (used by eBay) and fall back to price_per_unit_numeric (legacy)
+            $ppu_a = isset($a['price_per_unit_value']) ? floatval($a['price_per_unit_value']) : 
+                     (isset($a['price_per_unit_numeric']) ? floatval($a['price_per_unit_numeric']) : PHP_FLOAT_MAX);
+            $ppu_b = isset($b['price_per_unit_value']) ? floatval($b['price_per_unit_value']) : 
+                     (isset($b['price_per_unit_numeric']) ? floatval($b['price_per_unit_numeric']) : PHP_FLOAT_MAX);
             return $ppu_a - $ppu_b;
         });
     }
