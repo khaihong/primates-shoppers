@@ -336,17 +336,17 @@
 }
 
 .ps-results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    display: block; /* Use block layout instead of grid */
 }
 
 .ps-product {
+    display: flex; /* Use flexbox for consistent layout */
     border: 1px solid #ddd;
     border-radius: 5px;
     overflow: hidden;
     background: white;
     transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 15px; /* Add space between products */
 }
 
 .ps-product:hover {
@@ -354,25 +354,22 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.ps-product-image {
-    position: relative;
-    height: 180px;
-    overflow: hidden;
-    background: #f5f5f5;
+.ps-product-image-container {
+    flex: 0 0 25%; /* Image container takes 25% width */
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.ps-product-image img {
-    width: 100%;
-    height: 100%;
+.ps-product-image-tag {
+    max-width: 100%;
+    max-height: 150px; /* Control max image height */
     object-fit: contain;
-    transition: transform 0.3s ease;
-}
-
-.ps-product-image:hover img {
-    transform: scale(1.05);
 }
 
 .ps-product-info {
+    flex: 1; /* Info takes remaining space */
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -422,7 +419,7 @@
 }
 
 .ps-product-title {
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1.4;
     margin: 0 0 4px 0;
     order: 2;
@@ -457,10 +454,22 @@
 
 .ps-product-pricing {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
+    flex-direction: column;
+    gap: 3px;
     margin-bottom: 3px;
     order: 3;
+}
+
+.ps-product-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ps-product-rating-container {
+    min-height: 20px; /* Maintain consistent height even when empty */
+    display: flex;
+    align-items: center;
 }
 
 .ps-product-rating-inline {
@@ -498,8 +507,7 @@
 .ps-delivery-time {
     font-size: 14px;
     color: #555;
-    margin-top: auto;
-    order: 6;
+    margin-top: 2px;
 }
 
 /* Responsive Adjustments */
@@ -541,13 +549,20 @@
         font-size: 16px; /* Prevents zoom on iOS */
     }
     
-    .ps-results-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    .ps-product {
+        flex-direction: column; /* Stack image and info vertically on mobile */
     }
     
-    .ps-product-image {
-        height: 150px;
+    .ps-product-image-container {
+        flex: none; /* Remove flex properties on mobile */
+        padding: 15px;
     }
+    
+    .ps-product-image-tag {
+        max-height: 200px; /* Slightly larger on mobile */
+    }
+    
+
 }
 
 /* Parsing Test Tool Styles */
@@ -836,6 +851,95 @@
     height: 28px !important;
     line-height: 20px !important;
     box-sizing: border-box !important;
+}
+
+/* Animation for refreshed content after load more */
+.ps-refreshed-content {
+    animation: ps-content-refresh 0.5s ease-in-out;
+}
+
+@keyframes ps-content-refresh {
+    0% { opacity: 0.7; transform: translateY(-5px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Delivery Filter Styles */
+.ps-delivery-all-button,
+.ps-delivery-date-button {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+    padding: 6px 12px;
+    margin: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 120px;
+    text-align: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ps-delivery-all-button:hover,
+.ps-delivery-date-button:hover {
+    border-color: #999;
+    background-color: #f8f8f8;
+}
+
+.ps-delivery-all-button[data-selected="true"],
+.ps-delivery-date-button[data-selected="true"] {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: white !important;
+}
+
+.ps-delivery-all-button[data-selected="true"]:hover,
+.ps-delivery-date-button[data-selected="true"]:hover {
+    background-color: #45a049 !important;
+    border-color: #45a049 !important;
+}
+
+/* Ultra-specific selectors to override any dark theme */
+html body .ps-delivery-dropdown-content .ps-delivery-date-button[data-selected="true"] {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: white !important;
+    background-image: none !important;
+}
+
+html body .ps-delivery-header-controls .ps-delivery-all-button[data-selected="true"] {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: white !important;
+    background-image: none !important;
+}
+
+/* Class-based approach as backup */
+.ps-delivery-date-button.ps-selected {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: white !important;
+    background-image: none !important;
+}
+
+.ps-delivery-all-button.ps-selected {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: white !important;
+    background-image: none !important;
+}
+
+/* Delivery filter container styling */
+.ps-delivery-dates-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+}
+
+.ps-delivery-header-controls {
+    display: flex;
+    align-items: center;
 }
 
 /* Error message styling for better mobile display */

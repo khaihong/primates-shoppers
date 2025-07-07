@@ -509,3 +509,24 @@
 [2025-07-05 04:15:09] Network detection: Main IP (192.157.119.203): PUBLIC
 [2025-07-05 04:15:09] Network detection: Identified as current network based on: ip_range
 [2025-07-05 04:15:09] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-07 19:53:22] Fetching search results from URL: https://www.amazon.ca/s?k=Camping+mattress
+[2025-07-07 19:53:22] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-07 19:53:22] Network detection: Current server IP: 192.157.119.203
+[2025-07-07 19:53:22] Network detection: IP range check (192.157.119.203): YES
+[2025-07-07 19:53:22] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-07 19:53:22] Network detection: Identified as current network based on: ip_range
+[2025-07-07 19:53:22] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-07 19:53:22] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-07 19:53:22] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=Camping+mattress
+[2025-07-07 19:53:22] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-07 19:53:22] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-07 19:53:22] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-07 19:53:22] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-07 19:53:22] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-07 19:53:22] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-07 19:53:26] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-07_19-53-26.html (Size: 1,489,370 bytes)
+[2025-07-07 19:53:26] Network detection: Current server IP: 192.157.119.203
+[2025-07-07 19:53:26] Network detection: IP range check (192.157.119.203): YES
+[2025-07-07 19:53:26] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-07 19:53:26] Network detection: Identified as current network based on: ip_range
+[2025-07-07 19:53:26] Network detection: Final result - On current network: YES (will use proxy)

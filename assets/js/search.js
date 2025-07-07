@@ -245,6 +245,78 @@
         }
         
         /**
+         * Convert units based on selected country
+         * @param {string} unit - Original unit
+         * @param {number} value - Original value
+         * @param {string} country - Target country ('ca' for metric, 'us' for imperial)
+         * @returns {object} - Converted unit and value
+         */
+        function convertUnits(unit, value, country) {
+            if (!unit || !value || value <= 0) {
+                return { unit: unit, value: value, multiplier: 1 };
+            }
+
+            const unitLower = unit.toLowerCase();
+            let convertedUnit = unit;
+            let convertedValue = value;
+            let conversionMultiplier = 1;
+
+            if (country === 'ca') {
+                // Convert imperial to metric for Canada
+                if (unitLower.includes('fl oz')) {
+                    // fl oz to ml: 1 fl oz = 29.5735 ml
+                    convertedValue = value * 29.5735;
+                    convertedUnit = unit.replace(/fl\s*oz/i, 'ml');
+                    conversionMultiplier = 29.5735;
+                } else if (unitLower.includes('oz') && !unitLower.includes('fl')) {
+                    // oz to g: 1 oz = 28.3495 g
+                    convertedValue = value * 28.3495;
+                    convertedUnit = unit.replace(/oz/i, 'g');
+                    conversionMultiplier = 28.3495;
+                } else if (unitLower.includes('lb')) {
+                    // lb to kg: 1 lb = 0.453592 kg
+                    convertedValue = value * 0.453592;
+                    convertedUnit = unit.replace(/lb/i, 'kg');
+                    conversionMultiplier = 0.453592;
+                } else if (unitLower.includes('qt')) {
+                    // qt to l: 1 qt = 0.946353 l
+                    convertedValue = value * 0.946353;
+                    convertedUnit = unit.replace(/qt/i, 'l');
+                    conversionMultiplier = 0.946353;
+                }
+            } else if (country === 'us') {
+                // Convert metric to imperial for US
+                if (unitLower.includes('ml')) {
+                    // ml to fl oz: 1 ml = 0.033814 fl oz
+                    convertedValue = value * 0.033814;
+                    convertedUnit = unit.replace(/ml/i, 'fl oz');
+                    conversionMultiplier = 0.033814;
+                } else if (unitLower.includes('g') && !unitLower.includes('kg')) {
+                    // g to oz: 1 g = 0.035274 oz
+                    convertedValue = value * 0.035274;
+                    convertedUnit = unit.replace(/g/i, 'oz');
+                    conversionMultiplier = 0.035274;
+                } else if (unitLower.includes('kg')) {
+                    // kg to lb: 1 kg = 2.20462 lb
+                    convertedValue = value * 2.20462;
+                    convertedUnit = unit.replace(/kg/i, 'lb');
+                    conversionMultiplier = 2.20462;
+                } else if (unitLower.includes('l') && !unitLower.includes('ml')) {
+                    // l to qt: 1 l = 1.05669 qt
+                    convertedValue = value * 1.05669;
+                    convertedUnit = unit.replace(/l/i, 'qt');
+                    conversionMultiplier = 1.05669;
+                }
+            }
+
+            return {
+                unit: convertedUnit,
+                value: convertedValue,
+                multiplier: conversionMultiplier
+            };
+        }
+
+        /**
          * Extract size from product title
          * @param {string} title - Product title
          * @returns {object|null} - Size object or null if not found
@@ -264,31 +336,31 @@
                 const match = title.match(pattern.regex);
                 
                 if (match) {
-                    const result = {
+                    let result = {
                         value: parseFloat(match[1]),
                         unit: pattern.unit,
                         multiplier: pattern.multiplier
                     };
                     
-                    // Only log successful extractions for eBay products
-                    if (title.includes('La Roche-Posay') || title.includes('150')) {
-                        logToServer('UNIT_PRICE_DEBUG: Size extracted', {
-                            title: title,
-                            extractedSize: result,
-                            matchedPattern: pattern.regex.toString()
-                        });
+                    // For skincare/beauty products, treat "oz" as "fl oz"
+                    if (result.unit === 'oz') {
+                        const skincareKeywords = ['cream', 'lotion', 'moisturizer', 'moisturising', 'moisturizing', 'serum', 'cleanser', 'toner', 'balm', 'gel', 'liquid', 'face', 'body', 'skin'];
+                        const titleLower = title.toLowerCase();
+                        
+                        if (skincareKeywords.some(keyword => titleLower.includes(keyword))) {
+                            result.unit = 'fl oz';
+                            
+
+                        }
                     }
+                    
+
                     
                     return result;
                 }
             }
             
-            // Only log failures for specific problematic products
-            if (title.includes('La Roche-Posay') || title.includes('150')) {
-                logToServer('UNIT_PRICE_DEBUG: No size found in title', {
-                    title: title
-                });
-            }
+
             
             return null;
         }
@@ -299,44 +371,22 @@
          * @returns {Array} - Processed items
          */
         function processProductItems(items) {
-            console.log('🔥 PROCESS DEBUG: processProductItems called', {
-                totalItems: items.length,
-                ebayItems: items.filter(i => i.platform === 'ebay').length
-            });
+            // Get selected country for unit conversion
+            const selectedCountry = $('input[name="country"]:checked').val() || 'us';
             
             // First, check if most Amazon products have unit prices
             const amazonProducts = items.filter(item => item.platform === 'amazon');
             const shouldCalculateUnitPrices = amazonProducts.length === 0 || shouldDefaultToUnitPrice(amazonProducts);
             
-            console.log('🔥 PROCESS DEBUG: shouldCalculateUnitPrices', shouldCalculateUnitPrices);
-            
-            logToServer('UNIT_PRICE_DEBUG: processProductItems', {
-                totalItems: items.length,
-                ebayItems: items.filter(i => i.platform === 'ebay').length,
-                shouldCalculateUnitPrices: shouldCalculateUnitPrices
-            });
-            
             return items.map(function(item) {
                 const processedItem = {...item}; // Create a copy to avoid mutating the original
                 
-                // Log initial state for specific eBay products only
-                if (processedItem.platform === 'ebay' && (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150'))) {
-                    logToServer('UNIT_PRICE_DEBUG: eBay Product Initial State', {
-                        title: processedItem.title,
-                        price: processedItem.price,
-                        price_value: processedItem.price_value,
-                        unit: processedItem.unit,
-                        price_per_unit: processedItem.price_per_unit,
-                        price_per_unit_value: processedItem.price_per_unit_value
-                    });
-                }
+
                 
                 // Skip unit price handling if the backend already cleared the unit data
                 if (processedItem.unit === '' && processedItem.price_per_unit === '' && processedItem.price_per_unit_value === 0) {
                     if (processedItem.platform === 'ebay') {
-                        logToServer('Unit Price Processing: eBay Product - Backend cleared unit data, but continuing', {
-                            title: processedItem.title
-                        });
+
                     }
                     // Don't return early for eBay - we want to try calculating from title
                     if (processedItem.platform !== 'ebay') {
@@ -345,19 +395,52 @@
                 }
                 
                 // Check if we need to calculate unit price from title
-                let hasPricePerUnit = processedItem.unit && processedItem.unit !== 'N/A' && processedItem.unit !== 'unit';
-                let pricePerUnitValue = parseFloat(processedItem.price_per_unit) || 0;
+                let hasPricePerUnit = processedItem.unit && 
+                                    processedItem.unit !== 'N/A' && 
+                                    processedItem.unit !== 'unit' && 
+                                    processedItem.price_per_unit_value && 
+                                    parseFloat(processedItem.price_per_unit_value) > 0;
+                let pricePerUnitValue = parseFloat(processedItem.price_per_unit_value) || parseFloat(processedItem.price_per_unit) || 0;
+                let unitPriceWasCalculated = false; // Track if unit price was newly calculated
+                
+                // Apply unit conversion to existing unit data if applicable
+                if (hasPricePerUnit && processedItem.unit && pricePerUnitValue > 0) {
+                    const originalUnit = processedItem.unit;
+                    const extractedValue = parseFloat(processedItem.price_per_unit_value) || pricePerUnitValue;
+                    
+                    // Extract numeric value from unit display (e.g., "100 ml" -> 100)
+                    const unitMatch = originalUnit.match(/(\d+(?:\.\d+)?)\s*(.+)/);
+                    if (unitMatch) {
+                        const unitQuantity = parseFloat(unitMatch[1]);
+                        const unitType = unitMatch[2];
+                        
+                        // Convert the unit
+                        const converted = convertUnits(unitType, unitQuantity, selectedCountry);
+                        
+                        if (converted.multiplier !== 1) {
+                            // Update the unit display
+                            processedItem.unit = `${Math.round(converted.value)} ${converted.unit}`;
+                            
+                            // Recalculate price per unit value for the converted unit
+                            processedItem.price_per_unit_value = extractedValue / converted.multiplier;
+                            
+                            // Update the display string
+                            let currencySymbol = processedItem.price.match(/^(C \$|[^\d\s]+)/)?.[0] || '$';
+                            if (currencySymbol === 'C $') {
+                                currencySymbol = '$';
+                            }
+                            processedItem.price_per_unit = `${currencySymbol}${processedItem.price_per_unit_value.toFixed(2)}/${processedItem.unit}`;
+                            
+
+                        }
+                    }
+                }
                 
                 // If no price per unit or it's a placeholder, try to extract from title
                 // For non-Amazon platforms, only calculate if most Amazon products have unit prices
                 if (!hasPricePerUnit && processedItem.title && processedItem.price_value > 0) {
                     if (processedItem.platform === 'ebay') {
-                        logToServer('Unit Price Processing: eBay Product - Checking title extraction', {
-                            title: processedItem.title,
-                            hasPricePerUnit: hasPricePerUnit,
-                            shouldCalculateUnitPrices: shouldCalculateUnitPrices,
-                            willAttemptExtraction: processedItem.platform === 'amazon' || shouldCalculateUnitPrices
-                        });
+
                     }
                     
                     // For Amazon products, always try to calculate (existing behavior)
@@ -365,83 +448,74 @@
                     if (processedItem.platform === 'amazon' || shouldCalculateUnitPrices) {
                         const sizeInfo = extractSizeFromTitle(processedItem.title);
                         
-                        if (sizeInfo) {
-                            // Calculate price per unit based on extracted size
-                            // First, get the price per single unit (e.g., per 1ml)
-                            const pricePerSingleUnit = processedItem.price_value / sizeInfo.value;
+                                                if (sizeInfo) {
+                            // Apply unit conversion to extracted size data
+                            const originalSize = sizeInfo.value;
+                            const originalUnit = sizeInfo.unit;
+                            const converted = convertUnits(originalUnit, originalSize, selectedCountry);
                             
-                            // Then calculate the price per 100 units
-                            const normalizedPrice = pricePerSingleUnit * sizeInfo.multiplier;
+
                             
+                            // Calculate price per unit based on converted size
+                            const pricePerSingleUnit = processedItem.price_value / converted.value;
+                            
+                            // For US users with weight/volume units, show per single unit
+                            // For others, show per 100 units
+                            const displayMultiplier = (selectedCountry === 'US' && 
+                                                     (converted.unit === 'oz' || converted.unit === 'fl oz')) ? 1 : 100;
+                            const normalizedPrice = pricePerSingleUnit * displayMultiplier;
+                            
+
+                            
+
+                   
                             // Format for display with proper decimal places and currency
                             let currencySymbol = processedItem.price.match(/^(C \$|[^\d\s]+)/)?.[0] || '$';
                             // Clean up Canadian currency symbol from "C $" to just "$"
                             if (currencySymbol === 'C $') {
                                 currencySymbol = '$';
                             }
-                            const unitDisplay = sizeInfo.unit === 'ml' ? '100 ml' : 
-                                                sizeInfo.unit === 'g' ? '100 grams' : 
-                                                sizeInfo.unit === 'oz' ? '100 oz' : 
-                                                sizeInfo.unit === 'fl oz' ? '100 fl oz' : 
-                                                sizeInfo.unit === 'lb' ? 'lb' : 
-                                                sizeInfo.unit === 'kg' ? 'kg' : 
-                                                sizeInfo.unit === 'l' ? 'liter' : 
-                                                sizeInfo.unit;
+                            
+                            // Create unit display with converted units
+                            // For US users, show per single unit (oz, fl oz), for others show per 100 units
+                            const unitDisplay = selectedCountry === 'US' && converted.unit === 'oz' ? 'oz' :
+                                                selectedCountry === 'US' && converted.unit === 'fl oz' ? 'fl oz' :
+                                                converted.unit === 'ml' ? '100 ml' : 
+                                                converted.unit === 'g' ? '100 g' : 
+                                                converted.unit === 'oz' ? '100 oz' : 
+                                                converted.unit === 'fl oz' ? '100 fl oz' : 
+                                                converted.unit === 'lb' ? 'lb' : 
+                                                converted.unit === 'kg' ? 'kg' : 
+                                                converted.unit === 'l' ? 'liter' : 
+                                                converted.unit === 'qt' ? 'qt' : 
+                                                `100 ${converted.unit}`;
                             
                             processedItem.price_per_unit = `${currencySymbol}${normalizedPrice.toFixed(2)}/${unitDisplay}`;
                             processedItem.price_per_unit_value = normalizedPrice; // Update the value used for sorting
                             processedItem.unit = unitDisplay;
                             
-                            // Only log for specific products to debug
-                            if (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150')) {
-                                logToServer('UNIT_PRICE_DEBUG: Unit Price Calculated', {
-                                title: processedItem.title,
-                                extractedSize: sizeInfo.value + sizeInfo.unit,
-                                unitPrice: processedItem.price_per_unit,
-                                calculation: `${processedItem.price_value} ÷ ${sizeInfo.value} × ${sizeInfo.multiplier} = ${normalizedPrice.toFixed(2)}`
-                            });
-                            }
+
+                            
+
                             
                             pricePerUnitValue = normalizedPrice;
                             hasPricePerUnit = true;
-                        } else {
-                            logToServer('UNIT_PRICE_DEBUG: No size info found for product', {
-                                platform: processedItem.platform,
-                                title: processedItem.title
-                            });
+                            unitPriceWasCalculated = true; // Mark as newly calculated
                         }
-                    } else {
-                        logToServer('UNIT_PRICE_DEBUG: Skipping unit price calculation', {
-                            platform: processedItem.platform,
-                            title: processedItem.title,
-                            isAmazon: processedItem.platform === 'amazon',
-                            shouldCalculateUnitPrices: shouldCalculateUnitPrices
-                        });
                     }
                 }
 
                 // Normalize price per unit to 100 units
-                // Only normalize for Amazon products or when most Amazon products have unit prices
-                if (hasPricePerUnit && (processedItem.platform === 'amazon' || shouldCalculateUnitPrices)) {
-                    if (processedItem.platform === 'ebay') {
-                        logToServer('UNIT_PRICE_DEBUG: eBay Product - Entering normalization', {
-                            title: processedItem.title,
-                            hasPricePerUnit: hasPricePerUnit,
-                            unit: processedItem.unit,
-                            pricePerUnitValue: pricePerUnitValue
-                        });
-                    }
+                // Only normalize for products where unit pricing was newly calculated from title
+                // or when the existing unit price seems wrong (close to total price)
+                const totalPrice = parseFloat(processedItem.price_value) || 0;
+                const isUnreasonableUnitPrice = Math.abs(pricePerUnitValue - totalPrice) < (totalPrice * 0.1); // Within 10% of total price
+                
+                if (hasPricePerUnit && (unitPriceWasCalculated || isUnreasonableUnitPrice)) {
                     const unitLower = processedItem.unit.toLowerCase();
                     
-
-                    
-                    // Check if the price_per_unit_value seems unreasonable (likely the total price instead of per-unit)
-                    // If price_per_unit_value is close to the total price, it's probably wrong
-                    const totalPrice = parseFloat(processedItem.price_value) || 0;
-                    const isUnreasonableUnitPrice = Math.abs(pricePerUnitValue - totalPrice) < (totalPrice * 0.1); // Within 10% of total price
-                    
+                    // If unit price seems wrong (close to total price), try to recalculate from title
                     if (isUnreasonableUnitPrice && totalPrice > 0) {
-                        // Try to extract size from title to recalculate
                         const sizeInfo = extractSizeFromTitle(processedItem.title);
                         if (sizeInfo) {
                             // Recalculate the correct unit price
@@ -457,68 +531,100 @@
                         currencySymbol = '$';
                     }
                     
-                    // Check for known units that should be normalized to 100
+                    // Check for known units that should be normalized to 100, with unit conversion
                     if (unitLower === 'gram' || unitLower === 'grams' || unitLower === 'g') {
+                        // Convert grams based on country
+                        const converted = convertUnits('g', 100, selectedCountry);
+                        
                         // If unit is already "100 grams", don't multiply again
                         if (!unitLower.includes('100')) {
                             const normalizedValue = pricePerUnitValue * 100;
-                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 grams`;
-                            processedItem.price_per_unit_value = normalizedValue;
+                            processedItem.price_per_unit = `${currencySymbol}${(normalizedValue / converted.multiplier).toFixed(2)}/100 ${converted.unit}`;
+                            processedItem.price_per_unit_value = normalizedValue / converted.multiplier;
                         }
-                        processedItem.unit = '100 grams';
+                        processedItem.unit = `100 ${converted.unit}`;
                     } else if (unitLower === 'ml' || unitLower === 'milliliter' || unitLower === 'milliliters' || unitLower === 'millilitre' || unitLower === 'millilitres') {
+                        // Convert ml based on country
+                        const converted = convertUnits('ml', 100, selectedCountry);
+                        
                         // If unit is already "100 ml", don't multiply again
                         if (!unitLower.includes('100')) {
                             const normalizedValue = pricePerUnitValue * 100;
-                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 ml`;
-                            processedItem.price_per_unit_value = normalizedValue;
+                            processedItem.price_per_unit = `${currencySymbol}${(normalizedValue / converted.multiplier).toFixed(2)}/100 ${converted.unit}`;
+                            processedItem.price_per_unit_value = normalizedValue / converted.multiplier;
                         }
-                        processedItem.unit = '100 ml';
+                        processedItem.unit = `100 ${converted.unit}`;
                     } else if (unitLower === 'oz' || unitLower === 'ounce' || unitLower === 'ounces') {
-                        // If unit is already "100 oz", don't multiply again
-                        if (!unitLower.includes('100')) {
-                            const normalizedValue = pricePerUnitValue * 100;
-                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 oz`;
-                            processedItem.price_per_unit_value = normalizedValue;
+                        // Convert oz based on country
+                        const converted = convertUnits('oz', 1, selectedCountry);
+                        
+                        // For US users, show per single oz; for others, show per 100g
+                        if (selectedCountry === 'US') {
+                            // Keep as price per oz for US users
+                            processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/${converted.unit}`;
+                            processedItem.price_per_unit_value = pricePerUnitValue;
+                            processedItem.unit = converted.unit;
+                        } else {
+                            // Convert to price per 100g for non-US users
+                            if (!unitLower.includes('100')) {
+                                const normalizedValue = pricePerUnitValue * 100;
+                                const convertedNormalizedValue = normalizedValue / converted.multiplier;
+                                processedItem.price_per_unit = `${currencySymbol}${convertedNormalizedValue.toFixed(2)}/100 ${converted.unit}`;
+                                processedItem.price_per_unit_value = convertedNormalizedValue;
+                            }
+                            processedItem.unit = `100 ${converted.unit}`;
                         }
-                        processedItem.unit = '100 oz';
                     } else if (unitLower === 'fl oz') {
-                        // If unit is already "100 fl oz", don't multiply again
-                        if (!unitLower.includes('100')) {
-                            const normalizedValue = pricePerUnitValue * 100;
-                            processedItem.price_per_unit = `${currencySymbol}${normalizedValue.toFixed(2)}/100 fl oz`;
-                            processedItem.price_per_unit_value = normalizedValue;
-                        }
-                        processedItem.unit = '100 fl oz';
-                    } else if (unitLower === 'lb' || unitLower === 'lbs' || unitLower === 'pound' || unitLower === 'pounds') {
-                        // Don't normalize pounds - keep as per pound
-                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/lb`;
-                        processedItem.price_per_unit_value = pricePerUnitValue;
-                        processedItem.unit = 'lb';
-                    } else if (unitLower === 'kg' || unitLower === 'kilogram' || unitLower === 'kilograms') {
-                        // Don't normalize kilograms - keep as per kg
-                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/kg`;
-                        processedItem.price_per_unit_value = pricePerUnitValue;
-                        processedItem.unit = 'kg';
-                    } else if (unitLower === 'l' || unitLower === 'liter' || unitLower === 'liters' || unitLower === 'litre' || unitLower === 'litres') {
-                        // Don't normalize liters - keep as per liter
-                        processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/liter`;
-                        processedItem.price_per_unit_value = pricePerUnitValue;
-                        processedItem.unit = 'liter';
-                    }
-                    
+                        // Convert fl oz based on country
+                        const converted = convertUnits('fl oz', 1, selectedCountry);
+                        
 
+                        
+                        // For US users, show per single fl oz; for others, show per 100ml
+                        if (selectedCountry === 'US') {
+                            // Keep as price per fl oz for US users
+                            processedItem.price_per_unit = `${currencySymbol}${pricePerUnitValue.toFixed(2)}/${converted.unit}`;
+                            processedItem.price_per_unit_value = pricePerUnitValue;
+                            processedItem.unit = converted.unit;
+                        } else {
+                            // Convert to price per 100ml for non-US users
+                            if (!unitLower.includes('100')) {
+                                const normalizedValue = pricePerUnitValue * 100;
+                                const convertedNormalizedValue = normalizedValue / converted.multiplier;
+                                processedItem.price_per_unit = `${currencySymbol}${convertedNormalizedValue.toFixed(2)}/100 ${converted.unit}`;
+                                processedItem.price_per_unit_value = convertedNormalizedValue;
+                                
+
+                            }
+                            processedItem.unit = `100 ${converted.unit}`;
+                        }
+                    } else if (unitLower === 'lb' || unitLower === 'lbs' || unitLower === 'pound' || unitLower === 'pounds') {
+                        // Convert lb based on country
+                        const converted = convertUnits('lb', 1, selectedCountry);
+                        
+                        processedItem.price_per_unit = `${currencySymbol}${(pricePerUnitValue / converted.multiplier).toFixed(2)}/${converted.unit}`;
+                        processedItem.price_per_unit_value = pricePerUnitValue / converted.multiplier;
+                        processedItem.unit = converted.unit;
+                    } else if (unitLower === 'kg' || unitLower === 'kilogram' || unitLower === 'kilograms') {
+                        // Convert kg based on country
+                        const converted = convertUnits('kg', 1, selectedCountry);
+                        
+                        processedItem.price_per_unit = `${currencySymbol}${(pricePerUnitValue / converted.multiplier).toFixed(2)}/${converted.unit}`;
+                        processedItem.price_per_unit_value = pricePerUnitValue / converted.multiplier;
+                        processedItem.unit = converted.unit;
+                    } else if (unitLower === 'l' || unitLower === 'liter' || unitLower === 'liters' || unitLower === 'litre' || unitLower === 'litres') {
+                        // Convert l based on country
+                        const converted = convertUnits('l', 1, selectedCountry);
+                        
+                        processedItem.price_per_unit = `${currencySymbol}${(pricePerUnitValue / converted.multiplier).toFixed(2)}/${converted.unit}`;
+                        processedItem.price_per_unit_value = pricePerUnitValue / converted.multiplier;
+                        processedItem.unit = converted.unit;
+                    }
+                } else if (hasPricePerUnit && processedItem.platform === 'amazon') {
+                    // Amazon product with existing valid unit pricing - skip normalization
                 }
                 
-                // Log final state for specific eBay products only
-                if (processedItem.platform === 'ebay' && (processedItem.title.includes('La Roche-Posay') || processedItem.title.includes('150'))) {
-                    logToServer('UNIT_PRICE_DEBUG: eBay Product Final State', {
-                        title: processedItem.title,
-                        price_per_unit: processedItem.price_per_unit,
-                        unit: processedItem.unit,
-                        price_per_unit_value: processedItem.price_per_unit_value
-                    });
-                }
+
 
                 return processedItem;
             });
@@ -531,13 +637,6 @@
          * @returns {Array} - Sorted items
          */
         function sortProducts(items, sortBy) {
-            console.log('🔥 SORT DEBUG: sortProducts called', {
-                itemCount: items.length,
-                sortBy: sortBy,
-                ebayItems: items.filter(i => i.platform === 'ebay').length,
-                isApplyingSavedSorting: window.isApplyingSavedSorting
-            });
-            
             // Process items for unit prices before sorting
             const processedItems = processProductItems(items);
             const sortedItems = [...processedItems]; // Create a copy to avoid mutating the original
@@ -551,21 +650,6 @@
                 });
 
             } else if (sortBy === 'price_per_unit') {
-                console.log('🔥 SORT DEBUG: price_per_unit sorting triggered');
-                
-                // DEBUG: Log the structure of the first few items to understand what fields are available
-                const firstFewItems = sortedItems.slice(0, 3);
-                console.log('🔥 DEBUG: First 3 items structure:', firstFewItems.map(item => ({
-                    title: item.title ? item.title.substring(0, 50) + '...' : 'NO TITLE',
-                    price: item.price,
-                    price_value: item.price_value,
-                    price_per_unit: item.price_per_unit,
-                    price_per_unit_value: item.price_per_unit_value,
-                    unit: item.unit,
-                    platform: item.platform,
-                    allKeys: Object.keys(item)
-                })));
-                
                 // Separate products with and without unit prices
                 const itemsWithUnitPrice = [];
                 const itemsWithoutUnitPrice = [];
@@ -579,41 +663,11 @@
                         item.price_per_unit !== '' &&
                         item.price_per_unit !== 'N/A';
                     
-                    // Only log for specific eBay products to debug
-                    if (item.platform === 'ebay' && (item.title.includes('La Roche-Posay') || item.title.includes('150'))) {
-                        logToServer('UNIT_PRICE_DEBUG: Categorizing eBay item for sorting', {
-                            title: item.title,
-                            price_per_unit: item.price_per_unit,
-                            price_per_unit_value: item.price_per_unit_value,
-                            unit: item.unit,
-                            hasValidUnitPrice: hasValidUnitPrice,
-                            category: hasValidUnitPrice ? 'WITH_UNIT_PRICE' : 'WITHOUT_UNIT_PRICE'
-                        });
-                    }
-                    
                     if (hasValidUnitPrice) {
                         itemsWithUnitPrice.push(item);
                     } else {
                         itemsWithoutUnitPrice.push(item);
                     }
-                });
-                
-                // Log actual unit price values for debugging
-                const sampleUnitPrices = itemsWithUnitPrice.slice(0, 5).map(item => ({
-                    title: item.title.substring(0, 50) + '...',
-                    price_per_unit: item.price_per_unit,
-                    price_per_unit_value: item.price_per_unit_value,
-                    unit: item.unit,
-                    platform: item.platform
-                }));
-                
-                console.log('🔥 UNIT PRICE DEBUG: Sample unit prices before sorting', sampleUnitPrices);
-                
-                logToServer('UNIT_PRICE_DEBUG: Sorting result', {
-                    itemsWithUnitPrice: itemsWithUnitPrice.length,
-                    itemsWithoutUnitPrice: itemsWithoutUnitPrice.length,
-                    ebayItemsWithUnitPrice: itemsWithUnitPrice.filter(i => i.platform === 'ebay').length,
-                    sampleUnitPrices: sampleUnitPrices
                 });
                 
                 // Sort products with unit prices by unit price
@@ -622,17 +676,6 @@
                     const priceB = parseFloat(b.price_per_unit_value) || 0;
                     return priceA - priceB;
                 });
-                
-                // Log sorted unit prices to verify sorting worked
-                const sortedSampleUnitPrices = itemsWithUnitPrice.slice(0, 5).map(item => ({
-                    title: item.title.substring(0, 50) + '...',
-                    price_per_unit: item.price_per_unit,
-                    price_per_unit_value: item.price_per_unit_value,
-                    unit: item.unit,
-                    platform: item.platform
-                }));
-                
-                console.log('🔥 UNIT PRICE DEBUG: Sample unit prices AFTER sorting', sortedSampleUnitPrices);
                 
                 // Sort products without unit prices by regular price
                 itemsWithoutUnitPrice.sort(function(a, b) {
@@ -1540,6 +1583,44 @@
         }
         
         /**
+         * Helper function to handle conditional template blocks
+         * @param {string} html - HTML template string
+         * @param {string} blockName - Name of the conditional block
+         * @param {boolean} condition - Whether to show or remove the block
+         */
+        function processConditionalBlock(html, blockName, condition) {
+            if (condition) {
+                return html.replace(new RegExp(`{{#if ${blockName}}}([\\s\\S]*?){{\/if}}`, 'g'), '$1');
+            } else {
+                return html.replace(new RegExp(`{{#if ${blockName}}}[\\s\\S]*?{{\/if}}`, 'g'), '');
+            }
+        }
+
+        /**
+         * Replace multiple template placeholders at once
+         * @param {string} html - HTML template string
+         * @param {Object} replacements - Object with placeholder-value pairs
+         */
+        function replaceTemplatePlaceholders(html, replacements) {
+            let result = html;
+            for (const [placeholder, value] of Object.entries(replacements)) {
+                result = result.replace(new RegExp(`{{${placeholder}}}`, 'g'), value || '');
+            }
+            return result;
+        }
+
+        /**
+         * Clean up any remaining template syntax
+         * @param {string} html - HTML template string
+         */
+        function cleanupTemplateSyntax(html) {
+            return html
+                .replace(/{{\/if}}/g, '')
+                .replace(/{{else}}/g, '')
+                .replace(/{{#if[^}]*}}/g, '');
+        }
+
+        /**
          * Render product items to the results container
          * @param {Array} items - Array of processed product items
          */
@@ -1589,26 +1670,20 @@
             
             // Items are already processed in sortProducts function, so we can render them directly
             
-            items.forEach(function(item) {
+            items.forEach(function(item, index) {
                 let productHtml = productTemplate;
+                
+                // Check for rating to handle layout consistently
+                const hasRating = !!(item.rating);
                 
                 // eBay debug logging removed
                 
-                // Handle platform conditional
-                if (item.platform) {
-                    productHtml = productHtml.replace(/{{#if platform}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if platform}}[\s\S]*?{{\/if}}/g, '');
-                }
-
-                // Handle brand conditional
-                if (item.brand) {
-                    productHtml = productHtml.replace(/{{#if brand}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if brand}}[\s\S]*?{{\/if}}/g, '');
-                }
+                // Handle platform and brand conditionals using helper function
+                productHtml = processConditionalBlock(productHtml, 'platform', !!item.platform);
+                productHtml = processConditionalBlock(productHtml, 'brand', !!item.brand);
 
                 // Handle the entire rating section as one atomic operation
+                
                 if (item.rating) {
                     if (item.is_ebay_seller_rating) {
                         // eBay debug removed
@@ -1631,231 +1706,58 @@
                             '<div class="ps-product-rating-inline"><a href="{{rating_link}}" target="_blank">$1</a></div>'
                         );
                     }
+                    
+
                 } else {
-                    // For items without ratings, remove the entire rating section
+                    // For items without ratings, remove only the rating content but keep the container
+                    // Remove only the rating content, leaving the ps-product-rating-container empty
                     productHtml = productHtml.replace(
                         /{{#if rating}}[\s\S]*?{{\/if}}/g,
                         ''
                     );
                 }
                 
-                // Handle rating_number conditional (inside rating conditional)
-                if (item.rating && item.rating_number && !item.is_ebay_seller_rating) {
-                    productHtml = productHtml.replace(/{{#if rating_number}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if rating_number}}[\s\S]*?{{\/if}}/g, '');
-                    productHtml = productHtml.replace(/{{rating_number}}/g, '');
+                // Handle remaining conditionals using helper function
+                const hasRatingNumber = item.rating && item.rating_number && !item.is_ebay_seller_rating;
+                productHtml = processConditionalBlock(productHtml, 'rating_number', hasRatingNumber);
+                if (!hasRatingNumber) {
+                    productHtml = productHtml.replace(/{{rating_number}}/g, ''); // Clean up placeholder
                 }
-
-                // Handle rating count conditional
-                if (item.rating_count) {
-                    productHtml = productHtml.replace(/{{#if rating_count}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if rating_count}}[\s\S]*?{{\/if}}/g, '');
-                }
+                
+                productHtml = processConditionalBlock(productHtml, 'rating_count', !!item.rating_count);
                 
                 // Handle price per unit conditional - only show if unit price exists AND unit is not blank
-                if (item.price_per_unit && item.unit && item.unit.trim() !== '') {
-                    productHtml = productHtml.replace(/{{#if price_per_unit}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if price_per_unit}}[\s\S]*?{{\/if}}/g, '');
-                }
+                const hasPricePerUnit = item.price_per_unit && item.unit && item.unit.trim() !== '';
+                productHtml = processConditionalBlock(productHtml, 'price_per_unit', hasPricePerUnit);
                 
-                // Handle delivery time conditional
-                if (item.delivery_time) {
-                    productHtml = productHtml.replace(/{{#if delivery_time}}([\s\S]*?){{\/if}}/g, '$1');
-                } else {
-                    productHtml = productHtml.replace(/{{#if delivery_time}}[\s\S]*?{{\/if}}/g, '');
-                }
+                productHtml = processConditionalBlock(productHtml, 'delivery_time', !!item.delivery_time);
                 
-                // Replace standard placeholders
-                // eBay debug removed
+                // Replace all template placeholders using helper function
+                productHtml = replaceTemplatePlaceholders(productHtml, {
+                    platform: item.platform,
+                    brand: item.brand,
+                    title: item.title,
+                    link: item.link,
+                    image: item.image,
+                    price: item.price,
+                    price_per_unit: item.price_per_unit,
+                    unit: item.unit,
+                    rating: item.rating,
+                    rating_number: item.rating_number,
+                    rating_count: item.rating_count,
+                    rating_link: item.rating_link || item.link || '#',
+                    delivery_time: item.delivery_time
+                });
                 
-                productHtml = productHtml
-                    .replace(/{{platform}}/g, item.platform || '')
-                    .replace(/{{brand}}/g, item.brand || '')
-                    .replace(/{{title}}/g, item.title || '')
-                    .replace(/{{link}}/g, item.link || '')
-                    .replace(/{{image}}/g, item.image || '')
-                    .replace(/{{price}}/g, item.price || '')
-                    .replace(/{{price_per_unit}}/g, item.price_per_unit || '')
-                    .replace(/{{unit}}/g, item.unit || '')
-                    .replace(/{{rating}}/g, item.rating || '');
+                // Clean up any remaining template syntax
+                productHtml = cleanupTemplateSyntax(productHtml);
                 
-                // eBay debug removed
-                    
-                if (item.rating_number) {
-                    productHtml = productHtml.replace(/{{rating_number}}/g, item.rating_number);
-                }
-                if (item.rating_count) {
-                    productHtml = productHtml.replace(/{{rating_count}}/g, item.rating_count);
-                }
-                if (item.rating_link) {
-                    productHtml = productHtml.replace(/{{rating_link}}/g, item.rating_link);
-                } else {
-                    // Fallback: use product link or # for rating link
-                    productHtml = productHtml.replace(/{{rating_link}}/g, item.link || '#');
-                }
-                
-                // Replace delivery time if it exists
-                if (item.delivery_time) {
-                    productHtml = productHtml.replace(/{{delivery_time}}/g, item.delivery_time);
-                }
-                
-                // Remove any remaining template syntax that might have been left behind
-                productHtml = productHtml.replace(/{{\/if}}/g, '');
-                productHtml = productHtml.replace(/{{else}}/g, '');
-                productHtml = productHtml.replace(/{{#if[^}]*}}/g, '');
+
                 
                 $results.append(productHtml);
             });
 
-            // Add styles for the new layout if not already added
-            if (!$('style#ps-product-layout-styles').length) {
-                $('head').append(`
-                    <style id="ps-product-layout-styles">
-                        .ps-product {
-                            display: flex; /* Use flexbox for layout */
-                            border: 1px solid #ddd;
-                            border-radius: 5px;
-                            overflow: hidden;
-                            background: white;
-                            transition: transform 0.2s, box-shadow 0.2s;
-                            margin-bottom: 15px; /* Add some space between products */
-                        }
-                        .ps-product:hover {
-                            transform: translateY(-3px);
-                            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                        }
-                        .ps-product-image-container {
-                            flex: 0 0 25%; /* Image container takes 25% width */
-                            padding: 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .ps-product-image-tag {
-                            max-width: 100%;
-                            max-height: 150px; /* Control max image height */
-                            object-fit: contain;
-                        }
-                        .ps-product-info {
-                            flex: 1; /* Info takes remaining space */
-                            padding: 15px;
-                            display: flex;
-                            flex-direction: column;
-                        }
 
-                        .ps-product-title {
-                            font-size: 0.85em; /* Reduced font size */
-                            line-height: 1.3;
-                            margin: 0 0 4px 0;
-                            order: 2;
-                            /* Removed fixed height and line clamping for more flexibility */
-                        }
-                        .ps-product-title a {
-                            color: #333;
-                            text-decoration: none;
-                        }
-                        .ps-product-title a:hover {
-                            color: #4CAF50;
-                        }
-
-
-                        /* Ensure the grid layout is removed or adjusted if it conflicts */
-                        .ps-results-grid {
-                           display: block; /* Override grid if it was set */
-                        }
-                        /* Animation for refreshed content after load more */
-                        .ps-refreshed-content {
-                            animation: ps-content-refresh 0.5s ease-in-out;
-                        }
-                        @keyframes ps-content-refresh {
-                            0% { opacity: 0.7; transform: translateY(-5px); }
-                            100% { opacity: 1; transform: translateY(0); }
-                        }
-                        
-                        /* Button-style delivery filter elements */
-                        .ps-delivery-all-button,
-                        .ps-delivery-date-button {
-                            border: 1px solid #ccc;
-                            background-color: #fff;
-                            color: #333;
-                            padding: 6px 12px;
-                            margin: 2px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            font-size: 14px;
-                            min-width: 120px;
-                            text-align: center;
-                            transition: all 0.2s ease;
-                            white-space: nowrap;
-                        }
-                        
-                        .ps-delivery-all-button:hover,
-                        .ps-delivery-date-button:hover {
-                            border-color: #999;
-                            background-color: #f8f8f8;
-                        }
-                        
-                        .ps-delivery-all-button[data-selected="true"],
-                        .ps-delivery-date-button[data-selected="true"] {
-                            background-color: #4CAF50 !important;
-                            border-color: #4CAF50 !important;
-                            color: white !important;
-                        }
-                        
-                        .ps-delivery-all-button[data-selected="true"]:hover,
-                        .ps-delivery-date-button[data-selected="true"]:hover {
-                            background-color: #45a049 !important;
-                            border-color: #45a049 !important;
-                        }
-                        
-                        /* Ultra-specific selectors to override any dark theme */
-                        html body .ps-delivery-dropdown-content .ps-delivery-date-button[data-selected="true"] {
-                            background-color: #4CAF50 !important;
-                            border-color: #4CAF50 !important;
-                            color: white !important;
-                            background-image: none !important;
-                        }
-                        
-                        html body .ps-delivery-header-controls .ps-delivery-all-button[data-selected="true"] {
-                            background-color: #4CAF50 !important;
-                            border-color: #4CAF50 !important;
-                            color: white !important;
-                            background-image: none !important;
-                        }
-                        
-                        /* Class-based approach as backup */
-                        .ps-delivery-date-button.ps-selected {
-                            background-color: #4CAF50 !important;
-                            border-color: #4CAF50 !important;
-                            color: white !important;
-                            background-image: none !important;
-                        }
-                        
-                        .ps-delivery-all-button.ps-selected {
-                            background-color: #4CAF50 !important;
-                            border-color: #4CAF50 !important;
-                            color: white !important;
-                            background-image: none !important;
-                        }
-                        
-                        /* Container styling */
-                        .ps-delivery-dates-container {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 2px;
-                            padding: 8px;
-                        }
-                        
-                        .ps-delivery-header-controls {
-                            display: flex;
-                            align-items: center;
-                        }
-                    </style>
-                `);
-            }
         }
         
         // Handle sort change (re-sort current results)
