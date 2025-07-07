@@ -464,12 +464,13 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
+    flex-wrap: wrap; /* Allow wrapping if rating is too long */
 }
 
 .ps-product-rating-container {
-    min-height: 20px; /* Maintain consistent height even when empty */
     display: flex;
     align-items: center;
+    margin-top: 2px; /* Small spacing from price row */
 }
 
 .ps-product-rating-inline {
@@ -508,6 +509,21 @@
     font-size: 14px;
     color: #555;
     margin-top: 2px;
+    white-space: pre-line; /* Preserve newline characters */
+}
+
+/* Amazon rating inline with price styling */
+.ps-amazon-rating-inline {
+    margin-left: 12px;
+    font-size: 14px;
+}
+
+.ps-amazon-rating-inline a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* Responsive Adjustments */
@@ -550,16 +566,30 @@
     }
     
     .ps-product {
-        flex-direction: column; /* Stack image and info vertically on mobile */
+        /* Keep side-by-side layout like desktop */
     }
     
     .ps-product-image-container {
-        flex: none; /* Remove flex properties on mobile */
-        padding: 15px;
+        flex: 0 0 30%; /* Image container takes 30% width on mobile */
+        padding: 8px;
     }
     
     .ps-product-image-tag {
-        max-height: 200px; /* Slightly larger on mobile */
+        max-height: 120px; /* Smaller image on mobile to fit better */
+    }
+    
+    .ps-product-info {
+        padding: 10px; /* Reduce padding on mobile for more space */
+    }
+    
+    /* Mobile adjustments for Amazon rating inline */
+    .ps-amazon-rating-inline {
+        margin-left: 8px; /* Reduce margin on mobile */
+        font-size: 13px; /* Slightly smaller on mobile */
+    }
+    
+    .ps-product-price-row {
+        gap: 6px; /* Reduce gap on mobile */
     }
     
 

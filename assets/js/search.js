@@ -961,100 +961,104 @@
         }
 
         /**
-         * Extract distinct delivery dates from product items
-         * @param {Array} items - Array of product items
-         * @returns {Array} - Array of unique delivery date strings
+         * Parse and clean a date string to extract date components
+         * @param {string} dateString - Original date string (may contain cost info)
+         * @returns {object} - Object with parsed date components
          */
-        function extractDeliveryDates(items) {
-            if (!items || !Array.isArray(items)) return [];
+        function parseAndCleanDateString(dateString) {
+            let parsedDate = null;
+            let dayNumber = null;
+            let monthNumber = null;
             
-            const deliveryDates = new Set();
+            // First, clean the date string to remove cost information and extract actual date
+            let cleanDateString = dateString;
             
-            items.forEach(item => {
-                if (item.delivery_time) {
-                    // Extract delivery dates from delivery_time text
-                    const deliveryText = item.delivery_time;
-                    
-                    // Look for date patterns like "Monday, Dec 2", "Tuesday, Dec 3", etc.
-                    const dateMatches = deliveryText.match(/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*,?\s+[A-Z][a-z]{2,8}\s+\d{1,2}\b/g);
-                    
-                    if (dateMatches) {
-                        dateMatches.forEach(date => {
-                            // Clean up the date string
-                            const cleanDate = date.replace(/^,?\s*/, '').replace(/,?\s*$/, '');
-                            deliveryDates.add(cleanDate);
-                        });
-                    } else {
-                        // If no specific date pattern found, add the full delivery text as an option
-                        const cleanDeliveryText = deliveryText.trim().split('\n')[0]; // Take first line only
-                        if (cleanDeliveryText && cleanDeliveryText !== 'N/A') {
-                            deliveryDates.add(cleanDeliveryText);
-                        }
+            // Remove cost information (dollar amounts)
+            cleanDateString = cleanDateString.replace(/\$[\d.,]+\s*/g, '');
+            
+            // Remove words like "delivery" that aren't dates
+            cleanDateString = cleanDateString.replace(/\b(delivery|shipping)\b/gi, '');
+            
+            // Extract month name and convert to number
+            const monthNames = {
+                'jan': 1, 'january': 1,
+                'feb': 2, 'february': 2,
+                'mar': 3, 'march': 3,
+                'apr': 4, 'april': 4,
+                'may': 5,
+                'jun': 6, 'june': 6,
+                'jul': 7, 'july': 7,
+                'aug': 8, 'august': 8,
+                'sep': 9, 'september': 9,
+                'oct': 10, 'october': 10,
+                'nov': 11, 'november': 11,
+                'dec': 12, 'december': 12
+            };
+            
+            // Find month name first
+            for (const [monthName, monthNum] of Object.entries(monthNames)) {
+                if (cleanDateString.toLowerCase().includes(monthName)) {
+                    monthNumber = monthNum;
+                    break;
+                }
+            }
+            
+            // If we found a month, look for the day number near it
+            if (monthNumber !== null) {
+                // Look for month followed by day pattern (e.g., "Jul 11" or "July 11")
+                const monthName = Object.keys(monthNames).find(name => 
+                    monthNames[name] === monthNumber && cleanDateString.toLowerCase().includes(name)
+                );
+                
+                if (monthName) {
+                    // Find day number after the month name
+                    const monthIndex = cleanDateString.toLowerCase().indexOf(monthName);
+                    const afterMonth = cleanDateString.substring(monthIndex + monthName.length);
+                    const dayMatch = afterMonth.match(/\s*(\d{1,2})/);
+                    if (dayMatch) {
+                        dayNumber = parseInt(dayMatch[1]);
                     }
                 }
-            });
+            }
             
-            const uniqueDates = Array.from(deliveryDates);
-            
-            // Sort dates by actual date values
-            const dateObjects = uniqueDates.map(dateString => {
-                let parsedDate = null;
-                let dayNumber = null;
-                let monthNumber = null;
-                
-                // Extract day and month from date string (e.g., "Monday, Dec 2" -> day: 2, month: 12)
-                const dayMatch = dateString.match(/\b(\d{1,2})\b/);
+            // Fallback: if no month-day pattern found, just get the first number
+            if (dayNumber === null) {
+                const dayMatch = cleanDateString.match(/\b(\d{1,2})\b/);
                 if (dayMatch) {
                     dayNumber = parseInt(dayMatch[1]);
-                    
-                    // Extract month name and convert to number
-                    const monthNames = {
-                        'jan': 1, 'january': 1,
-                        'feb': 2, 'february': 2,
-                        'mar': 3, 'march': 3,
-                        'apr': 4, 'april': 4,
-                        'may': 5,
-                        'jun': 6, 'june': 6,
-                        'jul': 7, 'july': 7,
-                        'aug': 8, 'august': 8,
-                        'sep': 9, 'september': 9,
-                        'oct': 10, 'october': 10,
-                        'nov': 11, 'november': 11,
-                        'dec': 12, 'december': 12
-                    };
-                    
-                    for (const [monthName, monthNum] of Object.entries(monthNames)) {
-                        if (dateString.toLowerCase().includes(monthName)) {
-                            monthNumber = monthNum;
-                            break;
-                        }
-                    }
-                    
-                    // Try to create a proper date object for this year
-                    if (monthNumber !== null) {
-                        const currentYear = new Date().getFullYear();
-                        try {
-                            parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
-                            
-                            // If the created date is in the past, assume it's for next year
-                            const now = new Date();
-                            if (parsedDate < now) {
-                                parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
-                            }
-                        } catch (e) {
-                            parsedDate = null;
-                        }
-                    }
                 }
-                
-                return {
-                    original: dateString,
-                    parsedDate: parsedDate,
-                    dayNumber: dayNumber,
-                    monthNumber: monthNumber
-                };
-            });
+            }
             
+            // Try to create a proper date object for this year
+            if (monthNumber !== null && dayNumber !== null) {
+                const currentYear = new Date().getFullYear();
+                try {
+                    parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
+                    
+                    // If the created date is in the past, assume it's for next year
+                    const now = new Date();
+                    if (parsedDate < now) {
+                        parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
+                    }
+                } catch (e) {
+                    parsedDate = null;
+                }
+            }
+
+            return {
+                original: dateString,
+                parsedDate: parsedDate,
+                dayNumber: dayNumber,
+                monthNumber: monthNumber
+            };
+        }
+        
+        /**
+         * Sort an array of date objects chronologically
+         * @param {Array} dateObjects - Array of date objects from parseAndCleanDateString
+         * @returns {Array} - Sorted array of original date strings
+         */
+        function sortDateObjects(dateObjects) {
             // Sort by parsed date first, then by month/day, then alphabetically
             dateObjects.sort((a, b) => {
                 // If both have parsed dates, sort by those
@@ -1092,6 +1096,47 @@
             
             // Extract the sorted original date strings
             return dateObjects.map(dateObj => dateObj.original);
+        }
+
+        /**
+         * Extract distinct delivery dates from product items
+         * @param {Array} items - Array of product items
+         * @returns {Array} - Array of unique delivery date strings
+         */
+        function extractDeliveryDates(items) {
+            if (!items || !Array.isArray(items)) return [];
+            
+            const deliveryDates = new Set();
+            
+            items.forEach(item => {
+                if (item.delivery_time) {
+                    // Extract delivery dates from delivery_time text
+                    const deliveryText = item.delivery_time;
+                    
+                    // Look for date patterns like "Monday, Dec 2", "Tuesday, Dec 3", etc.
+                    const dateMatches = deliveryText.match(/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*,?\s+[A-Z][a-z]{2,8}\s+\d{1,2}\b/g);
+                    
+                    if (dateMatches) {
+                        dateMatches.forEach(date => {
+                            // Clean up the date string
+                            const cleanDate = date.replace(/^,?\s*/, '').replace(/,?\s*$/, '');
+                            deliveryDates.add(cleanDate);
+                        });
+                    } else {
+                        // If no specific date pattern found, add the full delivery text as an option
+                        const cleanDeliveryText = deliveryText.trim().split('\n')[0]; // Take first line only
+                        if (cleanDeliveryText && cleanDeliveryText !== 'N/A') {
+                            deliveryDates.add(cleanDeliveryText);
+                        }
+                    }
+                }
+            });
+            
+            const uniqueDates = Array.from(deliveryDates);
+            
+            // Parse and sort dates using consolidated helper functions
+            const dateObjects = uniqueDates.map(parseAndCleanDateString);
+            return sortDateObjects(dateObjects);
         }
         
         /**
@@ -1132,101 +1177,9 @@
             // Remove duplicates and sort by date values
             const uniqueDates = [...new Set(allPlatformDates)];
             
-            // Sort the combined dates using the same logic as other functions
-            const dateObjects = uniqueDates.map(dateString => {
-                let parsedDate = null;
-                let dayNumber = null;
-                let monthNumber = null;
-                
-                // Extract day and month from date string (e.g., "Monday, Dec 2" -> day: 2, month: 12)
-                const dayMatch = dateString.match(/\b(\d{1,2})\b/);
-                if (dayMatch) {
-                    dayNumber = parseInt(dayMatch[1]);
-                    
-                    // Extract month name and convert to number
-                    const monthNames = {
-                        'jan': 1, 'january': 1,
-                        'feb': 2, 'february': 2,
-                        'mar': 3, 'march': 3,
-                        'apr': 4, 'april': 4,
-                        'may': 5,
-                        'jun': 6, 'june': 6,
-                        'jul': 7, 'july': 7,
-                        'aug': 8, 'august': 8,
-                        'sep': 9, 'september': 9,
-                        'oct': 10, 'october': 10,
-                        'nov': 11, 'november': 11,
-                        'dec': 12, 'december': 12
-                    };
-                    
-                    for (const [monthName, monthNum] of Object.entries(monthNames)) {
-                        if (dateString.toLowerCase().includes(monthName)) {
-                            monthNumber = monthNum;
-                            break;
-                        }
-                    }
-                    
-                    // Try to create a proper date object for this year
-                    if (monthNumber !== null) {
-                        const currentYear = new Date().getFullYear();
-                        try {
-                            parsedDate = new Date(currentYear, monthNumber - 1, dayNumber);
-                            
-                            // If the created date is in the past, assume it's for next year
-                            const now = new Date();
-                            if (parsedDate < now) {
-                                parsedDate = new Date(currentYear + 1, monthNumber - 1, dayNumber);
-                            }
-                        } catch (e) {
-                            parsedDate = null;
-                        }
-                    }
-                }
-                
-                return {
-                    original: dateString,
-                    parsedDate: parsedDate,
-                    dayNumber: dayNumber,
-                    monthNumber: monthNumber
-                };
-            });
-            
-            // Sort by parsed date first, then by month/day, then alphabetically
-            dateObjects.sort((a, b) => {
-                // If both have parsed dates, sort by those
-                if (a.parsedDate && b.parsedDate) {
-                    return a.parsedDate.getTime() - b.parsedDate.getTime();
-                }
-                
-                // If both have month and day numbers, sort by those
-                if (a.monthNumber !== null && b.monthNumber !== null && 
-                    a.dayNumber !== null && b.dayNumber !== null) {
-                    
-                    const monthDiff = a.monthNumber - b.monthNumber;
-                    if (monthDiff !== 0) {
-                        return monthDiff;
-                    }
-                    return a.dayNumber - b.dayNumber;
-                }
-                
-                // If both have day numbers only, sort by those
-                if (a.dayNumber !== null && b.dayNumber !== null) {
-                    return a.dayNumber - b.dayNumber;
-                }
-                
-                // If one has day number and other doesn't, prioritize the one with day number
-                if (a.dayNumber !== null && b.dayNumber === null) {
-                    return -1;
-                }
-                if (a.dayNumber === null && b.dayNumber !== null) {
-                    return 1;
-                }
-                
-                // Fallback to alphabetical sorting
-                return a.original.localeCompare(b.original);
-            });
-            
-            const sortedDates = dateObjects.map(dateObj => dateObj.original);
+            // Parse and sort dates using consolidated helper functions
+            const dateObjects = uniqueDates.map(parseAndCleanDateString);
+            const sortedDates = sortDateObjects(dateObjects);
             
             // Clear existing date options
             $deliveryDatesContainer.empty();
@@ -1682,40 +1635,7 @@
                 productHtml = processConditionalBlock(productHtml, 'platform', !!item.platform);
                 productHtml = processConditionalBlock(productHtml, 'brand', !!item.brand);
 
-                // Handle the entire rating section as one atomic operation
-                
-                if (item.rating) {
-                    if (item.is_ebay_seller_rating) {
-                        // eBay debug removed
-                        
-                        // For eBay seller ratings, replace the entire rating conditional block with just the eBay rating
-                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating-inline">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}[\s\S]*?{{\/if}}\s*<\/a>\s*<\/div>\s*{{\/if}}/g;
-                        
-                        productHtml = productHtml.replace(
-                            ratingPattern,
-                            '<div class="ps-product-rating-inline"><a href="{{rating_link}}" target="_blank"><span class="ps-stars ps-ebay-rating">{{rating}}</span></a></div>'
-                        );
-                        
-                        // eBay debug removed
-                    } else {
-                        // For regular Amazon ratings, replace with the Amazon section content
-                        const ratingPattern = /{{#if rating}}\s*<div class="ps-product-rating-inline">\s*<a href="{{rating_link}}" target="_blank">\s*{{#if is_ebay_seller_rating}}\s*<span class="ps-stars">{{rating}}<\/span>\s*{{else}}([\s\S]*?){{\/if}}\s*<\/a>\s*<\/div>\s*{{\/if}}/g;
-                        
-                        productHtml = productHtml.replace(
-                            ratingPattern,
-                            '<div class="ps-product-rating-inline"><a href="{{rating_link}}" target="_blank">$1</a></div>'
-                        );
-                    }
-                    
-
-                } else {
-                    // For items without ratings, remove only the rating content but keep the container
-                    // Remove only the rating content, leaving the ps-product-rating-container empty
-                    productHtml = productHtml.replace(
-                        /{{#if rating}}[\s\S]*?{{\/if}}/g,
-                        ''
-                    );
-                }
+                // Rating handling is now done through conditional blocks above
                 
                 // Handle remaining conditionals using helper function
                 const hasRatingNumber = item.rating && item.rating_number && !item.is_ebay_seller_rating;
@@ -1725,6 +1645,12 @@
                 }
                 
                 productHtml = processConditionalBlock(productHtml, 'rating_count', !!item.rating_count);
+                
+                // Handle Amazon vs eBay rating conditionals
+                const hasAmazonRating = item.rating && !item.is_ebay_seller_rating;
+                const hasEbayRating = item.rating && item.is_ebay_seller_rating;
+                productHtml = processConditionalBlock(productHtml, 'rating_amazon', hasAmazonRating);
+                productHtml = processConditionalBlock(productHtml, 'rating_ebay', hasEbayRating);
                 
                 // Handle price per unit conditional - only show if unit price exists AND unit is not blank
                 const hasPricePerUnit = item.price_per_unit && item.unit && item.unit.trim() !== '';

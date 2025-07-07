@@ -470,9 +470,18 @@ function ps_extract_platform_delivery_dates($items) {
             $day_number = null;
             $month_number = null;
             
-            // Extract day and month from date string (e.g., "Monday, Dec 2" or "Delivery Tomorrow, Jul 4")
+            // First, clean the date string to remove cost information and extract actual date
+            $clean_date_string = $date_string;
+            
+            // Remove cost information (dollar amounts)
+            $clean_date_string = preg_replace('/\$[\d.,]+\s*/', '', $clean_date_string);
+            
+            // Remove words like "delivery" that aren't dates
+            $clean_date_string = preg_replace('/\b(delivery|shipping)\b/i', '', $clean_date_string);
+            
+            // Extract day and month from clean date string (e.g., "Monday, Dec 2" or "Jul 11")
             // First try to find a month name followed by a day number pattern
-            if (preg_match('/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/', $date_string, $matches)) {
+            if (preg_match('/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/', $clean_date_string, $matches)) {
                 $month_text = $matches[1];
                 $day_number = intval($matches[2]);
                 
@@ -500,7 +509,7 @@ function ps_extract_platform_delivery_dates($items) {
                 }
             } else {
                 // Fallback: try to find any day number and month name separately
-                if (preg_match('/\b(\d{1,2})\b/', $date_string, $day_matches)) {
+                if (preg_match('/\b(\d{1,2})\b/', $clean_date_string, $day_matches)) {
                     $day_number = intval($day_matches[1]);
                     
                     // Extract month name and convert to number
@@ -520,7 +529,7 @@ function ps_extract_platform_delivery_dates($items) {
                     );
                     
                     foreach ($month_names as $month_name => $month_num) {
-                        if (stripos($date_string, $month_name) !== false) {
+                        if (stripos($clean_date_string, $month_name) !== false) {
                             $month_number = $month_num;
                             break;
                         }
@@ -529,7 +538,7 @@ function ps_extract_platform_delivery_dates($items) {
             }
                 
             // Try to create a proper date object for this year
-            if ($month_number !== null) {
+            if ($month_number !== null && $day_number !== null) {
                 $current_year = date('Y');
                 try {
                     $parsed_date = new DateTime();
