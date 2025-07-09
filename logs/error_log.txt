@@ -551,3 +551,55 @@
 [2025-07-07 20:40:53] Network detection: Main IP (192.157.119.203): PUBLIC
 [2025-07-07 20:40:53] Network detection: Identified as current network based on: ip_range
 [2025-07-07 20:40:53] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-08 04:57:07] Fetching search results from URL: https://www.amazon.ca/s?k=3%2F16+rivits
+[2025-07-08 04:57:07] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-08 04:57:07] Network detection: Current server IP: 184.151.230.61
+[2025-07-08 04:57:07] Network detection: IP range check (192.157.119.203): NO
+[2025-07-08 04:57:07] Network detection: Main IP (184.151.230.61): PUBLIC
+[2025-07-08 04:57:07] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-08 04:57:07] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-08 04:57:07] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=3%2F16+rivits
+[2025-07-08 04:57:07] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-08 04:57:08] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-08_04-57-08.html (Size: 1,326,151 bytes)
+[2025-07-08 04:57:17] Fetching search results from URL: https://www.amazon.ca/s?k=3%2F16+rivit
+[2025-07-08 04:57:17] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-08 04:57:17] Network detection: Current server IP: 184.151.230.61
+[2025-07-08 04:57:17] Network detection: IP range check (192.157.119.203): NO
+[2025-07-08 04:57:17] Network detection: Main IP (184.151.230.61): PUBLIC
+[2025-07-08 04:57:17] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-08 04:57:17] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-08 04:57:17] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=3%2F16+rivit
+[2025-07-08 04:57:17] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-08 04:57:18] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-08_04-57-18.html (Size: 1,428,189 bytes)
+[2025-07-08 19:20:49] Fetching search results from URL: https://www.amazon.ca/s?k=rtx+4090
+[2025-07-08 19:20:49] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-08 19:20:49] Network detection: Current server IP: 192.157.119.203
+[2025-07-08 19:20:49] Network detection: IP range check (192.157.119.203): YES
+[2025-07-08 19:20:49] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-08 19:20:49] Network detection: Identified as current network based on: ip_range
+[2025-07-08 19:20:49] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-08 19:20:49] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-08 19:20:49] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=rtx+4090
+[2025-07-08 19:20:49] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-08 19:20:49] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-08 19:20:49] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-08 19:20:49] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-08 19:20:49] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-08 19:20:49] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-08 19:20:50] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-08_19-20-50.html (Size: 1,375,843 bytes)
+[2025-07-09 17:35:24] Fetching search results from URL: https://www.amazon.ca/s?k=vertuo+pop
+[2025-07-09 17:35:24] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-09 17:35:24] Network detection: Current server IP: 192.157.119.203
+[2025-07-09 17:35:24] Network detection: IP range check (192.157.119.203): YES
+[2025-07-09 17:35:24] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-09 17:35:24] Network detection: Identified as current network based on: ip_range
+[2025-07-09 17:35:24] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-09 17:35:24] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-09 17:35:24] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=vertuo+pop
+[2025-07-09 17:35:24] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-09 17:35:24] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-09 17:35:24] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-09 17:35:24] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-09 17:35:24] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-09 17:35:24] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-09 17:35:26] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-09_17-35-26.html (Size: 1,731,195 bytes)

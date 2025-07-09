@@ -200,6 +200,32 @@ function ps_extract_amazon_unit_price($xpath, $element, $total_price, $context =
 }
 
 /**
+ * Detect the user's country from server variables or headers
+ * @return string 'us' or 'ca'
+ */
+if (!function_exists('ps_detect_user_country')) {
+    function ps_detect_user_country() {
+        $country = 'us'; // Default to US
+        $ip_address = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
+        if (isset($_SERVER['HTTP_CF_IPCOUNTRY']) && !empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
+            $detected_country = strtolower($_SERVER['HTTP_CF_IPCOUNTRY']);
+            if ($detected_country === 'ca') {
+                $country = 'ca';
+            }
+        } else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+            $langs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+            foreach ($langs as $lang) {
+                if (strpos(strtolower($lang), 'en-ca') !== false || strpos(strtolower($lang), 'fr-ca') !== false) {
+                    $country = 'ca';
+                    break;
+                }
+            }
+        }
+        return $country;
+    }
+}
+
+/**
  * Common product filtering logic
  * 
  * @param array $items Product items

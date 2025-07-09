@@ -9,34 +9,6 @@ if (!defined('ABSPATH')) {
 }
 
 // Try to detect the user's country from server side
-function ps_detect_user_country() {
-    $country = 'us'; // Default to US
-    
-    // Check if the country is in the $_SERVER variables
-    $ip_address = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
-    
-    // Try to use server headers if available (e.g., Cloudflare, etc.)
-    if (isset($_SERVER['HTTP_CF_IPCOUNTRY']) && !empty($_SERVER['HTTP_CF_IPCOUNTRY'])) {
-        $detected_country = strtolower($_SERVER['HTTP_CF_IPCOUNTRY']);
-        if ($detected_country === 'ca') {
-            $country = 'ca';
-        }
-    }
-    // Otherwise, check Accept-Language header
-    else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-        $langs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-        foreach ($langs as $lang) {
-            if (strpos(strtolower($lang), 'en-ca') !== false || strpos(strtolower($lang), 'fr-ca') !== false) {
-                $country = 'ca';
-                break;
-            }
-        }
-    }
-    
-    return $country;
-}
-
-// Get detected country
 $detected_country = ps_detect_user_country();
 
 // Check if we have cached data for this user

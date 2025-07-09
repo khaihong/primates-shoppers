@@ -750,6 +750,8 @@ function ps_fetch_ebay_search_results($url, $country = 'us') {
     ));
     
     // Use proxy if available (similar to Amazon implementation)
+    // TEMPORARILY DISABLED - proxy service stopped for eBay searches
+    /*
     if (ps_is_on_current_network()) {
         $proxy_config = ps_get_proxy_config();
         if ($proxy_config) {
@@ -758,6 +760,7 @@ function ps_fetch_ebay_search_results($url, $country = 'us') {
             curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
         }
     }
+    */
     
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

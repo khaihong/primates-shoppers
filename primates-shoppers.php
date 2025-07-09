@@ -160,9 +160,10 @@ function ps_force_update_db() {
  * Add admin handler for database update
  */
 add_action('admin_init', function() {
-    if (isset($_GET['action'])) {
+    // Only run these handlers on the plugin's settings page to prevent conflicts
+    if (isset($_GET['page']) && $_GET['page'] === 'primates-shoppers' && isset($_GET['action'])) {
         if ($_GET['action'] === 'ps_force_update_db') {
-        ps_force_update_db();
+            ps_force_update_db();
         } elseif ($_GET['action'] === 'ps_update_table_structure') {
             ps_update_table_structure();
         }
@@ -208,7 +209,15 @@ function ps_deactivate() {
  * This is a fallback for ps_activate() in case of manual plugin installation or other edge cases.
  */
 function ps_ensure_table_exists_on_load() {
-    ps_create_cache_table();
+    // Only run this on admin pages to reduce overhead and prevent issues
+    if (is_admin()) {
+        try {
+            ps_create_cache_table();
+        } catch (Exception $e) {
+            // Log the error but don't stop page execution
+            error_log('Primates Shoppers: Database table creation failed: ' . $e->getMessage());
+        }
+    }
 }
 add_action('plugins_loaded', 'ps_ensure_table_exists_on_load');
 
