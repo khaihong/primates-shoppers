@@ -197,6 +197,19 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                         </a>
                     </div>
                     {{/if}}
+                    {{#if rating_walmart}}
+                    <div class="ps-product-rating-inline ps-walmart-rating-inline">
+                        <a href="{{rating_link}}" target="_blank">
+                            {{#if rating_number}}
+                            <span class="ps-rating-number">{{rating_number}}</span>
+                            {{/if}}
+                            <span class="ps-stars">{{rating}}</span>
+                            {{#if rating_count}}
+                            <span class="ps-rating-count">({{rating_count}})</span>
+                            {{/if}}
+                        </a>
+                    </div>
+                    {{/if}}
                 </div>
                 {{#if rating_ebay}}
                 <div class="ps-product-rating-container">

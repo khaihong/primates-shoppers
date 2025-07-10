@@ -626,6 +626,13 @@
                 
 
 
+                // Normalize rating_number to 1 decimal for display
+                if (typeof processedItem.rating_number !== 'undefined' && processedItem.rating_number !== null && processedItem.rating_number !== '' && processedItem.rating_number !== 'N/A') {
+                    const ratingNum = parseFloat(processedItem.rating_number);
+                    if (!isNaN(ratingNum)) {
+                        processedItem.rating_number = ratingNum.toFixed(1);
+                    }
+                }
                 return processedItem;
             });
         }
@@ -1646,11 +1653,13 @@
                 
                 productHtml = processConditionalBlock(productHtml, 'rating_count', !!item.rating_count);
                 
-                // Handle Amazon vs eBay rating conditionals
-                const hasAmazonRating = item.rating && !item.is_ebay_seller_rating;
+                // Handle Amazon vs eBay vs Walmart rating conditionals
+                const hasAmazonRating = item.rating && !item.is_ebay_seller_rating && item.platform !== 'walmart';
                 const hasEbayRating = item.rating && item.is_ebay_seller_rating;
+                const hasWalmartRating = item.rating && item.platform === 'walmart';
                 productHtml = processConditionalBlock(productHtml, 'rating_amazon', hasAmazonRating);
                 productHtml = processConditionalBlock(productHtml, 'rating_ebay', hasEbayRating);
+                productHtml = processConditionalBlock(productHtml, 'rating_walmart', hasWalmartRating);
                 
                 // Handle price per unit conditional - only show if unit price exists AND unit is not blank
                 const hasPricePerUnit = item.price_per_unit && item.unit && item.unit.trim() !== '';
@@ -1874,44 +1883,43 @@
         // Handle Show All button click
         $showAllButton.on('click', function(e) {
             e.preventDefault();
-            
             // Reset the flag since showing all results should restore normal message behavior
             isAfterLiveSearch = false;
-            
             // Show that we're loading all cached results
             $loadingText.text('Loading all cached results...');
             $loading.show();
-            
             // Ensure all available platforms are selected first
             if (originalCachedResults.length > 0) {
                 autoDetectAndCheckPlatforms(originalCachedResults);
-                
-                // Show all results without any filtering - bypass the normal filter pipeline
-                // that might pick up residual search terms
                 setTimeout(function() {
-                    // Clear all filter fields AFTER bypassing filters
                     $('#ps-search-query').val('');
                     $('#ps-exclude-keywords').val('');
-                    $('#ps-min-rating').val('4.0');
-                    
-                    // Reset delivery filter to "All" to show all products
+                    $('#ps-min-rating').val('0'); // Set to All ratings
                     resetDeliveryFilterToAll();
-                    
+                    // --- Do NOT apply saved default sorting here ---
                     // Just apply sorting to all original cached results
                     const sortCriteria = $sortBy.val();
                     let allResults = [...originalCachedResults];
+                    // Ensure price_value is set for all products
+                    allResults.forEach(function(p) {
+                        if (typeof p.price_value === 'undefined' || isNaN(p.price_value)) {
+                            if (typeof p.price === 'string') {
+                                var match = p.price.match(/([0-9]+(?:\.[0-9]+)?)/);
+                                p.price_value = match ? parseFloat(match[1]) : 0;
+                            } else {
+                                p.price_value = 0;
+                            }
+                        }
+                    });
                     allResults = sortProducts(allResults, sortCriteria);
-                    
-                    // Update UI directly
+                    // Log the price order after sorting
+                    console.log('[Show All] Price order after sorting:', allResults.map(p => p.price_value + ' - ' + p.title));
                     currentSearchResults = allResults;
                     renderProducts(allResults);
-                    
-                    // Update results count
                     const totalCount = originalCachedResults.length;
                     if (!isAfterLiveSearch) {
                         $resultsCount.html('<p><strong>' + totalCount + '</strong> products.</p>').show();
                     }
-                    
                     $loading.hide();
                 }, 50);
             } else {
@@ -2127,13 +2135,15 @@
                         const hasAmazonPagination = paginationUrls && typeof paginationUrls === 'object' && 
                                                    (paginationUrls.page_2 || paginationUrls.page_3);
                         const hasEbay = platforms.includes('ebay');
-                        const loadMoreSupportedPlatforms = ['amazon', 'ebay'];
+                        const hasWalmart = platforms.includes('walmart');
+                        const loadMoreSupportedPlatforms = ['amazon', 'ebay', 'walmart'];
                         const hasLoadMoreCapablePlatforms = platforms.some(platform => loadMoreSupportedPlatforms.includes(platform));
-                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay);
+                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay || hasWalmart);
                         
                         logToServer('Load Cached Results: Load more capability check', {
                             hasAmazonPagination: hasAmazonPagination,
                             hasEbay: hasEbay,
+                            hasWalmart: hasWalmart,
                             hasLoadMoreCapability: hasLoadMoreCapability,
                             platforms: platforms,
                             paginationUrls: paginationUrls,
@@ -2434,6 +2444,33 @@
                     filter_cached: 'false'
                 },
                 success: function(response) {
+                    console.log('🔍 [Walmart/AJAX] Search response:', response);
+                    
+                    // Log debug info from platforms (especially Walmart)
+                    if (response.data && response.data.debug_info) {
+                        console.log('🔍 [Platform Debug Info]:', response.data.debug_info);
+                        
+                        // Show detailed breakdown for Walmart
+                        if (response.data.debug_info.walmart) {
+                            const walmart = response.data.debug_info.walmart;
+                                                         console.log('📊 [Walmart Analysis]:', {
+                                 'Total Results (Walmart)': walmart.total_results_walmart,
+                                 'Data-Item-ID Nodes': walmart.data_item_id_nodes,
+                                 'Fallback Nodes Found': walmart.fallback_nodes_found,
+                                 'Fallback Nodes Added': walmart.fallback_nodes_added,
+                                 'Total HTML Product Nodes': walmart.total_nodes_found,
+                                 'Products with Title': walmart.products_with_title,
+                                 'Products with Link': walmart.products_with_link,
+                                 'Products Included': walmart.products_included,
+                                 'Excluded (No Title)': walmart.products_excluded_no_title,
+                                 'Excluded (No Link)': walmart.products_excluded_no_link,
+                                 'Excluded (Duplicate)': walmart.products_excluded_duplicate,
+                                 'Unique Product IDs': walmart.unique_product_ids,
+                                 'Duplicate Product IDs': walmart.duplicate_product_ids,
+                                 'Explanation': walmart.explanation
+                             });
+                        }
+                    }
     
                     let products = [];
                     let baseItemsCount = 0;
@@ -2492,13 +2529,15 @@
                         const hasAmazonPagination = paginationUrls && typeof paginationUrls === 'object' && 
                                                    (paginationUrls.page_2 || paginationUrls.page_3);
                         const hasEbay = platforms.includes('ebay');
-                        const loadMoreSupportedPlatforms = ['amazon', 'ebay'];
+                        const hasWalmart = platforms.includes('walmart');
+                        const loadMoreSupportedPlatforms = ['amazon', 'ebay', 'walmart'];
                         const hasLoadMoreCapablePlatforms = platforms.some(platform => loadMoreSupportedPlatforms.includes(platform));
-                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay);
+                        const hasLoadMoreCapability = hasLoadMoreCapablePlatforms && (hasAmazonPagination || hasEbay || hasWalmart);
                         
                         logToServer('Live Search: Load more capability check', {
                             hasAmazonPagination: hasAmazonPagination,
                             hasEbay: hasEbay,
+                            hasWalmart: hasWalmart,
                             hasLoadMoreCapability: hasLoadMoreCapability,
                             platforms: platforms,
                             paginationUrls: paginationUrls,
@@ -2545,7 +2584,8 @@
                                 hasLoadMoreCapability: true,
                                 platforms: platforms,
                                 hasAmazonPagination: hasAmazonPagination,
-                                hasEbay: hasEbay
+                                hasEbay: hasEbay,
+                                hasWalmart: hasWalmart
                             });
                             toggleLoadMoreButton(true);
                         } else {
@@ -2553,7 +2593,8 @@
                                 hasLoadMoreCapability: false,
                                 platforms: platforms,
                                 hasAmazonPagination: hasAmazonPagination,
-                                hasEbay: hasEbay
+                                hasEbay: hasEbay,
+                                hasWalmart: hasWalmart
                             });
                             toggleLoadMoreButton(false);
                         }
@@ -2571,6 +2612,7 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.log('❌ [Walmart/AJAX] Search error:', {xhr, status, error, responseText: xhr && xhr.responseText});
                     
                     if (xhr.status === 403) {
                         resultsContainer.innerHTML = '<div class="ps-error">Access forbidden. This could be due to a security check failure or session timeout. Please refresh the page and try again.</div>';

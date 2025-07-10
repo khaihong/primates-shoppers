@@ -707,6 +707,12 @@ function ps_ajax_search() {
     // ps_log_error("Search completed in " . number_format($elapsed_time, 2) . " seconds");
     
         if (is_array($search_response)) {
+            // Extract platform-specific delivery dates from raw items for caching
+            $platform_delivery_dates = array();
+            if (isset($search_response['raw_items_for_cache']) && is_array($search_response['raw_items_for_cache'])) {
+                $platform_delivery_dates = ps_extract_platform_delivery_dates($search_response['raw_items_for_cache']);
+            }
+
             // Cache the RAW results if this is a successful full search and has items
             if (isset($search_response['success']) && $search_response['success'] && 
                 isset($search_response['raw_items_for_cache']) && !empty($search_response['raw_items_for_cache'])) {
@@ -735,12 +741,6 @@ function ps_ajax_search() {
                     // ps_log_error("Error caching raw results: " . $cache_e->getMessage());
                     // Continue even if caching fails - we can still return the display results
                 }
-            }
-        
-            // Extract platform-specific delivery dates from raw items for caching
-            $platform_delivery_dates = array();
-            if (isset($search_response['raw_items_for_cache']) && is_array($search_response['raw_items_for_cache'])) {
-                $platform_delivery_dates = ps_extract_platform_delivery_dates($search_response['raw_items_for_cache']);
             }
 
             // Prepare the data for display (filtered items)
@@ -1750,8 +1750,8 @@ function ps_ajax_load_more() {
         // ps_log_error("Load More: Using default platforms: " . implode(', ', $platforms));
     }
     
-    // Filter platforms to only supported ones (for load more, only Amazon and eBay currently support pagination)
-    $load_more_supported_platforms = array('amazon', 'ebay');
+    // Filter platforms to only supported ones (for load more, currently supported: Amazon, eBay, Walmart)
+    $load_more_supported_platforms = array('amazon', 'ebay', 'walmart');
     $platforms = array_intersect($platforms, $load_more_supported_platforms);
     
     if (empty($platforms)) {
@@ -1856,8 +1856,33 @@ function ps_ajax_load_more() {
                     }
                 }
                 
+            } elseif ($platform === 'walmart') {
+                // Walmart pagination uses page numbers
+                // ps_log_error("Load More Walmart: Searching page {$page}");
+                
+                $walmart_results = ps_search_walmart_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating, $page);
+                
+                if (isset($walmart_results['success']) && $walmart_results['success'] && !empty($walmart_results['items'])) {
+                    $platform_new_items = $walmart_results['items'];
+                    // Add platform identifier
+                    foreach ($platform_new_items as &$item) {
+                        $item['platform'] = 'walmart';
+                    }
+                    
+                    // Walmart has more pages if we got results (assume 3 page limit for consistency)
+                    $platform_has_more = ($page < 3) && count($platform_new_items) > 0;
+                    
+                    // ps_log_error("Load More Walmart: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                } else {
+                    if (isset($walmart_results['message'])) {
+                        $platform_errors[] = "Walmart: " . $walmart_results['message'];
+                    } else {
+                        $platform_errors[] = "Walmart: No results found";
+                    }
+                }
+                
             } else {
-                // Future platform support (Best Buy, Walmart, etc.)
+                // Future platform support (Best Buy, etc.)
                 // ps_log_error("Load More: Platform '{$platform}' not yet implemented for pagination");
                 $platform_errors[] = ucfirst($platform) . ": Not yet supported for load more";
             }
@@ -2078,6 +2103,7 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
     $total_count = 0;
     $success = false;
     $messages = array();
+    $debug_info = array(); // Collect debug information from platforms
     
     // ps_log_error("Multi-platform search for platforms: " . implode(', ', $platforms));
     
@@ -2114,6 +2140,11 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
                         // ps_log_error("Multi-platform: Captured Amazon pagination URLs: " . json_encode(array_keys($pagination_urls)));
                     }
                     
+                    // Capture debug info from platform responses (especially Walmart)
+                    if (isset($platform_results['debug_info'])) {
+                        $debug_info[$platform] = $platform_results['debug_info'];
+                    }
+                    
                     if (isset($platform_results['items']) && is_array($platform_results['items'])) {
                         // Add platform identifier to each item
                         foreach ($platform_results['items'] as $item) {
@@ -2126,6 +2157,10 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
                     // Platform failed, collect error message
                     if (isset($platform_results['message'])) {
                         $messages[] = ucfirst($platform) . ': ' . $platform_results['message'];
+                    }
+                    // Also capture debug info for failed requests
+                    if (isset($platform_results['debug_info'])) {
+                        $debug_info[$platform] = $platform_results['debug_info'];
                     }
                 }
             }
@@ -2154,6 +2189,11 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
             $combined_results['platform_messages'] = $messages;
         }
         
+        // Include debug info from platforms (especially Walmart)
+        if (!empty($debug_info)) {
+            $combined_results['debug_info'] = $debug_info;
+        }
+        
     } else {
         // No results from any platform
         $combined_results = array(
@@ -2163,6 +2203,11 @@ function ps_search_multi_platform_products($query, $exclude_keywords = '', $sort
             'message' => !empty($messages) ? implode('<br>', $messages) : 'No results found from any platform.',
             'platforms' => $platforms
         );
+        
+        // Include debug info even for failed requests
+        if (!empty($debug_info)) {
+            $combined_results['debug_info'] = $debug_info;
+        }
     }
     
     // ps_log_error("Multi-platform search completed. Total items: " . count($all_items) . ", Filtered items: " . (isset($filtered_items) ? count($filtered_items) : 0));
