@@ -36,7 +36,18 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
 
     // If the fetch function returns an array (success or error), return it directly
     if (is_array($html_content) && (isset($html_content['success']) || isset($html_content['error']))) {
+        // Extract pagination URLs for pages 2 and 3 if HTML is present
+        if (isset($html_content['html'])) {
+            $pagination_urls = ps_extract_walmart_pagination_urls($html_content['html'], $country);
+            $html_content['pagination_urls'] = $pagination_urls;
+        }
         return $html_content;
+    }
+
+    // Extract pagination URLs for pages 2 and 3
+    $pagination_urls = ps_extract_walmart_pagination_urls($html_content, $country);
+    if (empty($pagination_urls)) {
+        $pagination_urls = (object)[];
     }
 
     // Fallback: unexpected result
@@ -46,7 +57,8 @@ function ps_search_walmart_products($query, $exclude_keywords = '', $sort_by = '
         'count' => 0,
         'message' => 'Walmart search is not yet fully implemented. Please try Amazon or eBay.',
         'search_query' => $query,
-        'country' => $country
+        'country' => $country,
+        'pagination_urls' => $pagination_urls
     );
 }
 
@@ -176,6 +188,31 @@ function ps_extract_walmart_products_from_json($html_content) {
     }
     
     return $products;
+}
+
+/**
+ * Extract pagination URLs for pages 2 and 3 from Walmart search results
+ * @param string $html The Walmart search results HTML
+ * @param string $country Country code ('us' or 'ca')
+ * @return array Pagination URLs (e.g., ['page_2' => '...', 'page_3' => '...'])
+ */
+function ps_extract_walmart_pagination_urls($html, $country = 'us') {
+    $pagination_urls = array();
+    if (empty($html)) return $pagination_urls;
+
+    // Walmart uses hrefs like ...&page=2 and ...&page=3
+    for ($page_num = 2; $page_num <= 3; $page_num++) {
+        if (preg_match('/href="([^"]*?[&?]page=' . $page_num . '[^"]*)"[^>]*>\s*' . $page_num . '\s*<\/a>/i', $html, $m)) {
+            $url = html_entity_decode($m[1]);
+            // Add domain if needed
+            if (strpos($url, 'http') !== 0) {
+                $base = ($country === 'ca') ? 'https://www.walmart.ca' : 'https://www.walmart.com';
+                $url = $base . $url;
+            }
+            $pagination_urls['page_' . $page_num] = $url;
+        }
+    }
+    return $pagination_urls;
 }
 
 /**

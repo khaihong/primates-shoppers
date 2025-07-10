@@ -162,10 +162,12 @@ function ps_force_update_db() {
 add_action('admin_init', function() {
     // Only run these handlers on the plugin's settings page to prevent conflicts
     if (isset($_GET['page']) && $_GET['page'] === 'primates-shoppers' && isset($_GET['action'])) {
-        if ($_GET['action'] === 'ps_force_update_db') {
-            ps_force_update_db();
-        } elseif ($_GET['action'] === 'ps_update_table_structure') {
-            ps_update_table_structure();
+        if ($_GET['action'] === 'view_error_log' && wp_verify_nonce($nonce, 'ps_view_log')) {
+            ps_display_error_log();
+            exit;
+        } elseif ($_GET['action'] === 'view_samples' && wp_verify_nonce($nonce, 'ps_view_samples')) {
+            ps_display_response_samples();
+            exit;
         }
     }
 });
@@ -1769,138 +1771,54 @@ function ps_ajax_load_more() {
     $platform_errors = array();
     $has_more_pages = false;
     
-    // Load next page from each platform
+    // Load next page from each platform (consolidated logic)
     foreach ($platforms as $platform) {
         $platform = sanitize_text_field($platform);
-        
         try {
             $platform_new_items = array();
             $platform_has_more = false;
-            
-            if ($platform === 'amazon') {
-                // Amazon pagination uses stored URLs
-                $pagination_urls = isset($existing_cache['pagination_urls']) ? $existing_cache['pagination_urls'] : array();
-                $page_key = 'page_' . $page;
-                
-                if (!empty($pagination_urls) && isset($pagination_urls[$page_key])) {
-                    $page_url = $pagination_urls[$page_key];
-                    // ps_log_error("Load More Amazon: Using pagination URL for page {$page}: {$page_url}");
-                    
-                    // Fetch the page using the parsed URL
+            $pagination_urls = isset($existing_cache['pagination_urls'][$platform]) ? $existing_cache['pagination_urls'][$platform] : array();
+            $page_key = 'page_' . $page;
+            if (!empty($pagination_urls) && isset($pagination_urls[$page_key])) {
+                $page_url = $pagination_urls[$page_key];
+                // Fetch the page using the parsed URL
+                if ($platform === 'amazon') {
                     $html_content = ps_fetch_amazon_search_results($page_url, $country);
-                    
-                    // Check for errors
-                    if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) {
-                        $platform_errors[] = "Amazon: HTTP " . $html_content['http_code'];
-                        continue;
-                    }
-                    
-                    if (empty($html_content)) {
-                        $platform_errors[] = "Amazon: No response received";
-                        continue;
-                    }
-                    
-                    if (ps_is_amazon_blocking($html_content)) {
-                        $platform_errors[] = "Amazon: Blocking detected";
-                        continue;
-                    }
-                    
-                    if (!ps_is_valid_search_page($html_content)) {
-                        $platform_errors[] = "Amazon: Invalid page format";
-                        continue;
-                    }
-                    
-                    // Parse results
+                    if (is_array($html_content) && isset($html_content['error']) && $html_content['error'] === true) continue;
+                    if (empty($html_content)) continue;
+                    if (ps_is_amazon_blocking($html_content)) continue;
+                    if (!ps_is_valid_search_page($html_content)) continue;
                     $associate_tag = ps_get_associate_tag($country);
                     $parse_results = ps_parse_amazon_results($html_content, $associate_tag, $min_rating);
-                    
                     if (isset($parse_results['success']) && $parse_results['success'] && !empty($parse_results['items'])) {
                         $platform_new_items = $parse_results['items'];
-                        // Add platform identifier
-                        foreach ($platform_new_items as &$item) {
-                            $item['platform'] = 'amazon';
-                        }
-                        
-                        // Check if Amazon has more pages available
-                        $platform_has_more = ($page < 3) && isset($pagination_urls['page_' . ($page + 1)]);
-                        
-                        // ps_log_error("Load More Amazon: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
+                        foreach ($platform_new_items as &$item) { $item['platform'] = 'amazon'; }
                     }
-                } else {
-                    // ps_log_error("Load More Amazon: No pagination URL for page {$page}");
-                    $platform_errors[] = "Amazon: No pagination URL available for page {$page}";
-                }
-                
-            } elseif ($platform === 'ebay') {
-                // eBay pagination uses page numbers
-                // ps_log_error("Load More eBay: Searching page {$page}");
-                
-                $ebay_results = ps_search_ebay_products($search_query, '', $sort_by, $country, $min_rating, $page);
-                
-                if (isset($ebay_results['success']) && $ebay_results['success'] && !empty($ebay_results['items'])) {
-                    $platform_new_items = $ebay_results['items'];
-                    // Add platform identifier
-                    foreach ($platform_new_items as &$item) {
-                        $item['platform'] = 'ebay';
+                } elseif ($platform === 'ebay') {
+                    $ebay_results = ps_search_ebay_products($search_query, '', $sort_by, $country, $min_rating, $page);
+                    if (isset($ebay_results['success']) && $ebay_results['success'] && !empty($ebay_results['items'])) {
+                        $platform_new_items = $ebay_results['items'];
+                        foreach ($platform_new_items as &$item) { $item['platform'] = 'ebay'; }
                     }
-                    
-                    // eBay has more pages if we got results (assume 3 page limit for consistency)
-                    $platform_has_more = ($page < 3) && count($platform_new_items) > 0;
-                    
-                    // ps_log_error("Load More eBay: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
-                } else {
-                    if (isset($ebay_results['message'])) {
-                        $platform_errors[] = "eBay: " . $ebay_results['message'];
-                    } else {
-                        $platform_errors[] = "eBay: No results found";
+                } elseif ($platform === 'walmart') {
+                    $walmart_results = ps_search_walmart_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating, $page);
+                    if (isset($walmart_results['success']) && $walmart_results['success'] && !empty($walmart_results['items'])) {
+                        $platform_new_items = $walmart_results['items'];
+                        foreach ($platform_new_items as &$item) { $item['platform'] = 'walmart'; }
                     }
                 }
-                
-            } elseif ($platform === 'walmart') {
-                // Walmart pagination uses page numbers
-                // ps_log_error("Load More Walmart: Searching page {$page}");
-                
-                $walmart_results = ps_search_walmart_products($search_query, $exclude_keywords, $sort_by, $country, $min_rating, $page);
-                
-                if (isset($walmart_results['success']) && $walmart_results['success'] && !empty($walmart_results['items'])) {
-                    $platform_new_items = $walmart_results['items'];
-                    // Add platform identifier
-                    foreach ($platform_new_items as &$item) {
-                        $item['platform'] = 'walmart';
-                    }
-                    
-                    // Walmart has more pages if we got results (assume 3 page limit for consistency)
-                    $platform_has_more = ($page < 3) && count($platform_new_items) > 0;
-                    
-                    // ps_log_error("Load More Walmart: Found " . count($platform_new_items) . " new items, has more: " . ($platform_has_more ? 'yes' : 'no'));
-                } else {
-                    if (isset($walmart_results['message'])) {
-                        $platform_errors[] = "Walmart: " . $walmart_results['message'];
-                    } else {
-                        $platform_errors[] = "Walmart: No results found";
-                    }
-                }
-                
-            } else {
-                // Future platform support (Best Buy, etc.)
-                // ps_log_error("Load More: Platform '{$platform}' not yet implemented for pagination");
-                $platform_errors[] = ucfirst($platform) . ": Not yet supported for load more";
+                // Check if there is a next page URL for this platform
+                $platform_has_more = isset($pagination_urls['page_' . ($page + 1)]);
             }
-            
             // Add platform results to the total
             if (!empty($platform_new_items)) {
                 $all_new_items = array_merge($all_new_items, $platform_new_items);
             }
-            
             // Update has_more_pages if any platform has more
             if ($platform_has_more) {
                 $has_more_pages = true;
             }
-            
-        } catch (Exception $e) {
-            // ps_log_error("Error loading more from {$platform}: " . $e->getMessage());
-            $platform_errors[] = ucfirst($platform) . ": Error - " . $e->getMessage();
-        }
+        } catch (Exception $e) { continue; }
     }
     
     // Check if we got any new items

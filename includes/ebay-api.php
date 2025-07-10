@@ -137,7 +137,12 @@ function ps_search_ebay_products($query, $exclude_keywords = '', $sort_by = 'pri
     
     // Parse the search results HTML
     $products = ps_parse_ebay_results($html_content, $min_rating, $country);
-    
+
+    // Extract pagination URLs for pages 2 and 3
+    $pagination_urls = ps_extract_ebay_pagination_urls($html_content, $country);
+
+    // Return products and pagination URLs
+    $products['pagination_urls'] = $pagination_urls;
     return $products;
 }
 
@@ -326,6 +331,32 @@ function ps_parse_ebay_results($html, $min_rating = 4.0, $country = 'us') {
             'message' => 'Error parsing eBay results: ' . $e->getMessage()
         );
     }
+}
+
+/**
+ * Extract pagination URLs for pages 2 and 3 from eBay search results
+ * @param string $html The eBay search results HTML
+ * @param string $country Country code ('us' or 'ca')
+ * @return array Pagination URLs (e.g., ['page_2' => '...', 'page_3' => '...'])
+ */
+function ps_extract_ebay_pagination_urls($html, $country = 'us') {
+    $pagination_urls = array();
+    if (empty($html)) return $pagination_urls;
+
+    // Look for pagination links for page 2 and 3
+    // eBay uses hrefs like ...&_pgn=2 and ...&_pgn=3
+    for ($page_num = 2; $page_num <= 3; $page_num++) {
+        if (preg_match('/href="([^"]*?_pgn=' . $page_num . '[^"]*)"[^>]*>\s*' . $page_num . '\s*<\/a>/i', $html, $m)) {
+            $url = html_entity_decode($m[1]);
+            // Add domain if needed
+            if (strpos($url, 'http') !== 0) {
+                $base = ($country === 'ca') ? 'https://www.ebay.ca' : 'https://www.ebay.com';
+                $url = $base . $url;
+            }
+            $pagination_urls['page_' . $page_num] = $url;
+        }
+    }
+    return $pagination_urls;
 }
 
 /**
