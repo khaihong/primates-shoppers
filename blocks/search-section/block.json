@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "primates-shoppers/search-section",
+    "version": "1.0.0",
+    "title": "Primates Shoppers Search Section",
+    "category": "primates-shoppers",
+    "icon": "search",
+    "description": "Product search section with embedded search form and features",
+    "keywords": ["search", "products", "form"],
+    "textdomain": "primates-shoppers",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css",
+    "attributes": {
+        "sectionTitle": {
+            "type": "string",
+            "default": "Start Your Rewarding Shopping Journey"
+        },
+        "sectionSubtitle": {
+            "type": "string",
+            "default": "Search millions of products and start earning rewards instantly"
+        },
+
+        "feature2Icon": {
+            "type": "string",
+            "default": "🎯"
+        },
+        "feature2Text": {
+            "type": "string",
+            "default": "Advanced filtering options"
+        },
+        "feature3Icon": {
+            "type": "string",
+            "default": "📊"
+        },
+        "feature3Text": {
+            "type": "string",
+            "default": "Price per unit sorting"
+        },
+
+        "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff"
+        },
+        "anchorId": {
+            "type": "string",
+            "default": "search-products"
+        }
+    },
+    "supports": {
+        "align": ["wide", "full"],
+        "anchor": true
+    }
+} 

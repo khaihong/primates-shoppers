@@ -1,0 +1,31 @@
+{
+  "name": "primates-shoppers-blocks",
+  "version": "1.0.0",
+  "description": "Gutenberg blocks for Primates Shoppers landing page",
+  "main": "blocks/index.js",
+  "scripts": {
+    "build": "wp-scripts build blocks/index.js --output-path=blocks/",
+    "start": "wp-scripts start blocks/index.js --output-path=blocks/",
+    "dev": "wp-scripts start blocks/index.js --output-path=blocks/",
+    "lint:js": "wp-scripts lint-js blocks/",
+    "lint:css": "wp-scripts lint-style blocks/"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^24.0.0"
+  },
+  "dependencies": {
+    "@wordpress/blocks": "^11.0.0",
+    "@wordpress/block-editor": "^9.0.0",
+    "@wordpress/components": "^23.0.0",
+    "@wordpress/i18n": "^4.0.0",
+    "@wordpress/element": "^4.0.0"
+  },
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "blocks",
+    "landing-page"
+  ],
+  "author": "Primates Shoppers",
+  "license": "GPL-2.0-or-later"
+} 

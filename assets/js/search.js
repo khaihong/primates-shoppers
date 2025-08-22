@@ -2002,7 +2002,26 @@
                         // Apply saved default sorting preference (don't recalculate from cached data)
                         // Set flag to prevent sort change handler from executing during saved sorting
                         window.isApplyingSavedSorting = true;
-                        const sortingChanged = applySavedDefaultSorting();
+                        let sortingChanged = applySavedDefaultSorting();
+                        // If not changed, and sort is still 'price', check if we should auto-sort by unit price now
+                        if (!sortingChanged && sortByElem && sortByElem.value === 'price') {
+                            // Recalculate based on loaded products
+                            const shouldDefault = shouldDefaultToUnitPrice(products);
+                            if (shouldDefault) {
+                                sortByElem.value = 'price_per_unit';
+                                savedDefaultSort = 'price_per_unit';
+                                try {
+                                    localStorage.setItem('ps_saved_default_sort', savedDefaultSort);
+                                } catch (e) {
+                                    console.warn('Could not save default sort to localStorage:', e);
+                                }
+                                logToServer('Page Refresh: Auto-sorted by unit price after loading cached results', {
+                                    previousValue: 'price',
+                                    newValue: 'price_per_unit',
+                                    itemCount: products.length
+                                });
+                            }
+                        }
                         // Clear flag after a short delay to allow normal sort changes
                         setTimeout(() => {
                             window.isApplyingSavedSorting = false;
@@ -2803,39 +2822,13 @@
             
             // Only change default if currently set to 'price' (the default)
             if (currentSortValue === 'price' && shouldDefault) {
-
                 sortByElem.value = 'price_per_unit';
-                
                 logToServer('Unit Price Sorting: Automatically switched to unit price sorting', {
                     previousValue: 'price',
                     newValue: 'price_per_unit',
                     itemCount: items.length
                 });
-                
-                // Add visual feedback to let user know sorting was changed
-                const sortContainer = sortByElem.parentElement;
-                if (sortContainer) {
-                    const feedback = document.createElement('div');
-                    feedback.className = 'ps-auto-sort-feedback';
-                    feedback.style.cssText = 'color: #28a745; font-size: 12px; margin-top: 2px; font-style: italic;';
-                    feedback.textContent = 'Auto-sorted by unit price (most products have unit pricing)';
-                    
-                    // Remove any existing feedback
-                    const existingFeedback = sortContainer.querySelector('.ps-auto-sort-feedback');
-                    if (existingFeedback) {
-                        existingFeedback.remove();
-                    }
-                    
-                    sortContainer.appendChild(feedback);
-                    
-                    // Remove feedback after 5 seconds
-                    setTimeout(function() {
-                        if (feedback && feedback.parentElement) {
-                            feedback.remove();
-                        }
-                    }, 5000);
-                }
-                
+                // Visual feedback removed
                 return true; // Sorting was changed
             }
             

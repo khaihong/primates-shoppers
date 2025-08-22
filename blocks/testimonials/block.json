@@ -1,0 +1,65 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "primates-shoppers/testimonials",
+    "version": "1.0.0",
+    "title": "Primates Shoppers Testimonials",
+    "category": "primates-shoppers",
+    "icon": "format-quote",
+    "description": "Customer testimonials section with three testimonial cards",
+    "keywords": ["testimonials", "reviews", "quotes"],
+    "textdomain": "primates-shoppers",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css",
+    "attributes": {
+        "sectionTitle": {
+            "type": "string",
+            "default": "What Our Users Say"
+        },
+        "testimonial1Content": {
+            "type": "string",
+            "default": "Finally, a platform that shares the wealth! I've earned over $200 while supporting my favorite environmental charity."
+        },
+        "testimonial1Author": {
+            "type": "string",
+            "default": "Sarah M."
+        },
+        "testimonial1Role": {
+            "type": "string",
+            "default": "Active Shopper"
+        },
+        "testimonial2Content": {
+            "type": "string",
+            "default": "The search functionality is amazing - I can compare prices across all major platforms in one place and earn money doing it."
+        },
+        "testimonial2Author": {
+            "type": "string",
+            "default": "Mike R."
+        },
+        "testimonial2Role": {
+            "type": "string",
+            "default": "Deal Hunter"
+        },
+        "testimonial3Content": {
+            "type": "string",
+            "default": "Love that I can contribute to charity just by shopping. It's a win-win-win situation for everyone involved."
+        },
+        "testimonial3Author": {
+            "type": "string",
+            "default": "Lisa K."
+        },
+        "testimonial3Role": {
+            "type": "string",
+            "default": "Charity Supporter"
+        },
+        "backgroundColor": {
+            "type": "string",
+            "default": "#f8f9fa"
+        }
+    },
+    "supports": {
+        "align": ["wide", "full"],
+        "anchor": true
+    }
+} 

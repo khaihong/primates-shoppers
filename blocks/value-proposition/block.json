@@ -1,0 +1,65 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "primates-shoppers/value-proposition",
+    "version": "1.0.0",
+    "title": "Primates Shoppers Value Proposition",
+    "category": "primates-shoppers",
+    "icon": "star-filled",
+    "description": "Three-column value proposition section with icons and benefits",
+    "keywords": ["value", "benefits", "features"],
+    "textdomain": "primates-shoppers",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css",
+    "attributes": {
+        "sectionTitle": {
+            "type": "string",
+            "default": "Revolutionary Revenue Sharing"
+        },
+        "card1Icon": {
+            "type": "string",
+            "default": "💰"
+        },
+        "card1Title": {
+            "type": "string",
+            "default": "Earn From Every Search"
+        },
+        "card1Description": {
+            "type": "string",
+            "default": "Get a share of advertising revenue from every product search you make. Your shopping activity generates real income."
+        },
+        "card2Icon": {
+            "type": "string",
+            "default": "🤝"
+        },
+        "card2Title": {
+            "type": "string",
+            "default": "Support Charities"
+        },
+        "card2Description": {
+            "type": "string",
+            "default": "Choose which charities receive a portion of the revenue. Make a positive impact while you shop."
+        },
+        "card3Icon": {
+            "type": "string",
+            "default": "🔍"
+        },
+        "card3Title": {
+            "type": "string",
+            "default": "Smart Product Search"
+        },
+        "card3Description": {
+            "type": "string",
+            "default": "Search across Amazon, eBay, and Walmart simultaneously. Find the best deals with advanced filtering and sorting."
+        },
+        "backgroundColor": {
+            "type": "string",
+            "default": "#f8f9fa"
+        }
+    },
+    "supports": {
+        "align": ["wide", "full"],
+        "anchor": true
+    }
+} 

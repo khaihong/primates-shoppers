@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "primates-shoppers/hero-section",
+    "version": "1.0.0",
+    "title": "Primates Shoppers Hero Section",
+    "category": "primates-shoppers",
+    "icon": "megaphone",
+    "description": "Hero section with title, subtitle, and call-to-action button",
+    "keywords": ["hero", "landing", "cta"],
+    "textdomain": "primates-shoppers",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css",
+    "attributes": {
+        "title": {
+            "type": "string",
+            "default": "Shop Smart, Share Rewards, Support Causes"
+        },
+        "subtitle": {
+            "type": "string",
+            "default": "The first platform that democratizes shopping rewards - every purchase you make generates revenue that's shared with you and donated to charities you care about."
+        },
+        "ctaText": {
+            "type": "string",
+            "default": "Start Shopping & Earning"
+        },
+        "ctaUrl": {
+            "type": "string",
+            "default": "#search-products"
+        },
+        "subtext": {
+            "type": "string",
+            "default": "Search millions of products from Amazon, eBay & Walmart"
+        },
+        "backgroundColor": {
+            "type": "string",
+            "default": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        },
+        "textColor": {
+            "type": "string",
+            "default": "#ffffff"
+        }
+    },
+    "supports": {
+        "align": ["wide", "full"],
+        "anchor": true
+    }
+} 

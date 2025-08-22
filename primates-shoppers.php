@@ -7,10 +7,20 @@
  * Text Domain: primates-shoppers
  */
 
+// Start output buffering to prevent any unexpected output
+ob_start();
+
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
+
+
+
+// Test for output during loading - remove this after testing
+// if (defined('WP_DEBUG') && WP_DEBUG) {
+//     error_log('Primates Shoppers: Plugin file loaded');
+// }
 
 // Define plugin constants
 define('PS_VERSION', 'ultra-specific-css-classes');
@@ -41,6 +51,31 @@ require_once PS_PLUGIN_DIR . 'includes/settings.php';
 require_once PS_PLUGIN_DIR . 'includes/parsing-test.php'; // Include parsing test functionality
 require_once PS_PLUGIN_DIR . 'includes/amazon-proxy-test.php'; // Include Amazon proxy test functionality
 require_once PS_PLUGIN_DIR . 'includes/ps-cache-check.php'; // Add our new cache check file
+require_once PS_PLUGIN_DIR . 'includes/seo-meta.php'; // Include SEO meta tags and structured data
+
+// Add error logging to help identify critical errors
+// error_log('Primates Shoppers: Plugin loading started');
+
+// Include debug helper first to catch any issues
+require_once PS_PLUGIN_DIR . 'includes/debug-helper.php';
+
+// error_log('Primates Shoppers: Debug helper loaded successfully');
+
+// Re-enable blocks with PS_PLUGIN_VERSION fix applied
+if (ps_safe_init()) {
+    // Load blocks first (most basic functionality)
+    if (file_exists(PS_PLUGIN_DIR . 'includes/blocks.php')) {
+        require_once PS_PLUGIN_DIR . 'includes/blocks.php';
+    }
+    
+    // Load block patterns second
+    if (file_exists(PS_PLUGIN_DIR . 'includes/block-patterns.php')) {
+        require_once PS_PLUGIN_DIR . 'includes/block-patterns.php';
+    }
+    
+    // Keep templates disabled for now
+    // require_once PS_PLUGIN_DIR . 'templates/block-templates.php';
+}
 // Ensure the table exists with the correct structure
 // ps_create_cache_table(); // Removed direct call
 
@@ -179,20 +214,27 @@ function ps_activate() {
     // Prevent any output during activation
     ob_start();
     
-    // Create default settings
-    add_option('ps_settings', array(
-        'amazon_associate_tag' => PS_AFFILIATE_ID, // CA tag
-        'amazon_associate_tag_us' => 'primatesshopp-20', // US tag
-    ));
-    
-    // Create cache table with updated structure
-    ps_create_cache_table(); // Ensure table exists on activation
-    ps_force_rebuild_table(); // Use force rebuild to ensure the table has the latest structure
-    
-    // Create logs directory
-    $logs_dir = PS_PLUGIN_DIR . 'logs';
-    if (!file_exists($logs_dir)) {
-        mkdir($logs_dir, 0755, true);
+    try {
+        // Create default settings
+        add_option('ps_settings', array(
+            'amazon_associate_tag' => PS_AFFILIATE_ID, // CA tag
+            'amazon_associate_tag_us' => 'primatesshopp-20', // US tag
+        ));
+        
+        // Create cache table with updated structure
+        ps_create_cache_table(); // Ensure table exists on activation
+        
+        ps_force_rebuild_table(); // Use force rebuild to ensure the table has the latest structure
+        
+        // Create logs directory
+        $logs_dir = PS_PLUGIN_DIR . 'logs';
+        if (!file_exists($logs_dir)) {
+            mkdir($logs_dir, 0755, true);
+        }
+        
+    } catch (Exception $e) {
+        // Log error but don't stop activation
+        error_log('Primates Shoppers: Activation error: ' . $e->getMessage());
     }
     
     // Clear any output that might have been generated
@@ -259,7 +301,8 @@ function ps_create_cache_table() {
     ) $charset_collate;";
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    $result = dbDelta($sql);
+    
+    dbDelta($sql);
     
     // Only attempt to alter table on admin pages or activation
     if (!is_admin() && !defined('WP_INSTALLING')) {
@@ -312,9 +355,6 @@ function ps_force_rebuild_table() {
     $table_name = $wpdb->prefix . 'ps_cache';
     $charset_collate = $wpdb->get_charset_collate();
     
-    // Log the action
-    // ps_log_error("Force rebuilding cache table (dropping existing table)");
-    
     // Drop the table first
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
     
@@ -334,16 +374,14 @@ function ps_force_rebuild_table() {
     ) $charset_collate;";
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    
     dbDelta($sql);
     
     // Verify the table exists and has the right structure
     $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
     if ($columns) {
-        $column_names = array_map(function($col) { return $col->Field; }, $columns);
-        // ps_log_error("Table rebuilt. Columns: " . implode(', ', $column_names));
         return true;
     } else {
-        // ps_log_error("Failed to rebuild table: " . $wpdb->last_error);
         return false;
     }
 }
@@ -417,6 +455,17 @@ function ps_simple_ajax_trigger_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('primates_simple_ajax_trigger', 'ps_simple_ajax_trigger_shortcode');
+
+/**
+ * Register shortcode for the landing page
+ */
+function ps_landing_page_shortcode($atts) {
+    // Buffer output
+    ob_start();
+    include PS_PLUGIN_DIR . 'templates/landing-page.php';
+    return ob_get_clean();
+}
+add_shortcode('primates_landing_page', 'ps_landing_page_shortcode');
 
 /**
  * Extract platform-specific delivery dates from product items
@@ -2240,4 +2289,6 @@ function ps_ajax_debug_log() {
 }
 add_action('wp_ajax_ps_debug_log', 'ps_ajax_debug_log');
 add_action('wp_ajax_nopriv_ps_debug_log', 'ps_ajax_debug_log');
+
+
 

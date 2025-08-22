@@ -619,3 +619,283 @@
 [2025-07-10 03:01:14] Using proxy authentication with user: user-sptlq8hpk0-country-ca
 [2025-07-10 03:01:14] CONFIRMED: Proxy username has correct country-specific format
 [2025-07-10 03:01:15] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-10_03-01-15.html (Size: 1,725,716 bytes)
+[2025-07-11 16:27:31] Fetching search results from URL: https://www.amazon.ca/s?k=sleeping+pad
+[2025-07-11 16:27:31] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-11 16:27:31] Network detection: Current server IP: 192.157.119.203
+[2025-07-11 16:27:31] Network detection: IP range check (192.157.119.203): YES
+[2025-07-11 16:27:31] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-11 16:27:31] Network detection: Identified as current network based on: ip_range
+[2025-07-11 16:27:31] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-11 16:27:31] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-11 16:27:31] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=sleeping+pad
+[2025-07-11 16:27:31] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-11 16:27:31] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-11 16:27:31] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-11 16:27:31] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-11 16:27:31] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-11 16:27:31] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-11 16:27:32] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-11_16-27-32.html (Size: 1,555,847 bytes)
+[2025-07-11 16:40:44] Fetching search results from URL: https://www.amazon.ca/s?k=omega+3
+[2025-07-11 16:40:44] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-11 16:40:44] Network detection: Current server IP: 192.157.119.203
+[2025-07-11 16:40:44] Network detection: IP range check (192.157.119.203): YES
+[2025-07-11 16:40:44] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-11 16:40:44] Network detection: Identified as current network based on: ip_range
+[2025-07-11 16:40:44] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-11 16:40:44] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-11 16:40:44] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=omega+3
+[2025-07-11 16:40:44] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-11 16:40:44] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-11 16:40:44] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-11 16:40:44] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-11 16:40:44] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-11 16:40:44] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-11 16:40:46] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-11_16-40-46.html (Size: 1,532,818 bytes)
+[2025-07-11 16:50:10] Fetching search results from URL: https://www.amazon.ca/s?k=surface+laptop
+[2025-07-11 16:50:10] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-11 16:50:10] Network detection: Current server IP: 192.157.119.203
+[2025-07-11 16:50:10] Network detection: IP range check (192.157.119.203): YES
+[2025-07-11 16:50:10] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-11 16:50:10] Network detection: Identified as current network based on: ip_range
+[2025-07-11 16:50:10] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-11 16:50:10] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-11 16:50:10] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=surface+laptop
+[2025-07-11 16:50:10] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-11 16:50:10] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-11 16:50:10] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-11 16:50:10] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-11 16:50:10] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-11 16:50:10] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-11 16:50:11] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-11_16-50-11.html (Size: 1,932,372 bytes)
+[2025-07-11 16:51:39] Fetching search results from URL: https://www.amazon.com/s?k=surface+laptop+7
+[2025-07-11 16:51:39] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-11 16:51:39] Network detection: Current server IP: 192.157.119.203
+[2025-07-11 16:51:39] Network detection: IP range check (192.157.119.203): YES
+[2025-07-11 16:51:39] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-11 16:51:39] Network detection: Identified as current network based on: ip_range
+[2025-07-11 16:51:39] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-11 16:51:39] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-11 16:51:39] PROXY DECISION: USING PROXY for URL: https://www.amazon.com/s?k=surface+laptop+7
+[2025-07-11 16:51:39] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-11 16:51:39] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-11 16:51:39] DEBUG PROXY AUTH: Country = 'us'
+[2025-07-11 16:51:39] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-us'
+[2025-07-11 16:51:39] Using proxy authentication with user: user-sptlq8hpk0-country-us
+[2025-07-11 16:51:39] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-11 16:51:41] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-11_16-51-41.html (Size: 1,252,568 bytes)
+[2025-07-12 01:40:29] Fetching search results from URL: https://www.amazon.ca/s?k=dnd
+[2025-07-12 01:40:29] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-12 01:40:29] Network detection: Current server IP: 192.157.119.203
+[2025-07-12 01:40:29] Network detection: IP range check (192.157.119.203): YES
+[2025-07-12 01:40:29] Network detection: Main IP (192.157.119.203): PUBLIC
+[2025-07-12 01:40:29] Network detection: Identified as current network based on: ip_range
+[2025-07-12 01:40:29] Network detection: Final result - On current network: YES (will use proxy)
+[2025-07-12 01:40:29] Network detection result: On current network = YES, Will use proxy = YES
+[2025-07-12 01:40:29] PROXY DECISION: USING PROXY for URL: https://www.amazon.ca/s?k=dnd
+[2025-07-12 01:40:29] PROXY EXECUTION: Using Decodo proxy: gate.decodo.com:7000
+[2025-07-12 01:40:29] DEBUG PROXY AUTH: PS_DECODO_USER_BASE = 'user-sptlq8hpk0'
+[2025-07-12 01:40:29] DEBUG PROXY AUTH: Country = 'ca'
+[2025-07-12 01:40:29] DEBUG PROXY AUTH: Constructed proxy username = 'user-sptlq8hpk0-country-ca'
+[2025-07-12 01:40:29] Using proxy authentication with user: user-sptlq8hpk0-country-ca
+[2025-07-12 01:40:29] CONFIRMED: Proxy username has correct country-specific format
+[2025-07-12 01:40:31] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-12_01-40-31.html (Size: 1,632,399 bytes)
+[2025-07-22 23:47:41] Fetching search results from URL: https://www.amazon.ca/s?k=inflatable+boat
+[2025-07-22 23:47:41] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-22 23:47:41] Network detection: Current server IP: 38.192.5.23
+[2025-07-22 23:47:41] Network detection: IP range check (192.157.119.203): NO
+[2025-07-22 23:47:41] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-07-22 23:47:41] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-22 23:47:41] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-22 23:47:41] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=inflatable+boat
+[2025-07-22 23:47:41] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-22 23:47:42] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-22_23-47-42.html (Size: 1,435,418 bytes)
+[2025-07-23 00:06:50] Fetching search results from URL: https://www.amazon.ca/s?k=paddle+board
+[2025-07-23 00:06:50] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-23 00:06:50] Network detection: Current server IP: 38.192.5.23
+[2025-07-23 00:06:50] Network detection: IP range check (192.157.119.203): NO
+[2025-07-23 00:06:50] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-07-23 00:06:50] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-23 00:06:50] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-23 00:06:50] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=paddle+board
+[2025-07-23 00:06:50] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-23 00:06:51] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-23_00-06-51.html (Size: 1,446,733 bytes)
+[2025-07-28 18:16:44] Fetching search results from URL: https://www.amazon.ca/s?k=phillips+replacement
+[2025-07-28 18:16:44] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-28 18:16:44] Network detection: Current server IP: 38.192.5.23
+[2025-07-28 18:16:44] Network detection: IP range check (192.157.119.203): NO
+[2025-07-28 18:16:44] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-07-28 18:16:44] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-28 18:16:44] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-28 18:16:44] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=phillips+replacement
+[2025-07-28 18:16:44] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-28 18:16:46] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-28_18-16-46.html (Size: 1,439,510 bytes)
+[2025-07-29 23:36:42] Fetching search results from URL: https://www.amazon.com/s?k=Svikou
+[2025-07-29 23:36:42] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-29 23:36:42] Network detection: Current server IP: 207.23.161.153
+[2025-07-29 23:36:42] Network detection: IP range check (192.157.119.203): NO
+[2025-07-29 23:36:42] Network detection: Main IP (207.23.161.153): PUBLIC
+[2025-07-29 23:36:42] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-29 23:36:42] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-29 23:36:42] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.com/s?k=Svikou
+[2025-07-29 23:36:42] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-29 23:36:43] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-29_23-36-43.html (Size: 949,823 bytes)
+[2025-07-30 05:36:50] Fetching search results from URL: https://www.amazon.ca/s?k=sonic+toothbrush
+[2025-07-30 05:36:50] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-07-30 05:36:50] Network detection: Current server IP: 38.192.5.23
+[2025-07-30 05:36:50] Network detection: IP range check (192.157.119.203): NO
+[2025-07-30 05:36:50] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-07-30 05:36:50] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-07-30 05:36:50] Network detection result: On current network = NO, Will use proxy = NO
+[2025-07-30 05:36:50] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=sonic+toothbrush
+[2025-07-30 05:36:50] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-07-30 05:36:51] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-07-30_05-36-51.html (Size: 1,831,804 bytes)
+[2025-08-02 05:17:53] Fetching search results from URL: https://www.amazon.ca/s?k=induction+stove+vent+cover
+[2025-08-02 05:17:53] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-02 05:17:53] Network detection: Current server IP: 38.192.5.23
+[2025-08-02 05:17:53] Network detection: IP range check (192.157.119.203): NO
+[2025-08-02 05:17:53] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-02 05:17:53] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-02 05:17:53] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-02 05:17:53] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=induction+stove+vent+cover
+[2025-08-02 05:17:53] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-02 05:17:53] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-02_05-17-53.html (Size: 1,567,681 bytes)
+[2025-08-03 01:02:30] Fetching search results from URL: https://www.amazon.ca/s?k=Collagen+mask
+[2025-08-03 01:02:30] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-03 01:02:30] Network detection: Current server IP: 72.143.229.202
+[2025-08-03 01:02:30] Network detection: IP range check (192.157.119.203): NO
+[2025-08-03 01:02:30] Network detection: Main IP (72.143.229.202): PUBLIC
+[2025-08-03 01:02:30] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-03 01:02:30] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-03 01:02:30] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Collagen+mask
+[2025-08-03 01:02:30] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-03 01:02:31] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-03_01-02-31.html (Size: 1,596,302 bytes)
+[2025-08-09 02:41:52] Fetching search results from URL: https://www.amazon.ca/s?k=LIPIKAR
+[2025-08-09 02:41:52] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-09 02:41:52] Network detection: Current server IP: 38.192.5.23
+[2025-08-09 02:41:52] Network detection: IP range check (192.157.119.203): NO
+[2025-08-09 02:41:52] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-09 02:41:52] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-09 02:41:52] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-09 02:41:52] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=LIPIKAR
+[2025-08-09 02:41:52] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-09 02:41:53] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-09_02-41-53.html (Size: 1,511,894 bytes)
+[2025-08-11 00:41:24] Fetching search results from URL: https://www.amazon.ca/s?k=sonicbrush
+[2025-08-11 00:41:24] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-11 00:41:24] Network detection: Current server IP: 38.192.5.23
+[2025-08-11 00:41:24] Network detection: IP range check (192.157.119.203): NO
+[2025-08-11 00:41:24] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-11 00:41:24] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-11 00:41:24] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-11 00:41:24] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=sonicbrush
+[2025-08-11 00:41:24] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-11 00:41:25] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-11_00-41-25.html (Size: 1,368,425 bytes)
+[2025-08-11 00:43:05] Fetching search results from URL: https://www.amazon.ca/s?k=sonic+brush
+[2025-08-11 00:43:05] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-11 00:43:05] Network detection: Current server IP: 38.192.5.23
+[2025-08-11 00:43:05] Network detection: IP range check (192.157.119.203): NO
+[2025-08-11 00:43:05] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-11 00:43:05] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-11 00:43:05] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-11 00:43:05] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=sonic+brush
+[2025-08-11 00:43:05] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-11 00:43:06] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-11_00-43-06.html (Size: 1,560,998 bytes)
+[2025-08-12 04:34:14] Fetching search results from URL: https://www.amazon.ca/s?k=phyto
+[2025-08-12 04:34:14] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-12 04:34:14] Network detection: Current server IP: 38.192.5.23
+[2025-08-12 04:34:14] Network detection: IP range check (192.157.119.203): NO
+[2025-08-12 04:34:14] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-12 04:34:14] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-12 04:34:14] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-12 04:34:14] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=phyto
+[2025-08-12 04:34:14] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-12 04:34:15] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-12_04-34-15.html (Size: 1,161,724 bytes)
+[2025-08-12 04:42:07] Fetching search results from URL: https://www.amazon.ca/s?k=thinning+hair+conditioner
+[2025-08-12 04:42:07] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-12 04:42:07] Network detection: Current server IP: 38.192.5.23
+[2025-08-12 04:42:07] Network detection: IP range check (192.157.119.203): NO
+[2025-08-12 04:42:07] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-12 04:42:07] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-12 04:42:07] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-12 04:42:07] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=thinning+hair+conditioner
+[2025-08-12 04:42:07] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-12 04:42:08] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-12_04-42-08.html (Size: 1,526,454 bytes)
+[2025-08-12 16:57:26] Fetching search results from URL: https://www.amazon.ca/s?k=dark+chocolate
+[2025-08-12 16:57:26] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-12 16:57:26] Network detection: Current server IP: 38.192.5.23
+[2025-08-12 16:57:26] Network detection: IP range check (192.157.119.203): NO
+[2025-08-12 16:57:26] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-12 16:57:26] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-12 16:57:26] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-12 16:57:26] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=dark+chocolate
+[2025-08-12 16:57:26] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-12 16:57:27] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-12_16-57-27.html (Size: 1,572,324 bytes)
+[2025-08-16 16:19:29] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 16:19:29] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 16:19:29] Network detection: Current server IP: 38.192.5.23
+[2025-08-16 16:19:29] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 16:19:29] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-16 16:19:29] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 16:19:29] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 16:19:29] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 16:19:29] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 16:19:30] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_16-19-30.html (Size: 1,987,906 bytes)
+[2025-08-16 16:25:17] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+sleeve
+[2025-08-16 16:25:17] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 16:25:17] Network detection: Current server IP: 38.192.5.23
+[2025-08-16 16:25:17] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 16:25:17] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-16 16:25:17] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 16:25:17] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 16:25:17] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+sleeve
+[2025-08-16 16:25:17] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 16:25:17] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_16-25-17.html (Size: 1,705,721 bytes)
+[2025-08-16 20:31:08] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:08] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 20:31:08] Network detection: Current server IP: 72.143.230.171
+[2025-08-16 20:31:08] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 20:31:08] Network detection: Main IP (72.143.230.171): PUBLIC
+[2025-08-16 20:31:08] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 20:31:08] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 20:31:08] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:08] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 20:31:09] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_20-31-09.html (Size: 1,983,606 bytes)
+[2025-08-16 20:31:10] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:10] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 20:31:10] Network detection: Current server IP: 72.143.230.171
+[2025-08-16 20:31:10] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 20:31:10] Network detection: Main IP (72.143.230.171): PUBLIC
+[2025-08-16 20:31:10] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 20:31:10] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 20:31:10] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:10] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 20:31:11] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:11] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 20:31:11] Network detection: Current server IP: 72.143.230.171
+[2025-08-16 20:31:11] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 20:31:11] Network detection: Main IP (72.143.230.171): PUBLIC
+[2025-08-16 20:31:11] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 20:31:11] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 20:31:11] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:11] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 20:31:11] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_20-31-11.html (Size: 1,985,962 bytes)
+[2025-08-16 20:31:11] Fetching search results from URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:11] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-16 20:31:11] Network detection: Current server IP: 72.143.230.171
+[2025-08-16 20:31:11] Network detection: IP range check (192.157.119.203): NO
+[2025-08-16 20:31:11] Network detection: Main IP (72.143.230.171): PUBLIC
+[2025-08-16 20:31:11] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-16 20:31:11] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-16 20:31:11] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=Insulated+bag
+[2025-08-16 20:31:11] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-16 20:31:12] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_20-31-12.html (Size: 1,949,205 bytes)
+[2025-08-16 20:31:12] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-16_20-31-12.html (Size: 1,989,093 bytes)
+[2025-08-20 22:41:20] Fetching search results from URL: https://www.amazon.ca/s?k=dark+chocolate
+[2025-08-20 22:41:20] DEBUG: Checking proxy constants - HOST defined: YES, PORT defined: YES
+[2025-08-20 22:41:20] Network detection: Current server IP: 38.192.5.23
+[2025-08-20 22:41:20] Network detection: IP range check (192.157.119.203): NO
+[2025-08-20 22:41:20] Network detection: Main IP (38.192.5.23): PUBLIC
+[2025-08-20 22:41:20] Network detection: Final result - On current network: NO (will NOT use proxy)
+[2025-08-20 22:41:20] Network detection result: On current network = NO, Will use proxy = NO
+[2025-08-20 22:41:20] PROXY DECISION: DIRECT REQUEST for URL: https://www.amazon.ca/s?k=dark+chocolate
+[2025-08-20 22:41:20] PROXY EXECUTION: Making direct request to Amazon (no proxy)
+[2025-08-20 22:41:21] Amazon response sample saved: /var/www/html/wp-content/plugins/primates-shoppers/logs/amazon_response_2025-08-20_22-41-21.html (Size: 1,698,733 bytes)

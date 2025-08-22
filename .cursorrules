@@ -1,1 +1,13 @@
-After making a change, test it in the browser at https://primates.life/shopper using Browser MCP. When testing platform specific changes ( eg. ebay), select the checkbox for that platform if it is unselected and deselect the other platforms if any others are selected, then click 'new search' if new data is needed from that platform. If new data isn't needed, then click 'filter' to test filtering changes, or click 'load more' to test loading changes, or change other options as needed for testing. Once the platform-specific changes are confirmed to be correct, then test in combination with results from other platforms as needed by also selecting their checkboxes and performing new searches or filtering as needed.
+This wordpress site is running from a docker container on a Synology NAS. The wp-content folder in 
+which this plugin exists is mapped to an external folder using the docker volume 
+'/volume1/docker/primates/wp-content:/var/www/html/wp-content:rw'. The development machine is running
+windows 11 with the folder '/volume1/docker' mapped as 'x:'.
+
+The plugin implements a smart proxy fallback system to minimize proxy costs and ensure reliability:
+1. Primary use: proxy is used for development/testing when on configured network
+2. fallback protection: if external IP's get blocked (503, 429, 403), automatically retry once with proxy
+3. country-specific routing:  Amazon, ebay and Walmart use country specific poxy usernames 
+to ensure correct geolocation and currency
+4. character encoding: proper UTF-8 handling prevents display issues with international characters. This
+strategy minimizes proxy costs while ensuring reliability for production users by only using the proxy
+when necessary.

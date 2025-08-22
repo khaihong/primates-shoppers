@@ -50,10 +50,10 @@ $user_has_cached_data = !empty($has_cache_count) && $has_cache_count > 0;
                         <input type="checkbox" name="platforms" value="ebay">
                         <span class="ps-platform-name">eBay</span>
                     </label>
-                    <label class="ps-platform-option">
+                    <!-- <label class="ps-platform-option">
                         <input type="checkbox" name="platforms" value="bestbuy">
                         <span class="ps-platform-name">Best Buy</span>
-                    </label>
+                    </label> -->
                     <label class="ps-platform-option">
                         <input type="checkbox" name="platforms" value="walmart">
                         <span class="ps-platform-name">Walmart</span>

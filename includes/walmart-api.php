@@ -248,30 +248,81 @@ function ps_fetch_walmart_search_results($url, $country = 'us') {
 
     $blocked_codes = array(403, 429, 503, 502, 504);
     $is_blocked_html = false;
+    $block_detected = '';
+    
     if (!empty($body)) {
         $block_indicators = [
             'Verify Your Identity',
             'We like real shoppers, not robots!',
             'px-captcha',
             'Bot Protection Page',
-            'Please press and hold the button below to verify yourself'
+            'Please press and hold the button below to verify yourself',
+            'Access Denied',
+            'Security Check',
+            'Please verify you are a human',
+            'Cloudflare',
+            'DDoS protection',
+            'Rate limit exceeded',
+            'Too many requests',
+            'Please wait while we verify',
+            'Checking your browser',
+            'Just a moment',
+            'Security verification',
+            'Human verification',
+            'Captcha',
+            'reCAPTCHA',
+            'hCaptcha',
+            'Please complete the security check',
+            'Your request has been blocked',
+            'Access blocked',
+            'Suspicious activity detected',
+            'Please try again later',
+            'Service temporarily unavailable',
+            'Maintenance mode',
+            'Under maintenance'
         ];
+        
         foreach ($block_indicators as $indicator) {
             if (stripos($body, $indicator) !== false) {
                 $is_blocked_html = true;
+                $block_detected = $indicator;
                 break;
+            }
+        }
+        
+        // Additional checks for common bot detection patterns
+        if (!$is_blocked_html) {
+            // Check for empty or minimal content that might indicate blocking
+            if (strlen($body) < 1000 && (stripos($body, 'walmart') === false || stripos($body, 'search') === false)) {
+                $is_blocked_html = true;
+                $block_detected = 'Minimal content response';
+            }
+            
+            // Check for JSON error responses
+            if (stripos($body, '"error"') !== false && stripos($body, '"blocked"') !== false) {
+                $is_blocked_html = true;
+                $block_detected = 'JSON error response';
             }
         }
     }
 
     $should_retry_proxy = is_wp_error($response) || $http_code === 0 || in_array($http_code, $blocked_codes) || empty($body) || $is_blocked_html;
+    
+    // Log bot detection for debugging
+    if ($is_blocked_html || in_array($http_code, $blocked_codes)) {
+        error_log("[Walmart Bot Detection] HTTP Code: {$http_code}, Blocked HTML: " . ($is_blocked_html ? 'YES' : 'NO') . ", Detection: {$block_detected}");
+    }
 
     // If blocked or no response, retry with proxy
     if ($should_retry_proxy && defined('PS_DECODO_PROXY_HOST') && defined('PS_DECODO_PROXY_PORT')) {
+        error_log("[Walmart Proxy Retry] HTTP Code: {$http_code}, Blocked: " . ($is_blocked_html ? 'YES' : 'NO') . ", Detection: {$block_detected}");
+        
         $proxy_host = PS_DECODO_PROXY_HOST;
         $proxy_port = PS_DECODO_PROXY_PORT;
         $proxy_username = defined('PS_DECODO_USER_BASE') ? PS_DECODO_USER_BASE . '-country-' . $country : '';
         $proxy_password = defined('PS_DECODO_PASSWORD') ? PS_DECODO_PASSWORD : '';
+
+        error_log("[Walmart Proxy Retry] Using proxy: {$proxy_host}:{$proxy_port}, Username: {$proxy_username}");
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -298,7 +349,22 @@ function ps_fetch_walmart_search_results($url, $country = 'us') {
         ]);
         $body = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
         curl_close($ch);
+        
+        error_log("[Walmart Proxy Retry] Proxy response - HTTP Code: {$http_code}, Body length: " . strlen($body) . ", Curl error: " . ($curl_error ?: 'None'));
+        
+        // Check if proxy request was also blocked
+        if (!empty($body)) {
+            $proxy_blocked = false;
+            foreach ($block_indicators as $indicator) {
+                if (stripos($body, $indicator) !== false) {
+                    $proxy_blocked = true;
+                    error_log("[Walmart Proxy Retry] Proxy request also blocked by: {$indicator}");
+                    break;
+                }
+            }
+        }
     }
 
     // Save full HTML to logs/walmart_response_TIMESTAMP.html for debugging

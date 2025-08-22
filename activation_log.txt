@@ -1,0 +1,21 @@
+[2025-08-21 19:12:18] === PLUGIN LOADING STARTED ===
+[2025-08-21 19:12:18] Loading required files...
+[2025-08-21 19:12:18] common-utils.php loaded
+[2025-08-21 19:12:18] amazon-api.php loaded
+[2025-08-21 19:12:18] ebay-api.php loaded
+[2025-08-21 19:12:18] bestbuy-api.php loaded
+[2025-08-21 19:12:18] walmart-api.php loaded
+[2025-08-21 19:12:18] settings.php loaded
+[2025-08-21 19:12:18] parsing-test.php loaded
+[2025-08-21 19:12:18] amazon-proxy-test.php loaded
+[2025-08-21 19:12:18] ps-cache-check.php loaded
+[2025-08-21 19:12:18] seo-meta.php loaded
+[2025-08-21 19:12:18] debug-helper.php starting to load
+[2025-08-21 19:12:18] About to call ps_safe_init()...
+[2025-08-21 19:12:18] ps_safe_init() returned true, loading blocks...
+[2025-08-21 19:12:18] Loading blocks.php...
+[2025-08-21 19:12:18] blocks.php loaded successfully
+[2025-08-21 19:12:18] Loading block-patterns.php...
+[2025-08-21 19:12:18] block-patterns.php loaded successfully
+[2025-08-21 19:12:18] No output detected during plugin loading
+[2025-08-21 19:12:18] === PLUGIN LOADING COMPLETED ===

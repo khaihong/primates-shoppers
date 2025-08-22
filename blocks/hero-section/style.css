@@ -1,0 +1,100 @@
+/* Hero Section Block Styles */
+.wp-block-primates-shoppers-hero-section {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-hero-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-cta-button {
+    display: inline-block;
+    background: #ff6b6b;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-cta-button:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-hero-subtext {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-platform-logos {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-platform-logo img {
+    height: 30px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.wp-block-primates-shoppers-hero-section .ps-platform-logo img:hover {
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wp-block-primates-shoppers-hero-section .ps-hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .wp-block-primates-shoppers-hero-section .ps-hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .wp-block-primates-shoppers-hero-section .ps-platform-logos {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .wp-block-primates-shoppers-hero-section .ps-hero-section {
+        padding: 60px 15px;
+    }
+    
+    .wp-block-primates-shoppers-hero-section .ps-hero-title {
+        font-size: 2rem;
+    }
+} 
