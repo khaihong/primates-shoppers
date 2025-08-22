@@ -48,12 +48,23 @@
         const $deliveryNoneCheckbox = $('#ps-delivery-none-checkbox');
         const productTemplate = $('#ps-product-template').html();
         
-        // Make filter button the default action when pressing enter
+        // Handle Enter key press - trigger filter if cached results exist, otherwise allow new search
         $form.on('keypress', function(e) {
-            if (e.which === 13 && $filterButton.length && $filterButton.is(':visible')) {
-                e.preventDefault();
-                $filterButton.click();
-                return false;
+            if (e.which === 13) {
+                const hasCachedResults = originalCachedResults && originalCachedResults.length > 0;
+                
+                console.log('[Enter Key] Cached results:', hasCachedResults ? 'YES' : 'NO', 'Filter button visible:', $filterButton.is(':visible'));
+                
+                // If we have cached results and filter button is visible, trigger filter
+                if (hasCachedResults && $filterButton.length && $filterButton.is(':visible')) {
+                    console.log('[Enter Key] Triggering filter button');
+                    e.preventDefault();
+                    $filterButton.click();
+                    return false;
+                }
+                // If no cached results, allow the form submission to proceed (new search)
+                // The form submission handler will handle this case
+                console.log('[Enter Key] Allowing form submission for new search');
             }
         });
         
@@ -439,8 +450,14 @@
                 // If no price per unit or it's a placeholder, try to extract from title
                 // For non-Amazon platforms, only calculate if most Amazon products have unit prices
                 if (!hasPricePerUnit && processedItem.title && processedItem.price_value > 0) {
+                    // Debug logging for eBay unit price calculation
                     if (processedItem.platform === 'ebay') {
-
+                        console.log('[eBay Unit Price Debug] Processing:', {
+                            title: processedItem.title.substring(0, 100),
+                            price_value: processedItem.price_value,
+                            shouldCalculateUnitPrices: shouldCalculateUnitPrices,
+                            hasPricePerUnit: hasPricePerUnit
+                        });
                     }
                     
                     // For Amazon products, always try to calculate (existing behavior)
@@ -448,7 +465,20 @@
                     if (processedItem.platform === 'amazon' || shouldCalculateUnitPrices) {
                         const sizeInfo = extractSizeFromTitle(processedItem.title);
                         
+                        // Debug logging for size extraction
+                        if (processedItem.platform === 'ebay') {
+                            console.log('[eBay Unit Price Debug] Size extraction result:', sizeInfo);
+                        }
+                        
                                                 if (sizeInfo) {
+                            // Debug logging for successful size extraction
+                            if (processedItem.platform === 'ebay') {
+                                console.log('[eBay Unit Price Debug] Size info found:', {
+                                    originalSize: sizeInfo.value,
+                                    originalUnit: sizeInfo.unit
+                                });
+                            }
+                            
                             // Apply unit conversion to extracted size data
                             const originalSize = sizeInfo.value;
                             const originalUnit = sizeInfo.unit;
@@ -493,6 +523,15 @@
                             processedItem.price_per_unit = `${currencySymbol}${normalizedPrice.toFixed(2)}/${unitDisplay}`;
                             processedItem.price_per_unit_value = normalizedPrice; // Update the value used for sorting
                             processedItem.unit = unitDisplay;
+                            
+                            // Debug logging for final unit price calculation
+                            if (processedItem.platform === 'ebay') {
+                                console.log('[eBay Unit Price Debug] Final unit price calculated:', {
+                                    price_per_unit: processedItem.price_per_unit,
+                                    price_per_unit_value: processedItem.price_per_unit_value,
+                                    unit: processedItem.unit
+                                });
+                            }
                             
 
                             
@@ -2365,11 +2404,21 @@
         document.getElementById('ps-search-form').addEventListener('submit', function(e) {
             e.preventDefault();
                     
-            // Only proceed if the submit button was clicked
-            const activeElement = document.activeElement;
-            if (!activeElement || activeElement.type !== 'submit') {
-                return;
+            // Check if we have cached results
+            const hasCachedResults = originalCachedResults && originalCachedResults.length > 0;
+            
+            // Log the submission attempt for debugging
+            console.log('[Form Submit] Cached results:', hasCachedResults ? 'YES' : 'NO', 'Active element:', document.activeElement?.type);
+            
+            // If we have cached results, only proceed if the submit button was clicked
+            if (hasCachedResults) {
+                const activeElement = document.activeElement;
+                if (!activeElement || activeElement.type !== 'submit') {
+                    console.log('[Form Submit] Blocked - cached results exist but submit button not clicked');
+                    return;
+                }
             }
+            // If no cached results, allow Enter key presses to trigger new search
 
             // Check if cooldown is active
             if (searchCooldownActive || loadButtonCooldownActive) {
@@ -2569,10 +2618,6 @@
                             sortByElem.value = 'price';
                         }
                         
-                        // Check if we should default to unit price sorting based on current search results
-                        logToServer('Live Search: Starting fresh analysis for unit price sorting');
-                        const sortingChanged = calculateAndSaveDefaultSorting(products);
-                        
                         // Auto-apply current filter values from the form
                         const currentIncludeText = query; // The search query is the include text
                         const currentExcludeText = excludeKeywords;
@@ -2583,11 +2628,27 @@
                             filteredProducts = filterProducts(products, currentExcludeText, currentIncludeText, currentMinRating);
                         }
                         
+                        // Process products to calculate unit prices BEFORE auto-sort detection
+                        const processedProducts = processProductItems(filteredProducts);
+                        
+                        // Check if we should default to unit price sorting based on PROCESSED search results
+                        logToServer('Live Search: Starting fresh analysis for unit price sorting on processed products');
+                        const sortingChanged = calculateAndSaveDefaultSorting(processedProducts);
+                        
                         // Get the current sort value (might have been changed by calculateAndSaveDefaultSorting)
                         const currentSortBy = sortByElem ? sortByElem.value : 'price';
-                        const sortedProducts = sortProducts(filteredProducts, currentSortBy);
+                        const sortedProducts = sortProducts(processedProducts, currentSortBy);
                         currentSearchResults = sortedProducts;
                         renderProducts(sortedProducts);
+                        
+                        // Log the final processed products for debugging
+                        console.log('[eBay Auto-Sort Debug] Final processed products with unit prices:', 
+                            processedProducts.filter(p => p.platform === 'ebay').map(p => ({
+                                title: p.title.substring(0, 50) + '...',
+                                price_per_unit_value: p.price_per_unit_value,
+                                hasUnitPrice: p.price_per_unit_value > 0
+                            }))
+                        );
                         
                         // Reset the flag and show the results count for live searches
                         isAfterLiveSearch = false;
@@ -2737,21 +2798,61 @@
             }
             
             let itemsWithUnitPrice = 0;
+            let amazonItemsWithUnitPrice = 0;
+            let ebayItemsWithUnitPrice = 0;
+            let walmartItemsWithUnitPrice = 0;
             const debugItems = [];
             
             items.forEach(function(item, index) {
-                // A product has unit price if it has a meaningful unit (not "No unit") 
-                // AND a valid price_per_unit_value > 0
-                const hasUnitPrice = item.price_per_unit && 
-                    item.price_per_unit_value && 
-                    parseFloat(item.price_per_unit_value) > 0 &&
-                    item.price_per_unit !== '' &&
-                    item.price_per_unit !== 'N/A' &&
-                    item.price_per_unit !== 'No unit price' &&
-                    item.unit &&
-                    item.unit !== 'No unit' &&
-                    item.unit !== '' &&
-                    item.unit !== 'N/A';
+                const platform = item.platform || 'unknown';
+                let hasUnitPrice = false;
+                
+                // Different criteria for different platforms
+                if (platform === 'amazon') {
+                    // Amazon: Requires both price_per_unit and unit to be valid
+                    hasUnitPrice = item.price_per_unit && 
+                        item.price_per_unit_value && 
+                        parseFloat(item.price_per_unit_value) > 0 &&
+                        item.price_per_unit !== '' &&
+                        item.price_per_unit !== 'N/A' &&
+                        item.price_per_unit !== 'No unit price' &&
+                        item.unit &&
+                        item.unit !== 'No unit' &&
+                        item.unit !== '' &&
+                        item.unit !== 'N/A';
+                    
+                    if (hasUnitPrice) amazonItemsWithUnitPrice++;
+                } else if (platform === 'ebay' || platform === 'walmart') {
+                    // eBay/Walmart: More lenient - just need price_per_unit_value > 0
+                    // These platforms often calculate unit prices from titles even without explicit unit data
+                    hasUnitPrice = item.price_per_unit_value && 
+                        parseFloat(item.price_per_unit_value) > 0 &&
+                        item.price_per_unit_value !== 0;
+                    
+                    if (platform === 'ebay' && hasUnitPrice) ebayItemsWithUnitPrice++;
+                    if (platform === 'walmart' && hasUnitPrice) walmartItemsWithUnitPrice++;
+                    
+                    // Debug logging for eBay unit price detection
+                    if (platform === 'ebay') {
+                        console.log('[eBay Auto-Sort Debug] Item analysis:', {
+                            title: item.title ? item.title.substring(0, 50) + '...' : 'No title',
+                            price_per_unit_value: item.price_per_unit_value,
+                            hasUnitPrice: hasUnitPrice
+                        });
+                    }
+                } else {
+                    // Other platforms: Use the original strict criteria
+                    hasUnitPrice = item.price_per_unit && 
+                        item.price_per_unit_value && 
+                        parseFloat(item.price_per_unit_value) > 0 &&
+                        item.price_per_unit !== '' &&
+                        item.price_per_unit !== 'N/A' &&
+                        item.price_per_unit !== 'No unit price' &&
+                        item.unit &&
+                        item.unit !== 'No unit' &&
+                        item.unit !== '' &&
+                        item.unit !== 'N/A';
+                }
                 
                 if (hasUnitPrice) {
                     itemsWithUnitPrice++;
@@ -2761,6 +2862,7 @@
                 if (index < 10) {
                     debugItems.push({
                         index: index,
+                        platform: platform,
                         title: item.title ? item.title.substring(0, 50) + '...' : 'No title',
                         price: item.price || 'No price',
                         price_value: item.price_value || 0,
@@ -2773,7 +2875,7 @@
             });
             
             const percentage = itemsWithUnitPrice / items.length;
-            const shouldDefault = percentage > 0.6;
+            const shouldDefault = percentage > 0.5; // Lowered threshold from 0.6 to 0.5
             
             // Log detailed analysis to server
             logToServer('Unit Price Analysis After Live Search', {
@@ -2781,10 +2883,11 @@
                 itemsWithUnitPrice: itemsWithUnitPrice,
                 percentage: Math.round(percentage * 100),
                 shouldDefaultToUnitPrice: shouldDefault,
+                amazonItemsWithUnitPrice: amazonItemsWithUnitPrice,
+                ebayItemsWithUnitPrice: ebayItemsWithUnitPrice,
+                walmartItemsWithUnitPrice: walmartItemsWithUnitPrice,
                 sampleItems: debugItems
             });
-            
-
             
             return shouldDefault;
         }
