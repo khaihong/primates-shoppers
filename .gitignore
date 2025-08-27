@@ -59,3 +59,6 @@ uploads/
 # Uncomment as needed:
 # sensitive-config.php
 # private-keys/
+
+# response files
+*response*.html
