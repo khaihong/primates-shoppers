@@ -1,0 +1,61 @@
+# WordPress Plugin .gitignore
+
+# Log files
+logs/
+*.log
+error_log.txt
+
+# Cache files
+cache/
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if using npm/yarn)
+node_modules/
+package-lock.json
+
+# Composer dependencies
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Backup files
+*.bak
+*.backup
+
+# Debug files
+debug/
+samples/
+amazon_response_*.html
+
+# WordPress specific
+wp-config-local.php
+uploads/
+
+# Custom exclusions for this plugin
+# Uncomment as needed:
+# sensitive-config.php
+# private-keys/
