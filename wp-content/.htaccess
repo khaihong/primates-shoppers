@@ -1,0 +1,49 @@
+# WordPress Security - Protect sensitive files
+# Deny access to debug log files
+<Files "debug.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to wp-config.php
+<Files "wp-config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to error logs
+<Files "error_log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to backup files
+<Files "*.backup">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.bak">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to response files
+<Files "*response*.html">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Disable directory browsing
+Options -Indexes
+
+# Deny access to PHP files in uploads directory
+<Files "*.php">
+    Order allow,deny
+    Deny from all
+</Files> 

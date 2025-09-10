@@ -5,6 +5,10 @@ logs/
 *.log
 error_log.txt
 
+# Secure debug logs directory
+../debug-logs/
+debug-logs/
+
 # Cache files
 cache/
 *.cache
@@ -49,7 +53,6 @@ vendor/
 # Debug files
 debug/
 samples/
-amazon_response_*.html
 
 # WordPress specific
 wp-config-local.php

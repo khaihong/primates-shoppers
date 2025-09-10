@@ -1524,21 +1524,29 @@ function ps_sanitize_html_for_parsing($html) {
 }
 
 /**
- * Log errors to the error log
+ * Log errors to the error log (SECURE VERSION)
  * 
  * @param string $message The message to log
  */
 function ps_log_error($message) {
-    $logs_dir = PS_PLUGIN_DIR . 'logs';
-    if (!file_exists($logs_dir)) {
-        mkdir($logs_dir, 0755, true);
+    // Only log if WP_DEBUG is enabled
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
     }
     
-    $error_log_file = $logs_dir . '/error_log.txt';
+    // Use secure debug logs directory outside web root access
+    $logs_dir = ABSPATH . 'wp-content/debug-logs';
+    if (!file_exists($logs_dir)) {
+        mkdir($logs_dir, 0750, true); // More restrictive permissions
+    }
+    
+    $error_log_file = $logs_dir . '/primates-shoppers.log';
     $timestamp = date('Y-m-d H:i:s');
     $log_entry = "[{$timestamp}] {$message}" . PHP_EOL;
     
+    // Use more secure file writing with better permissions
     file_put_contents($error_log_file, $log_entry, FILE_APPEND | LOCK_EX);
+    chmod($error_log_file, 0640); // Read/write for owner, read for group, no access for others
 }
 
 /**
